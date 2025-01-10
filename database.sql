@@ -31,9 +31,9 @@ CREATE TABLE Map (
 CREATE TABLE Settlement (
     settlementId INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    wood INT NOT NULL DEFAULT 1000,
-    stone INT NOT NULL DEFAULT 1000,
-    ore INT NOT NULL DEFAULT 1000,
+    wood FLOAT NOT NULL DEFAULT 1000.0,
+    stone FLOAT NOT NULL DEFAULT 1000.0,
+    ore FLOAT NOT NULL DEFAULT 1000.0,
     playerId INT NOT NULL,
     FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
 );
@@ -48,35 +48,17 @@ CREATE TABLE Buildings (
     UNIQUE (settlementId, buildingType)
 );
 
--- Tabelle: BuildingConfig
+-- Tabelle: BuildingConfig 
+DROP TABLE IF EXISTS BuildingConfig;
 CREATE TABLE BuildingConfig (
-    configId INT AUTO_INCREMENT PRIMARY KEY,
     buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk') NOT NULL,
     level INT NOT NULL,
-    costWood INT NOT NULL,
-    costStone INT NOT NULL,
-    costOre INT NOT NULL,
-    productionRate INT NOT NULL,
-    UNIQUE (buildingType, level)
+    costWood FLOAT NOT NULL,
+    costStone FLOAT NOT NULL,
+    costOre FLOAT NOT NULL,
+    productionRate FLOAT NOT NULL,
+    PRIMARY KEY (buildingType, level)
 );
-
--- Beispiel-Daten für BuildingConfig
-INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate) VALUES
-    ('Holzfäller', 1, 100, 50, 0, 10),
-    ('Holzfäller', 2, 200, 100, 0, 20),
-    ('Holzfäller', 3, 300, 150, 0, 35),
-    ('Holzfäller', 4, 400, 200, 0, 50),
-    ('Holzfäller', 5, 500, 250, 0, 70),
-    ('Steinbruch', 1, 150, 100, 0, 8),
-    ('Steinbruch', 2, 300, 200, 0, 18),
-    ('Steinbruch', 3, 450, 300, 0, 30),
-    ('Steinbruch', 4, 600, 400, 0, 45),
-    ('Steinbruch', 5, 750, 500, 0, 65),
-    ('Erzbergwerk', 1, 200, 150, 50, 5),
-    ('Erzbergwerk', 2, 400, 300, 100, 12),
-    ('Erzbergwerk', 3, 600, 450, 150, 22),
-    ('Erzbergwerk', 4, 800, 600, 200, 35),
-    ('Erzbergwerk', 5, 1000, 750, 250, 50);
 
 -- Prozedur: Spieler erstellen und initialisieren
 DELIMITER //
@@ -112,28 +94,47 @@ BEGIN
 END //
 DELIMITER ;
 
-DROP EVENT IF EXISTS UpdateResources;
 
--- Event: Ressourcen in der Siedlung aktualisieren
+-- Event, zum updaten der resourcen
+DROP EVENT IF EXISTS UpdateResources;
 DELIMITER //
 CREATE EVENT UpdateResources
 ON SCHEDULE EVERY 1 SECOND
 DO
 BEGIN
+    -- Debugging-Logik hinzufügen, falls notwendig (nur für Testzwecke)
+    -- INSERT INTO DebugLog (message, createdAt) VALUES ('Event executed', NOW());
+    
+    -- Ressourcen aktualisieren
     UPDATE Settlement s
-    JOIN Buildings b ON s.settlementId = b.settlementId
-    JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
-    SET
-        s.wood = s.wood + (CASE WHEN b.buildingType = 'Holzfäller' THEN bc.productionRate ELSE 0 END),
-        s.stone = s.stone + (CASE WHEN b.buildingType = 'Steinbruch' THEN bc.productionRate  ELSE 0 END),
-        s.ore = s.ore + (CASE WHEN b.buildingType = 'Erzbergwerk' THEN bc.productionRate ELSE 0 END)
-    WHERE s.settlementId = b.settlementId;
+    SET 
+        s.wood = s.wood + (
+            SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
+            FROM Buildings b
+            JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Holzfäller'
+        ),
+        s.stone = s.stone + (
+            SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
+            FROM Buildings b
+            JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Steinbruch'
+        ),
+        s.ore = s.ore + (
+            SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
+            FROM Buildings b
+            JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Erzbergwerk'
+        );
 END //
 DELIMITER ;
 
-DROP PROCEDURE IF EXISTS UpgradeBuilding;
+ALTER EVENT UpdateResources ENABLE;
+SHOW EVENTS LIKE 'UpdateResources';
+
 
 -- Prozedur: Gebäude upgraden
+DROP PROCEDURE IF EXISTS UpgradeBuilding;
 DELIMITER //
 CREATE PROCEDURE UpgradeBuilding (
     IN inSettlementId INT,
@@ -180,10 +181,92 @@ BEGIN
 END //
 DELIMITER ;
 
+--Dynamische Einfügeoperation mit den Anforderungen
+DELIMITER //
+DROP PROCEDURE IF EXISTS PopulateBuildingConfig;
+CREATE PROCEDURE PopulateBuildingConfig()
+BEGIN
+    DECLARE lvl INT;
+    DECLARE maxLvl INT DEFAULT 50;
+    DECLARE baseCostWood FLOAT DEFAULT 100.0;
+    DECLARE baseCostStone FLOAT DEFAULT 100.0;
+    DECLARE baseCostOre FLOAT DEFAULT 100.0;
+    DECLARE baseProduction FLOAT DEFAULT 3600.0;
+
+    -- Holzfäller
+    SET lvl = 1;
+    WHILE lvl <= maxLvl DO
+        INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
+        VALUES (
+            'Holzfäller',
+            lvl,
+            baseCostWood,
+            baseCostStone / 2,  -- Stein kostet nur die Hälfte
+            baseCostOre,
+            baseProduction
+        );
+        SET baseCostWood = baseCostWood * 1.2;  -- Kosten steigen um 20%
+        SET baseCostStone = baseCostStone * 1.2;
+        SET baseCostOre = baseCostOre * 1.2;
+        SET baseProduction = baseProduction * 1.15;  -- Produktionsrate steigt um 15%
+        SET lvl = lvl + 1;
+    END WHILE;
+
+    -- Steinbruch
+    SET lvl = 1;
+    SET baseCostWood = 100;
+    SET baseCostStone = 100;
+    SET baseCostOre = 100;
+    SET baseProduction = 3600;
+    WHILE lvl <= maxLvl DO
+        INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
+        VALUES (
+            'Steinbruch',
+            lvl,
+            baseCostWood / 2,  -- Holz kostet nur die Hälfte
+            baseCostStone,
+            baseCostOre,
+            baseProduction
+        );
+        SET baseCostWood = baseCostWood * 1.2;
+        SET baseCostStone = baseCostStone * 1.2;
+        SET baseCostOre = baseCostOre * 1.2;
+        SET baseProduction = baseProduction * 1.15;
+        SET lvl = lvl + 1;
+    END WHILE;
+
+    -- Erzbergwerk
+    SET lvl = 1;
+    SET baseCostWood = 100;
+    SET baseCostStone = 100;
+    SET baseCostOre = 100;
+    SET baseProduction = 3600;
+    WHILE lvl <= maxLvl DO
+        INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
+        VALUES (
+            'Erzbergwerk',
+            lvl,
+            baseCostWood,
+            baseCostStone / 2,  -- Stein kostet nur die Hälfte
+            baseCostOre,
+            baseProduction
+        );
+        SET baseCostWood = baseCostWood * 1.2;
+        SET baseCostStone = baseCostStone * 1.2;
+        SET baseCostOre = baseCostOre * 1.2;
+        SET baseProduction = baseProduction * 1.15;
+        SET lvl = lvl + 1;
+    END WHILE;
+END //
+DELIMITER ;
 
 -- Funktionen
 
 CALL UpgradeBuilding(5, 'Holzfäller');
 CALL CreatePlayerWithSettlement('Chris');
+CALL PopulateBuildingConfig();
+select * from BuildingConfig;
 
+UPDATE Settlement SET wood = 1000, stone = 1000, ore = 1000;
 
+UPDATE Buildings SET level = 1;
