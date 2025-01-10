@@ -1,104 +1,92 @@
 <?php
+require_once 'database.php';
+header('Content-Type: text/html; charset=utf-8');
 
-// Header für JSON-Antwort
-header('Content-Type: application/json');
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-// Simulierte Datenbank (in einer echten Anwendung durch Datenbankzugriff ersetzen)
-$resources = [
-    'holz' => 100,
-    'stein' => 200,
-    'erz' => 150,
-];
+// Funktion zum Laden der Daten aus der Datenbank und zum Formatieren für das Frontend
+function fetchResources($settlementId) {
+    $database = new Database();
+    $resources = $database->getResources($settlementId);
 
-$buildings = [
-    'holzfaeller' => ['level' => 1, 'productionRate' => 1, 'upgradeCost' => ['holz' => 50, 'stein' => 30, 'erz' => 20]],
-    'steinbruch' => ['level' => 1, 'productionRate' => 1, 'upgradeCost' => ['holz' => 30, 'stein' => 50, 'erz' => 25]],
-    'erzbergwerk' => ['level' => 1, 'productionRate' => 1, 'upgradeCost' => ['holz' => 40, 'stein' => 30, 'erz' => 50]],
-];
-
-// Letztes Update-Zeitstempel
-$lastUpdate = time();
-
-// Funktion zum Aktualisieren der Ressourcen basierend auf Produktionsraten
-function updateResources(&$resources, $buildings, $lastUpdate) {
-    $currentTime = time();
-    $elapsedTime = $currentTime - $lastUpdate;
-
-    foreach ($buildings as $building) {
-        foreach ($resources as $resource => &$amount) {
-            if (isset($building['productionRate'])) {
-                $amount += $building['productionRate'] * $elapsedTime * $building['level'];
-            }
-        }
+    if (!$resources) {
+        return ['error' => 'Ressourcen konnten nicht abgerufen werden.'];
     }
-
-    return $currentTime;
-}
-
-// Funktion zum Laden der Daten
-function getData($resources, $buildings) {
     return [
-        'resources' => $resources,
-        'buildings' => array_map(function ($building) {
-            return [
-                'level' => $building['level'], 
-                'productionRate' => $building['productionRate'], 
-                'upgradeCost' => $building['upgradeCost']
-            ];
-        }, $buildings),
+        'resources' => [
+            'wood' => $resources['wood'],
+            'stone' => $resources['stone'],
+            'ore' => $resources['ore']
+        ]
     ];
 }
 
-// Funktion zum Upgrade eines Gebäudes
-function upgradeBuilding($buildingName, &$resources, &$buildings) {
-    if (!isset($buildings[$buildingName])) {
-        return ['success' => false, 'message' => 'Ungültiges Gebäude'];
+// Funktion zum Laden der Gebäudeinformationen
+function fetchBuilding($settlementId, $buildingType) {
+    $database = new Database();
+    $building = $database->getBuilding($settlementId, $buildingType);
+
+    if (!$building) {
+        return ['error' => "Gebäude $buildingType konnte nicht abgerufen werden."];
+    }
+    return [
+        'level' => $building['level'],
+        'costWood' => $building['costWood'],
+        'costStone' => $building['costStone'],
+        'costOre' => $building['costOre']
+    ];
+}
+
+function handleBuildingUpgrade($settlementId, $input) {
+    $buildingType = $input['buildingType'] ?? null;
+
+    $database = new Database();
+
+    if (!$settlementId || !$buildingType) {
+        return json_encode(['error' => 'Parameter settlementId oder buildingType fehlt.']);
     }
 
-    $building = $buildings[$buildingName];
-    $cost = $building['upgradeCost'];
+    // Datenbankzugriff und Upgrade
+    $success = $database->upgradeBuilding($settlementId, $buildingType);
 
-    // Prüfen, ob genügend Ressourcen vorhanden sind
-    foreach ($cost as $resource => $amount) {
-        if ($resources[$resource] < $amount) {
-            return ['success' => false, 'message' => 'Nicht genügend Ressourcen'];
-        }
+    if ($success) {
+        return json_encode(['success' => true, 'message' => "$buildingType wurde erfolgreich aufgewertet."]);
+    } else {
+        return json_encode(['success' => false, 'message' => "$buildingType konnte nicht aufgewertet werden."]);
     }
-
-    // Ressourcen abziehen
-    foreach ($cost as $resource => $amount) {
-        $resources[$resource] -= $amount;
-    }
-
-    // Gebäude upgraden
-    $buildings[$buildingName]['level']++;
-    $buildings[$buildingName]['productionRate']++;
-    $buildings[$buildingName]['upgradeCost'] = array_map(function ($cost) {
-        return (int)($cost * 1.5); // Upgrade-Kosten steigen
-    }, $cost);
-
-    return ['success' => true, 'message' => 'Gebäude erfolgreich geupgraded'];
 }
 
 // Eingehende Anfrage verarbeiten
 $method = $_SERVER['REQUEST_METHOD'];
-$lastUpdate = updateResources($resources, $buildings, $lastUpdate);
+$settlementId = $_GET['settlementId'] ?? null;
+$buildingType = $_GET['buildingType'] ?? null;
 
-if ($method === 'GET') {
-    // Ressourcen und Gebäudeinformationen zurückgeben
-    echo json_encode(getData($resources, $buildings));
-} elseif ($method === 'POST') {
-    // JSON-Daten aus dem Request lesen
-    $input = json_decode(file_get_contents('php://input'), true);
+try {
+    if ($method === 'GET') {
+        if (!$settlementId) {
+            echo json_encode(['error' => 'Parameter settlementId fehlt.']);
+            exit;
+        }
 
-    if (isset($input['building'])) {
-        $result = upgradeBuilding($input['building'], $resources, $buildings);
-        echo json_encode($result);
+        // Wenn buildingType gesetzt ist, Gebäudeinformationen hinzufügen
+        if (!$buildingType) {
+            $response = ['resources' => fetchResources($settlementId)];
+        } else {
+            $response['building'] = fetchBuilding($settlementId, $buildingType);
+        }
+
+        echo json_encode($response);
+    } elseif ($method === 'POST') {
+        // Upgrade-Building-Logik auslagern
+        $input = json_decode(file_get_contents('php://input'), true);
+        echo handleBuildingUpgrade($settlementId, $input);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Ungültige Anfrage']);
+        echo json_encode(['success' => false, 'message' => 'Methode nicht unterstützt.']);
     }
-} else {
-    echo json_encode(['success' => false, 'message' => 'Methode nicht unterstützt']);
+} catch (Exception $e) {
+    echo json_encode(['error' => 'Interner Serverfehler: ' . $e->getMessage()]);
 }
 
 ?>

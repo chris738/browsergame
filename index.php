@@ -31,19 +31,19 @@
                     <th>Gebäude</th>
                     <th>Stufe</th>
                     <th>Kosten</th>
-                    <th style="text-align: right;">Aktion</th>
+                    <th>Aktion</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>Holzfäller</td>
-                    <td><span id="holzfaeller">0</span></td>
+                    <td><span id="holzfäller">0</span></td>
                     <td>
-                        <span id="holzfaellerKostenHolz">0 Holz</span>, 
-                        <span id="holzfaellerKostenStein">0 Stein</span>,
-                        <span id="holzfaellerKostenErz">0 Erz</span>
+                        <span id="holzfällerKostenHolz">0 Holz</span>, 
+                        <span id="holzfällerKostenStein">0 Stein</span>,
+                        <span id="holzfällerKostenErz">0 Erz</span>
                     </td>
-                    <td style="text-align: right;"><button onclick="upgradeBuilding('holzfaeller')">Upgrade</button></td>
+                    <td style="text-align: right;"><button onclick="upgradeBuilding('holzfäller')">Upgrade</button></td>
                 </tr>
                 <tr>
                     <td>Steinbruch</td>

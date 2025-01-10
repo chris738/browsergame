@@ -62,21 +62,21 @@ CREATE TABLE BuildingConfig (
 
 -- Beispiel-Daten für BuildingConfig
 INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate) VALUES
-('Holzfäller', 1, 100, 50, 0, 10),
-('Holzfäller', 2, 200, 100, 0, 20),
-('Holzfäller', 3, 300, 150, 0, 35),
-('Holzfäller', 4, 400, 200, 0, 50),
-('Holzfäller', 5, 500, 250, 0, 70),
-('Steinbruch', 1, 150, 100, 0, 8),
-('Steinbruch', 2, 300, 200, 0, 18),
-('Steinbruch', 3, 450, 300, 0, 30),
-('Steinbruch', 4, 600, 400, 0, 45),
-('Steinbruch', 5, 750, 500, 0, 65),
-('Erzbergwerk', 1, 200, 150, 50, 5),
-('Erzbergwerk', 2, 400, 300, 100, 12),
-('Erzbergwerk', 3, 600, 450, 150, 22),
-('Erzbergwerk', 4, 800, 600, 200, 35),
-('Erzbergwerk', 5, 1000, 750, 250, 50);
+    ('Holzfäller', 1, 100, 50, 0, 10),
+    ('Holzfäller', 2, 200, 100, 0, 20),
+    ('Holzfäller', 3, 300, 150, 0, 35),
+    ('Holzfäller', 4, 400, 200, 0, 50),
+    ('Holzfäller', 5, 500, 250, 0, 70),
+    ('Steinbruch', 1, 150, 100, 0, 8),
+    ('Steinbruch', 2, 300, 200, 0, 18),
+    ('Steinbruch', 3, 450, 300, 0, 30),
+    ('Steinbruch', 4, 600, 400, 0, 45),
+    ('Steinbruch', 5, 750, 500, 0, 65),
+    ('Erzbergwerk', 1, 200, 150, 50, 5),
+    ('Erzbergwerk', 2, 400, 300, 100, 12),
+    ('Erzbergwerk', 3, 600, 450, 150, 22),
+    ('Erzbergwerk', 4, 800, 600, 200, 35),
+    ('Erzbergwerk', 5, 1000, 750, 250, 50);
 
 -- Prozedur: Spieler erstellen und initialisieren
 DELIMITER //
@@ -106,9 +106,9 @@ BEGIN
 
     -- Gebäude erstellen
     INSERT INTO Buildings (settlementId, buildingType) VALUES
-    (newSettlementId, 'Holzfäller'),
-    (newSettlementId, 'Steinbruch'),
-    (newSettlementId, 'Erzbergwerk');
+        (newSettlementId, 'Holzfäller'),
+        (newSettlementId, 'Steinbruch'),
+        (newSettlementId, 'Erzbergwerk');
 END //
 DELIMITER ;
 
@@ -122,16 +122,68 @@ DO
 BEGIN
     UPDATE Settlement s
     JOIN Buildings b ON s.settlementId = b.settlementId
-    JOIN BuildingConfig bc ON b.type = bc.buildingType AND b.level = bc.level
+    JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
     SET
-        s.wood = s.wood + (CASE WHEN b.buildingType = 'Holzfäller' THEN bc.productionRate ELSE 1 END),
-        s.stone = s.stone + (CASE WHEN b.buildingType = 'Steinbruch' THEN bc.productionRate  ELSE 1 END),
-        s.ore = s.ore + (CASE WHEN b.buildingType = 'Erzbergwerk' THEN bc.productionRate ELSE 1 END)
+        s.wood = s.wood + (CASE WHEN b.buildingType = 'Holzfäller' THEN bc.productionRate ELSE 0 END),
+        s.stone = s.stone + (CASE WHEN b.buildingType = 'Steinbruch' THEN bc.productionRate  ELSE 0 END),
+        s.ore = s.ore + (CASE WHEN b.buildingType = 'Erzbergwerk' THEN bc.productionRate ELSE 0 END)
     WHERE s.settlementId = b.settlementId;
 END //
 DELIMITER ;
 
+DROP PROCEDURE IF EXISTS UpgradeBuilding;
 
+-- Prozedur: Gebäude upgraden
+DELIMITER //
+CREATE PROCEDURE UpgradeBuilding (
+    IN inSettlementId INT,
+    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk')
+)
+BEGIN
+    DECLARE currentBuildingLevel INT;
+    DECLARE nextLevelWoodCost INT;
+    DECLARE nextLevelStoneCost INT;
+    DECLARE nextLevelOreCost INT;
+
+    -- Aktuelles Level des Gebäudes abrufen
+    SELECT b.level INTO currentBuildingLevel
+    FROM Buildings b
+    WHERE b.settlementId = inSettlementId AND b.BuildingType = inBuildingType
+    LIMIT 1;
+
+    -- Kosten für das nächste Level abrufen
+    SELECT bc.costWood, bc.costStone, bc.costOre INTO nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost
+    FROM BuildingConfig bc
+    WHERE bc.buildingType = inBuildingType AND bc.level = currentBuildingLevel + 1
+    LIMIT 3;
+
+    -- Überprüfen, ob genug Ressourcen vorhanden sind
+    IF (SELECT s.wood FROM Settlement s WHERE s.settlementId = inSettlementId) >= nextLevelWoodCost AND
+       (SELECT s.stone FROM Settlement s WHERE s.settlementId = inSettlementId) >= nextLevelStoneCost AND
+       (SELECT s.ore FROM Settlement s WHERE s.settlementId = inSettlementId) >= nextLevelOreCost THEN
+
+        -- Ressourcen abziehen
+        UPDATE Settlement s
+        SET s.wood = s.wood - nextLevelWoodCost,
+            s.stone = s.stone - nextLevelStoneCost,
+            s.ore = s.ore - nextLevelOreCost
+        WHERE s.settlementId = inSettlementId;
+
+        -- Gebäudelevel erhöhen
+        UPDATE Buildings b
+        SET b.level = b.level + 1
+        WHERE b.settlementId = inSettlementId AND b.BuildingType = inBuildingType;
+    ELSE
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Nicht genügend Ressourcen für das Upgrade';
+    END IF;
+END //
+DELIMITER ;
+
+
+-- Funktionen
+
+CALL UpgradeBuilding(5, 'Holzfäller');
 CALL CreatePlayerWithSettlement('Chris');
 
 
