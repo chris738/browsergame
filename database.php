@@ -23,7 +23,23 @@ class Database implements DatabaseInterface {
     }
 
     public function getResources($settlementId) {
-        $sql = "SELECT wood, stone, ore FROM Settlement WHERE settlementId = :settlementId";
+        $sql = "
+            SELECT 
+                s.wood, 
+                s.stone, 
+                s.ore, 
+                (
+                    SELECT IFNULL(SUM(bc.productionRate), 0)
+                    FROM Buildings b
+                    INNER JOIN BuildingConfig bc 
+                    ON b.buildingType = bc.buildingType AND b.level = bc.level
+                    WHERE b.settlementId = :settlementId AND b.buildingType = 'Lager'
+                ) AS storageCapacity
+            FROM 
+                Settlement s
+            WHERE 
+                s.settlementId = :settlementId";
+        
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
         $stmt->execute();

@@ -18,8 +18,9 @@ function fetchResources($settlementId) {
         'resources' => [
             'wood' => $resources['wood'],
             'stone' => $resources['stone'],
-            'ore' => $resources['ore']
-        ]
+            'ore' => $resources['ore'],
+            'storageCapacity' => $resources['storageCapacity']
+        ],
     ];
 }
 

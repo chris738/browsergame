@@ -3,8 +3,7 @@ function formatNumberWithDots(number) {
     return roundedNumber.toLocaleString('de-DE'); // Formatierung für Deutschland
 }
 
-function fetchResources() {
-    const settlementId = 5; // Beispiel-Siedlungs-ID
+function fetchResources(settlementId) {
     fetch(`backend.php?settlementId=${settlementId}`)
         .then(response => response.json())
         .then(data => {
@@ -12,15 +11,13 @@ function fetchResources() {
                 document.getElementById('holz').textContent = formatNumberWithDots(data.resources.resources.wood);
                 document.getElementById('stein').textContent = formatNumberWithDots(data.resources.resources.stone);
                 document.getElementById('erz').textContent = formatNumberWithDots(data.resources.resources.ore);
+                document.getElementById('lagerKapazität').textContent = formatNumberWithDots(data.resources.resources.storageCapacity);
             }
         })
         .catch(error => console.error('Fehler beim Abrufen der Daten:', error));
 }
 
-function fetchBuildings() {
-    const settlementId = 5; // Beispiel-Siedlungs-ID
-    const buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk'];
-
+function fetchBuildings(settlementId, buildingTypes) {
     buildingTypes.forEach(buildingType => {
         fetch(`backend.php?settlementId=${settlementId}&buildingType=${buildingType}`)
             .then(response => response.json())
@@ -64,11 +61,14 @@ function upgradeBuilding(buildingType) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    const settlementId = 5; // Beispiel-Siedlungs-ID
+    const buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager'];
+
     // Ressourcen jede Sekunde aktualisieren
-    fetchResources();
+    fetchResources(settlementId);
     setInterval(fetchResources, 1000);
 
     // Gebäudedaten einmal pro Minute aktualisieren
-    fetchBuildings();
+    fetchBuildings(settlementId, buildingTypes);
     setInterval(fetchBuildings, 60000); // 60000ms = 1 Minute
 });

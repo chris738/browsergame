@@ -34,24 +34,25 @@ CREATE TABLE Settlement (
     wood FLOAT NOT NULL DEFAULT 1000.0,
     stone FLOAT NOT NULL DEFAULT 1000.0,
     ore FLOAT NOT NULL DEFAULT 1000.0,
+    storageCapacity FLOAT NOT NULL DEFAULT 5000.0,
     playerId INT NOT NULL,
     FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
 );
 
 -- Tabelle: Buildings
 CREATE TABLE Buildings (
-    buildingId INT AUTO_INCREMENT PRIMARY KEY,
     settlementId INT NOT NULL,
-    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk') NOT NULL,
+    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager') NOT NULL,
     level INT NOT NULL DEFAULT 1,
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
-    UNIQUE (settlementId, buildingType)
+    PRIMARY KEY (settlementId, buildingType)
 );
+
 
 -- Tabelle: BuildingConfig 
 DROP TABLE IF EXISTS BuildingConfig;
 CREATE TABLE BuildingConfig (
-    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk') NOT NULL,
+    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager') NOT NULL,
     level INT NOT NULL,
     costWood FLOAT NOT NULL,
     costStone FLOAT NOT NULL,
@@ -102,32 +103,46 @@ CREATE EVENT UpdateResources
 ON SCHEDULE EVERY 1 SECOND
 DO
 BEGIN
-    -- Debugging-Logik hinzufügen, falls notwendig (nur für Testzwecke)
-    -- INSERT INTO DebugLog (message, createdAt) VALUES ('Event executed', NOW());
-    
     -- Ressourcen aktualisieren
     UPDATE Settlement s
     SET 
-        s.wood = s.wood + (
-            SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
-            FROM Buildings b
-            JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
-            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Holzfäller'
+        s.wood = LEAST(
+            s.wood + (
+                SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
+                FROM Buildings b
+                JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+                WHERE b.settlementId = s.settlementId AND b.buildingType = 'Holzfäller'
+            ),
+            s.storageCapacity -- Begrenzung durch maximale Kapazität
         ),
-        s.stone = s.stone + (
-            SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
-            FROM Buildings b
-            JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
-            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Steinbruch'
+        s.stone = LEAST(
+            s.stone + (
+                SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
+                FROM Buildings b
+                JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+                WHERE b.settlementId = s.settlementId AND b.buildingType = 'Steinbruch'
+            ),
+            s.storageCapacity -- Begrenzung durch maximale Kapazität
         ),
-        s.ore = s.ore + (
-            SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
+        s.ore = LEAST(
+            s.ore + (
+                SELECT IFNULL(SUM(bc.productionRate / 3600), 0)
+                FROM Buildings b
+                JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+                WHERE b.settlementId = s.settlementId AND b.buildingType = 'Erzbergwerk'
+            ),
+            s.storageCapacity -- Begrenzung durch maximale Kapazität
+        ),
+        -- Aktualisierung der Lagerkapazität basierend auf den Lagern
+        s.storageCapacity = (
+            SELECT IFNULL(SUM(bc.productionRate), 0)
             FROM Buildings b
             JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
-            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Erzbergwerk'
+            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
         );
 END //
 DELIMITER ;
+
 
 ALTER EVENT UpdateResources ENABLE;
 SHOW EVENTS LIKE 'UpdateResources';
@@ -138,7 +153,7 @@ DROP PROCEDURE IF EXISTS UpgradeBuilding;
 DELIMITER //
 CREATE PROCEDURE UpgradeBuilding (
     IN inSettlementId INT,
-    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk')
+    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager')
 )
 BEGIN
     DECLARE currentBuildingLevel INT;
@@ -182,8 +197,9 @@ END //
 DELIMITER ;
 
 --Dynamische Einfügeoperation mit den Anforderungen
-DELIMITER //
+
 DROP PROCEDURE IF EXISTS PopulateBuildingConfig;
+DELIMITER //
 CREATE PROCEDURE PopulateBuildingConfig()
 BEGIN
     DECLARE lvl INT;
@@ -194,69 +210,93 @@ BEGIN
     DECLARE baseProduction FLOAT DEFAULT 3600.0;
 
     -- Holzfäller
-    SET lvl = 1;
-    WHILE lvl <= maxLvl DO
-        INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
-        VALUES (
-            'Holzfäller',
-            lvl,
-            baseCostWood,
-            baseCostStone / 2,  -- Stein kostet nur die Hälfte
-            baseCostOre,
-            baseProduction
-        );
-        SET baseCostWood = baseCostWood * 1.2;  -- Kosten steigen um 20%
-        SET baseCostStone = baseCostStone * 1.2;
-        SET baseCostOre = baseCostOre * 1.2;
-        SET baseProduction = baseProduction * 1.15;  -- Produktionsrate steigt um 15%
-        SET lvl = lvl + 1;
-    END WHILE;
+        SET lvl = 1;
+        WHILE lvl <= maxLvl DO
+            INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
+            VALUES (
+                'Holzfäller',
+                lvl,
+                baseCostWood / 2,
+                baseCostStone,
+                baseCostOre,
+                baseProduction
+            );
+            SET baseCostWood = baseCostWood * 1.2;  -- Kosten steigen um 20%
+            SET baseCostStone = baseCostStone * 1.2;
+            SET baseCostOre = baseCostOre * 1.2;
+            SET baseProduction = baseProduction * 1.15;  -- Produktionsrate steigt um 15%
+            SET lvl = lvl + 1;
+        END WHILE;
 
     -- Steinbruch
-    SET lvl = 1;
-    SET baseCostWood = 100;
-    SET baseCostStone = 100;
-    SET baseCostOre = 100;
-    SET baseProduction = 3600;
-    WHILE lvl <= maxLvl DO
-        INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
-        VALUES (
-            'Steinbruch',
-            lvl,
-            baseCostWood / 2,  -- Holz kostet nur die Hälfte
-            baseCostStone,
-            baseCostOre,
-            baseProduction
-        );
-        SET baseCostWood = baseCostWood * 1.2;
-        SET baseCostStone = baseCostStone * 1.2;
-        SET baseCostOre = baseCostOre * 1.2;
-        SET baseProduction = baseProduction * 1.15;
-        SET lvl = lvl + 1;
-    END WHILE;
+        SET lvl = 1;
+        SET baseCostWood = 100;
+        SET baseCostStone = 100;
+        SET baseCostOre = 100;
+        SET baseProduction = 3600;
+        WHILE lvl <= maxLvl DO
+            INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
+            VALUES (
+                'Steinbruch',
+                lvl,
+                baseCostWood,
+                baseCostStone / 2,
+                baseCostOre,
+                baseProduction
+            );
+            SET baseCostWood = baseCostWood * 1.2;
+            SET baseCostStone = baseCostStone * 1.2;
+            SET baseCostOre = baseCostOre * 1.2;
+            SET baseProduction = baseProduction * 1.15;
+            SET lvl = lvl + 1;
+        END WHILE;
 
     -- Erzbergwerk
-    SET lvl = 1;
-    SET baseCostWood = 100;
-    SET baseCostStone = 100;
-    SET baseCostOre = 100;
-    SET baseProduction = 3600;
-    WHILE lvl <= maxLvl DO
-        INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
-        VALUES (
-            'Erzbergwerk',
-            lvl,
-            baseCostWood,
-            baseCostStone / 2,  -- Stein kostet nur die Hälfte
-            baseCostOre,
-            baseProduction
-        );
-        SET baseCostWood = baseCostWood * 1.2;
-        SET baseCostStone = baseCostStone * 1.2;
-        SET baseCostOre = baseCostOre * 1.2;
-        SET baseProduction = baseProduction * 1.15;
-        SET lvl = lvl + 1;
-    END WHILE;
+        SET lvl = 1;
+        SET baseCostWood = 100;
+        SET baseCostStone = 100;
+        SET baseCostOre = 100;
+        SET baseProduction = 3600;
+        WHILE lvl <= maxLvl DO
+            INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
+            VALUES (
+                'Erzbergwerk',
+                lvl,
+                baseCostWood,
+                baseCostStone,
+                baseCostOre / 2,
+                baseProduction
+            );
+            SET baseCostWood = baseCostWood * 1.2;
+            SET baseCostStone = baseCostStone * 1.2;
+            SET baseCostOre = baseCostOre * 1.2;
+            SET baseProduction = baseProduction * 1.15;
+            SET lvl = lvl + 1;
+        END WHILE;
+
+    -- Lager
+        SET lvl = 1;
+        SET baseCostWood = 200; -- Startkosten Holz
+        SET baseCostStone = 150; -- Startkosten Stein
+        SET baseCostOre = 100; -- Startkosten Erz
+        SET baseProduction = 10000; -- Startkapazität
+        WHILE lvl <= maxLvl DO
+            INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, productionRate)
+            VALUES (
+                'Lager',
+                lvl,
+                baseCostWood,
+                baseCostStone,
+                baseCostOre,
+                baseProduction -- Kapazität als Produktionsrate
+            );
+            SET baseCostWood = baseCostWood * 1.2; -- Kosten steigen um 20% pro Level
+            SET baseCostStone = baseCostStone * 1.2;
+            SET baseCostOre = baseCostOre * 1.2;
+            SET baseProduction = baseProduction * 1.2; -- Kapazität steigt um 20% pro Level
+            SET lvl = lvl + 1;
+        END WHILE;
+
 END //
 DELIMITER ;
 

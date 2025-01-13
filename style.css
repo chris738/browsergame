@@ -14,11 +14,24 @@ body {
 
 .resources {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-around; /* Gleichmäßiger Abstand zwischen den Kästen */
     background-color: #ffffff;
     padding: 15px 0;
     border-bottom: 1px solid #ddd;
+    gap: 15px; /* Abstand zwischen den Kästen */
 }
+
+.resource {
+    background-color: #f9f9f9; /* Hintergrundfarbe des Kastens */
+    padding: 10px 20px; /* Innenabstand */
+    border: 1px solid #ccc; /* Rahmen */
+    border-radius: 8px; /* Abgerundete Ecken */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Schatten für besseren Effekt */
+    text-align: center; /* Zentrierter Text */
+    flex: 1; /* Optional: gleiche Breite für alle Kästen */
+    max-width: 200px; /* Optionale Maximalbreite */
+}
+
 
 .resource p {
     margin: 0;
@@ -69,6 +82,18 @@ body {
 
 .buildings tr:hover {
     background-color: #f1f1f1;
+}
+
+.cost-box {
+    display: inline-block;
+    background-color: #f9f9f9; /* Hintergrundfarbe */
+    padding: 5px 10px; /* Innenabstand */
+    border: 1px solid #ccc; /* Rahmen */
+    border-radius: 8px; /* Abgerundete Ecken */
+    font-size: 14px; /* Schriftgröße */
+    color: #333; /* Schriftfarbe */
+    text-align: center; /* Zentrierter Text */
+    margin-right: 5px; /* Abstand zwischen den Kästen */
 }
 
 button {
