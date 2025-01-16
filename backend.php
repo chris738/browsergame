@@ -24,6 +24,23 @@ function fetchResources($settlementId) {
     ];
 }
 
+function fetchRegen($settlementId) {
+    $database = new Database();
+    $regen = $database->getRegen($settlementId);
+
+    if (!$regen) {
+        return ['error' => 'Regen konnten nicht abgerufen werden.'];
+    }
+
+    return [
+        'regens' => [
+            'wood' => $regen['woodProductionRate'],
+            'stone' => $regen['stoneProductionRate'],
+            'ore' => $regen['oreProductionRate'],
+        ],
+    ];
+}
+
 // Funktion zum Laden der Gebäudeinformationen
 function fetchBuilding($settlementId, $buildingType) {
     $database = new Database();
@@ -37,6 +54,7 @@ function fetchBuilding($settlementId, $buildingType) {
         'costWood' => $building['costWood'],
         'costStone' => $building['costStone'],
         'costOre' => $building['costOre']
+        'settlers' => $building['settlers']
     ];
 }
 
@@ -45,7 +63,7 @@ function handleBuildingUpgrade($settlementId, $input) {
 
     $database = new Database();
 
-    if (!$settlementId || !$buildingType) {
+    if (!$settlementId) {
         return json_encode(['error' => 'Parameter settlementId oder buildingType fehlt.']);
     }
 
@@ -55,7 +73,7 @@ function handleBuildingUpgrade($settlementId, $input) {
     if ($success) {
         return json_encode(['success' => true, 'message' => "$buildingType wurde erfolgreich aufgewertet."]);
     } else {
-        return json_encode(['success' => false, 'message' => "$buildingType konnte nicht aufgewertet werden."]);
+        return json_encode(['success' => false, 'message' => "$buildingType konnte nicht aufgewertet werden in backend.php."]);
     }
 }
 
@@ -63,6 +81,7 @@ function handleBuildingUpgrade($settlementId, $input) {
 $method = $_SERVER['REQUEST_METHOD'];
 $settlementId = $_GET['settlementId'] ?? null;
 $buildingType = $_GET['buildingType'] ?? null;
+$getRegen = $_GET['getRegen'] ?? null;
 
 try {
     if ($method === 'GET') {
@@ -76,6 +95,11 @@ try {
             $response = ['resources' => fetchResources($settlementId)];
         } else {
             $response['building'] = fetchBuilding($settlementId, $buildingType);
+        }
+
+        //wenn getRegen
+        if ($getRegen == True) {
+            $response = ['regen' => fetchRegen($settlementId)];
         }
 
         echo json_encode($response);

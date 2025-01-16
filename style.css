@@ -39,6 +39,12 @@ body {
     color: #333;
 }
 
+div.resource p .regen {
+    font-size: 12px !important;
+    color: #66666698; /* Dunkelgrau für die Regeneration */
+    margin-left: 10px; /* Etwas Abstand zum Haupttext */
+}
+
 .buildings {
     padding: 20px;
 }
@@ -115,4 +121,8 @@ button {
     display: inline-block;
     vertical-align: middle;
     margin-right: 0;
+}
+
+.cost-box.insufficient {
+    color: red;
 }

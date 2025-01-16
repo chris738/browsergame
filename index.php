@@ -14,17 +14,23 @@
 
     <section class="resources">
         <div class="resource">
-            <p>Holz: <span id="holz">0</span></p>
+            <p>Holz: <span id="holz">0</span>
+            <span class="regen">(+<span id="holzRegen">0</span>/h)</span></p>
         </div>
         <div class="resource">
-            <p>Stein: <span id="stein">0</span></p>
+            <p>Stein: <span id="stein">0</span>
+            <span class="regen">(+<span id="steinRegen">0</span>/h)</span></p>
         </div>
         <div class="resource">
-            <p>Erz: <span id="erz">0</span></p>
+            <p>Erz: <span id="erz">0</span>
+            <span class="regen">(+<span id="erzRegen">0</span>/h)</span></p>
         </div>
         <div class="resource">
-        <p>Lager: <span id="lagerKapazität">0</span></p>
-    </div>
+            <p>Lager: <span id="lagerKapazität">0</span></p>
+        </div>
+        <div class="resource">
+            <p>Siedler: <span id="usedSiedler">0</span></p>
+        </div>
     </section>
 
     <section class="buildings">
@@ -45,6 +51,7 @@
                         <span class="cost-box" id="holzfällerKostenHolz">0 Holz</span>
                         <span class="cost-box" id="holzfällerKostenStein">0 Stein</span>
                         <span class="cost-box" id="holzfällerKostenErz">0 Erz</span>
+                        <span class="cost-box" id="holzfällerSiedler">0 Siedler</span>
                     </td>
                     <td style="text-align: right;"><button onclick="upgradeBuilding('holzfäller')">Upgrade</button></td>
                 </tr>
@@ -55,6 +62,7 @@
                         <span class="cost-box" id="steinbruchKostenHolz">0 Holz</span>
                         <span class="cost-box" id="steinbruchKostenStein">0 Stein</span>
                         <span class="cost-box" id="steinbruchKostenErz">0 Erz</span>
+                        <span class="cost-box" id="steinbruchSiedler">0 Siedler</span>
                     </td>
                     <td style="text-align: right;"><button onclick="upgradeBuilding('steinbruch')">Upgrade</button></td>
                 </tr>
@@ -65,17 +73,29 @@
                         <span class="cost-box" id="erzbergwerkKostenHolz">0 Holz</span>
                         <span class="cost-box" id="erzbergwerkKostenStein">0 Stein</span>
                         <span class="cost-box" id="erzbergwerkKostenErz">0 Erz</span>
+                        <span class="cost-box" id="erzbergwerkSiedler">0 Siedler</span>
                     </td>
                     <td style="text-align: right;"><button onclick="upgradeBuilding('erzbergwerk')">Upgrade</button></td>
                 </tr>
-                <td>Lager</td>
+                    <td>Lager</td>
                     <td><span id="lager">0</span></td>
                     <td>
                         <span class="cost-box" id="lagerKostenHolz">0 Holz</span>
                         <span class="cost-box" id="lagerKostenStein">0 Stein</span>
                         <span class="cost-box" id="lagerKostenErz">0 Erz</span>
+                        <span class="cost-box" id="lagerSiedler">0 Siedler</span>
                     </td>
                     <td style="text-align: right;"><button onclick="upgradeBuilding('lager')">Upgrade</button></td>
+                </tr>
+                    <td>Farm</td>
+                    <td><span id="farm">0</span></td>
+                    <td>
+                        <span class="cost-box" id="farmKostenHolz">0 Holz</span>
+                        <span class="cost-box" id="farmKostenStein">0 Stein</span>
+                        <span class="cost-box" id="farmKostenErz">0 Erz</span>
+                        <span class="cost-box" id="farmSiedler">0 Siedler</span>
+                    </td>
+                    <td style="text-align: right;"><button onclick="upgradeBuilding('farm')">Upgrade</button></td>
         </tr>
             </tbody>
         </table>
