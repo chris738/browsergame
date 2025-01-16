@@ -5,6 +5,8 @@ interface DatabaseInterface {
     public function getBuilding($settlementId, $buildingType);
     public function upgradeBuilding($settlementId, $buildingType);
     public function getRegen($settlementId);
+    public function getSettlementName($settlementId);
+    public function getQueue($settlementId);
 }
 
 class Database implements DatabaseInterface {
@@ -156,7 +158,42 @@ class Database implements DatabaseInterface {
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
+    public function getSettlementName($settlementId) {
+        $sql = "
+            SELECT 
+                s.name AS SettlementName
+            FROM 
+                Settlement s
+            WHERE 
+                s.settlementId = :settlementId";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getQueue($settlementId) {
+        $sql = "
+            SELECT
+                queueId,
+                settlementId,
+                buildingType,
+                startTime,
+                endTime, 
+                completionPercentage 
+            FROM 
+                OpenBuildingQueue 
+            WHERE 
+                settlementId = :settlementId";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    }
 }
 
 ?>

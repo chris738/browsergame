@@ -42,6 +42,27 @@ function fetchRegen($settlementId) {
     ];
 }
 
+function fetchBuildingQueue($settlementId) {
+    $database = new Database();
+    $queue = $database->getQueue($settlementId);
+
+    if (!$queue) {
+        return ['error' => 'BuildingQueue konnte nicht abgerufen werden - ist sie leer???.'];
+    }
+
+    return [
+        'queue' => array_map(function($item) {
+            return [
+                'queueId' => $item['queueId'],
+                'buildingType' => $item['buildingType'],
+                'startTime' => $item['startTime'],
+                'endTime' => $item['endTime'],
+                'completionPercentage' => $item['completionPercentage'],
+            ];
+        }, $queue),
+    ];
+}
+
 // Funktion zum Laden der Gebäudeinformationen
 function fetchBuilding($settlementId, $buildingType) {
     $database = new Database();
@@ -78,11 +99,26 @@ function handleBuildingUpgrade($settlementId, $input) {
     }
 }
 
+function getSettlementName($settlementId) {
+    $database = new Database();
+    $name = $database->getSettlementName($settlementId);
+
+    if (!$name) {
+        return ['error' => 'getSettlementName konnten nicht abgerufen werden.'];
+    }
+
+    return [
+        'SettlementName' => $name['SettlementName']
+    ];
+}
+
 // Eingehende Anfrage verarbeiten
 $method = $_SERVER['REQUEST_METHOD'];
 $settlementId = $_GET['settlementId'] ?? null;
 $buildingType = $_GET['buildingType'] ?? null;
 $getRegen = $_GET['getRegen'] ?? null;
+$getSettlementName = $_GET['getSettlementName'] ?? null;
+$getBuildingQueue = $_GET['getBuildingQueue'] ?? null;
 
 try {
     if ($method === 'GET') {
@@ -101,6 +137,16 @@ try {
         //wenn getRegen
         if ($getRegen == True) {
             $response = ['regen' => fetchRegen($settlementId)];
+        }
+
+        //Settlement Name
+        if ($getSettlementName == True) {
+            $response = ['info' => getSettlementName($settlementId)];
+        }
+
+        //Settlement Name
+        if ($getBuildingQueue == True) {
+            $response = ['info' => fetchBuildingQueue($settlementId)];
         }
 
         echo json_encode($response);

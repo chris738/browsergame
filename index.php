@@ -1,3 +1,22 @@
+<?php
+    // Liste der Gebäude mit ihren Eigenschaften
+    $buildings = [
+        ["name" => "Rathaus", "id" => "rathaus"],
+        ["name" => "Holzfäller", "id" => "holzfäller"],
+        ["name" => "Steinbruch", "id" => "steinbruch"],
+        ["name" => "Erzbergwerk", "id" => "erzbergwerk"],
+        ["name" => "Lager", "id" => "lager"],
+        ["name" => "Farm", "id" => "farm"],
+        //["name" => "Kirche", "id" => "kirche"],
+        //["name" => "Markt", "id" => "markt"],
+        //["name" => "Versteck", "id" => "versteck"],
+        //["name" => "Stadtmauer", "id" => "mauer"],
+        //["name" => "Stall", "id" => "stall"],
+        //["name" => "Kaserne", "id" => "kaserne"],
+        //["name" => "Universität", "id" => "uni"],
+    ];
+?>
+
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -9,7 +28,7 @@
 </head>
 <body>
     <header class="header">
-        <h1>Siedlungsname</h1>
+        <h1><span id="Siedlungsname">Siedlungsname</span></h1>
     </header>
 
     <section class="resources">
@@ -32,72 +51,51 @@
             <p>Siedler: <span id="usedSiedler">0</span></p>
         </div>
     </section>
+    
+    <section class="buildings">
+    <table>
+        <thead>
+            <tr>
+                <th>Gebäude</th>
+                <th>Stufe</th>
+                <th>Prozent</th>
+                <th>Endzeitpunkt</th>
+            </tr>
+        </thead>
+        <tbody id="buildingQueueBody">
+
+        </tbody>
+    </table>
+    </section>
+
 
     <section class="buildings">
         <table>
-            <thead>
+        <thead>
+            <tr>
+                <th>Gebäude</th>
+                <th>Stufe</th>
+                <th>Kosten</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php foreach ($buildings as $building): ?>
                 <tr>
-                    <th>Gebäude</th>
-                    <th>Stufe</th>
-                    <th>Kosten</th>
-                    <th>Aktion</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Holzfäller</td>
-                    <td><span id="holzfäller">0</span></td>
+                    <td><?= htmlspecialchars($building['name']) ?></td>
+                    <td><span id="<?= htmlspecialchars($building['id']) ?>">0</span></td>
                     <td>
-                        <span class="cost-box" id="holzfällerKostenHolz">0 Holz</span>
-                        <span class="cost-box" id="holzfällerKostenStein">0 Stein</span>
-                        <span class="cost-box" id="holzfällerKostenErz">0 Erz</span>
-                        <span class="cost-box" id="holzfällerSiedler">0 Siedler</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenHolz">0 Holz</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 Stein</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 Erz</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Siedler">0 Siedler</span>
                     </td>
-                    <td style="text-align: right;"><button onclick="upgradeBuilding('holzfäller')">Upgrade</button></td>
+                    <td style="text-align: right;">
+                        <button onclick="upgradeBuilding('<?= htmlspecialchars($building['id']) ?>')">Upgrade</button>
+                    </td>
                 </tr>
-                <tr>
-                    <td>Steinbruch</td>
-                    <td><span id="steinbruch">0</span></td>
-                    <td>
-                        <span class="cost-box" id="steinbruchKostenHolz">0 Holz</span>
-                        <span class="cost-box" id="steinbruchKostenStein">0 Stein</span>
-                        <span class="cost-box" id="steinbruchKostenErz">0 Erz</span>
-                        <span class="cost-box" id="steinbruchSiedler">0 Siedler</span>
-                    </td>
-                    <td style="text-align: right;"><button onclick="upgradeBuilding('steinbruch')">Upgrade</button></td>
-                </tr>
-                <tr>
-                    <td>Erzbergwerk</td>
-                    <td><span id="erzbergwerk">0</span></td>
-                    <td>
-                        <span class="cost-box" id="erzbergwerkKostenHolz">0 Holz</span>
-                        <span class="cost-box" id="erzbergwerkKostenStein">0 Stein</span>
-                        <span class="cost-box" id="erzbergwerkKostenErz">0 Erz</span>
-                        <span class="cost-box" id="erzbergwerkSiedler">0 Siedler</span>
-                    </td>
-                    <td style="text-align: right;"><button onclick="upgradeBuilding('erzbergwerk')">Upgrade</button></td>
-                </tr>
-                    <td>Lager</td>
-                    <td><span id="lager">0</span></td>
-                    <td>
-                        <span class="cost-box" id="lagerKostenHolz">0 Holz</span>
-                        <span class="cost-box" id="lagerKostenStein">0 Stein</span>
-                        <span class="cost-box" id="lagerKostenErz">0 Erz</span>
-                        <span class="cost-box" id="lagerSiedler">0 Siedler</span>
-                    </td>
-                    <td style="text-align: right;"><button onclick="upgradeBuilding('lager')">Upgrade</button></td>
-                </tr>
-                    <td>Farm</td>
-                    <td><span id="farm">0</span></td>
-                    <td>
-                        <span class="cost-box" id="farmKostenHolz">0 Holz</span>
-                        <span class="cost-box" id="farmKostenStein">0 Stein</span>
-                        <span class="cost-box" id="farmKostenErz">0 Erz</span>
-                        <span class="cost-box" id="farmSiedler">0 Siedler</span>
-                    </td>
-                    <td style="text-align: right;"><button onclick="upgradeBuilding('farm')">Upgrade</button></td>
-        </tr>
-            </tbody>
+            <?php endforeach; ?>
+        </tbody>
         </table>
     </section>
 </body>

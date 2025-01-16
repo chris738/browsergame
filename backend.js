@@ -91,7 +91,7 @@ function fetchBuildings(settlementId) {
 }
 
 function upgradeBuilding(buildingType) {
-    const settlementId = 1; // Beispiel-Siedlungs-ID
+    const settlementId = 2; // Beispiel-Siedlungs-ID
 
     fetch('backend.php?settlementId=' + settlementId, {
         method: 'POST',
@@ -116,8 +116,59 @@ function upgradeBuilding(buildingType) {
         });
 }
 
+function getSettlementName(settlementId) {
+    fetch(`backend.php?settlementId=${settlementId}&getSettlementName=True`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.info) {
+                document.getElementById('Siedlungsname').textContent = data.info.SettlementName;
+            }
+        })
+        .catch(error => console.error('Fehler beim Abrufen der Daten in backend.js:', error));
+}
+
+function fetchBuildingQueue(settlementId) {
+    fetch(`backend.php?settlementId=${settlementId}&getQueue=true`)
+        .then(response => response.json())
+        .then(data => {
+            const buildingQueueBody = document.getElementById('buildingQueueBody');
+            buildingQueueBody.innerHTML = '';
+
+            // Überprüfe, ob data.info.queue vorhanden ist
+            if (data.info && data.info.queue && data.info.queue.length > 0) {
+                data.info.queue.forEach(item => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${item.buildingType}</td>
+                        <td>0</td>
+                        <td>
+                            <div class="progress-container">
+                                <div class="progress-bar" style="width: ${item.completionPercentage || 0}%;"></div>
+                            </div>
+                        </td>
+                        <td>${item.endTime}</td>
+                    `;
+
+                    buildingQueueBody.appendChild(row);
+                });
+            } else {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = '<td colspan="4">Keine Gebäude in der Warteschlange</td>';
+                buildingQueueBody.appendChild(emptyRow);
+            }
+        })
+        .catch(error => console.error('Fehler beim Abrufen der BuildingQueue:', error));
+}
+
+
+const settlementId = 2; // Beispiel-Siedlungs-ID
+getSettlementName(settlementId);
+
 document.addEventListener('DOMContentLoaded', () => {
-    const settlementId = 1; // Beispiel-Siedlungs-ID
+    
+    fetchBuildingQueue(settlementId);
+    setInterval(() => fetchBuildingQueue(settlementId), 1000);
 
     // Ressourcen jede Sekunde aktualisieren
     fetchResources(settlementId);

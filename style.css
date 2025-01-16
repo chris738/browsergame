@@ -45,11 +45,11 @@ div.resource p .regen {
     margin-left: 10px; /* Etwas Abstand zum Haupttext */
 }
 
-.buildings {
+.buildings, .buildingsQueue {
     padding: 20px;
 }
 
-.buildings table {
+.buildings table, .buildingsQueue table{
     width: 100%;
     border-collapse: collapse;
     background-color: #ffffff;
@@ -75,6 +75,21 @@ div.resource p .regen {
 .buildings td {
     font-size: 16px;
     color: #333;
+}
+
+.buildings td:nth-child(1) {
+    width: 10%;
+}
+.buildings td:nth-child(2) {
+    width: 5%;
+}
+
+.buildings td:nth-child(3) {
+    width: 70%;
+}
+
+.buildings td:nth-child(4) {
+    width: 7%;
 }
 
 .buildings td:last-child {
@@ -125,4 +140,19 @@ button {
 
 .cost-box.insufficient {
     color: red;
+}
+
+.progress-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 5px;
+    overflow: hidden;
+    height: 20px;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #ff9800; /* Neues Orange */
+    width: 0%;
+    transition: width 1s linear;
 }
