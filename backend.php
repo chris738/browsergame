@@ -19,7 +19,8 @@ function fetchResources($settlementId) {
             'wood' => $resources['wood'],
             'stone' => $resources['stone'],
             'ore' => $resources['ore'],
-            'storageCapacity' => $resources['storageCapacity']
+            'storageCapacity' => $resources['storageCapacity'],
+            'settlers' => $resources['settlers']
         ],
     ];
 }
@@ -53,7 +54,7 @@ function fetchBuilding($settlementId, $buildingType) {
         'level' => $building['level'],
         'costWood' => $building['costWood'],
         'costStone' => $building['costStone'],
-        'costOre' => $building['costOre']
+        'costOre' => $building['costOre'],
         'settlers' => $building['settlers']
     ];
 }
