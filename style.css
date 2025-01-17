@@ -9,7 +9,7 @@ body {
     background-color: #35424a;
     color: #ffffff;
     text-align: center;
-    padding: 20px 0;
+    padding: 10px 0;
 }
 
 .resources {
@@ -145,14 +145,15 @@ button {
 .progress-container {
     width: 100%;
     background-color: #e0e0e0;
-    border-radius: 5px;
+    border-radius: 10px;
     overflow: hidden;
     height: 20px;
 }
 
 .progress-bar {
     height: 100%;
-    background-color: #ff9800; /* Neues Orange */
+    background-color: #4457ff69; /* Neues Orange */
     width: 0%;
+    border-radius: 10px;
     transition: width 1s linear;
 }

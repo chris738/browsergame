@@ -128,7 +128,7 @@ function getSettlementName(settlementId) {
 }
 
 function fetchBuildingQueue(settlementId) {
-    fetch(`backend.php?settlementId=${settlementId}&getQueue=true`)
+    fetch(`backend.php?settlementId=${settlementId}&getBuildingQueue=True`)
         .then(response => response.json())
         .then(data => {
             const buildingQueueBody = document.getElementById('buildingQueueBody');
@@ -141,7 +141,7 @@ function fetchBuildingQueue(settlementId) {
 
                     row.innerHTML = `
                         <td>${item.buildingType}</td>
-                        <td>0</td>
+                        <td>${item.level}</td>
                         <td>
                             <div class="progress-container">
                                 <div class="progress-bar" style="width: ${item.completionPercentage || 0}%;"></div>
@@ -176,6 +176,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Gebäudedaten einmal pro Minute aktualisieren
     fetchBuildings(settlementId);
-    setInterval(() => fetchBuildings(settlementId), 60000); // 60000ms = 1 Minute
+    setInterval(() => fetchBuildings(settlementId), 3000); // 60000ms = 1 Minute
 });
 

@@ -58,6 +58,7 @@ function fetchBuildingQueue($settlementId) {
                 'startTime' => $item['startTime'],
                 'endTime' => $item['endTime'],
                 'completionPercentage' => $item['completionPercentage'],
+                'level' => $item['level'],
             ];
         }, $queue),
     ];

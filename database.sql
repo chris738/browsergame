@@ -66,6 +66,7 @@ CREATE TABLE BuildingQueue (
     startTime DATETIME NOT NULL,
     endTime DATETIME NOT NULL,
     isActive BOOLEAN NOT NULL DEFAULT FALSE,
+    level INT NOT NULL DEFAULT 0,
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
     FOREIGN KEY (buildingType) REFERENCES BuildingConfig(buildingType) ON DELETE CASCADE
 );
@@ -82,7 +83,10 @@ CREATE TABLE Buildings (
 );
 
 -- Prozedur: Spieler erstellen und initialisieren
+    DROP PROCEDURE IF EXISTS CreatePlayerWithSettlement;
+
     DELIMITER //
+
     CREATE PROCEDURE CreatePlayerWithSettlement (IN playerName VARCHAR(100))
     BEGIN
         DECLARE newPlayerId INT;
@@ -100,12 +104,20 @@ CREATE TABLE Buildings (
 
         -- Siedlung erstellen
         INSERT INTO Settlement (name, wood, stone, ore, playerId)
-        VALUES (CONCAT(playerName, '_Settlement'), 1000, 1000, 1000, newPlayerId);
+        VALUES (CONCAT(playerName, '_Settlement'), 10000, 10000, 10000, newPlayerId);
         SET newSettlementId = LAST_INSERT_ID();
 
         -- Siedlung auf Karte platzieren
         INSERT INTO Map (settlementId, xCoordinate, yCoordinate)
         VALUES (newSettlementId, xCoord, yCoord);
+
+        -- Insert necessary building types and levels into BuildingConfig
+        INSERT IGNORE INTO BuildingConfig (buildingType, level) VALUES
+            ('Holzfäller', 1),
+            ('Steinbruch', 1),
+            ('Erzbergwerk', 1),
+            ('Lager', 1),
+            ('Farm', 1);
 
         -- Gebäude erstellen
         INSERT INTO Buildings (settlementId, buildingType) VALUES
@@ -115,10 +127,14 @@ CREATE TABLE Buildings (
             (newSettlementId, 'Lager'),
             (newSettlementId, 'Farm');
     END //
+
     DELIMITER ;
 
+
 -- Prozedur: Gebäude upgraden
+    DROP PROCEDURE IF EXISTS UpgradeBuilding;
     DELIMITER //
+
     CREATE PROCEDURE UpgradeBuilding (
         IN inSettlementId INT,
         IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
@@ -130,6 +146,7 @@ CREATE TABLE Buildings (
         DECLARE nextLevelStoneCost FLOAT;
         DECLARE nextLevelOreCost FLOAT;
         DECLARE nextBuildTime INT;
+        DECLARE lastEndTime DATETIME;
 
         -- Aktuelles Level aus Buildings abrufen
         SELECT level INTO currentBuildingLevel
@@ -156,14 +173,20 @@ CREATE TABLE Buildings (
                 ore = ore - nextLevelOreCost
             WHERE settlementId = inSettlementId;
 
+            -- Letztes Endzeit aus BuildingQueue abrufen oder NOW() verwenden, wenn keine Einträge existieren
+            SELECT COALESCE(MAX(endTime), NOW()) INTO lastEndTime
+            FROM BuildingQueue
+            WHERE settlementId = inSettlementId;
+
             -- Einfügen des Bauvorhabens in die Warteschlange
-            INSERT INTO BuildingQueue (settlementId, buildingType, startTime, endTime, isActive)
+            INSERT INTO BuildingQueue (settlementId, buildingType, startTime, endTime, isActive, level)
             VALUES (
                 inSettlementId,
                 inBuildingType,
-                NOW(),
-                DATE_ADD(NOW(), INTERVAL nextBuildTime SECOND),
-                FALSE
+                lastEndTime,
+                DATE_ADD(lastEndTime, INTERVAL nextBuildTime SECOND),
+                FALSE,
+                nextLevel
             );
 
             -- Prüfen, ob ein Bauvorhaben aktiv ist
@@ -178,12 +201,14 @@ CREATE TABLE Buildings (
     END //
     DELIMITER ;
 
+
 -- Prozedur: PopulateBuildingConfig
     DELETE FROM BuildingConfig;
 
     DROP PROCEDURE IF EXISTS PopulateBuildingConfig;
 
     DELIMITER //
+
     CREATE PROCEDURE PopulateBuildingConfig()
     BEGIN
         DECLARE lvl INT DEFAULT 1;
@@ -197,8 +222,10 @@ CREATE TABLE Buildings (
         DECLARE baseBuildTime INT DEFAULT 10;
 
         DECLARE buildingType VARCHAR(50);
-        DECLARE buildingIndex INT DEFAULT 1;
-        DECLARE totalBuildings INT;
+        DECLARE done INT DEFAULT FALSE;
+        DECLARE cur CURSOR FOR 
+            SELECT name FROM TempBuildings;
+        DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
         -- Temporary table for building types
         DROP TEMPORARY TABLE IF EXISTS TempBuildings;
@@ -211,11 +238,18 @@ CREATE TABLE Buildings (
         INSERT INTO TempBuildings (name) VALUES
             ('Holzfäller'), ('Steinbruch'), ('Erzbergwerk'), ('Lager'), ('Farm');
 
-        SET totalBuildings = (SELECT COUNT(*) FROM TempBuildings);
+        -- Debugging: Check TempBuildings
+        SELECT * FROM TempBuildings;
 
-        -- Iteriere durch die Gebäudetypen
-        WHILE buildingIndex <= totalBuildings DO
-            SELECT name INTO buildingType FROM TempBuildings WHERE id = buildingIndex;
+        -- Open the cursor to iterate over building types
+        OPEN cur;
+
+        -- Loop through all building types
+        read_loop: LOOP
+            FETCH cur INTO buildingType;
+            IF done THEN
+                LEAVE read_loop;
+            END IF;
 
             -- Werte initialisieren
             SET baseCostWood = 100.0;
@@ -224,6 +258,7 @@ CREATE TABLE Buildings (
             SET baseSettlers = 1.0;
             SET baseBuildTime = 10;
 
+            -- Set production rates for specific buildings
             IF buildingType = 'Lager' THEN
                 SET baseProduction = 10000.0;
             ELSEIF buildingType = 'Farm' THEN
@@ -235,16 +270,10 @@ CREATE TABLE Buildings (
             -- Füge Daten für Levels hinzu
             SET lvl = 1;
             WHILE lvl <= maxLvl DO
-                IF NOT EXISTS (
-                    SELECT 1
-                    FROM BuildingConfig
-                    WHERE buildingType = buildingType AND level = lvl
-                ) THEN
-                    INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, settlers, productionRate, buildTime)
-                    VALUES (buildingType, lvl, baseCostWood, baseCostStone, baseCostOre, baseSettlers, baseProduction, baseBuildTime);
-                END IF;
+                INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, settlers, productionRate, buildTime)
+                VALUES (buildingType, lvl, baseCostWood, baseCostStone, baseCostOre, baseSettlers, baseProduction, baseBuildTime);
 
-                -- Werte erhöhen
+                -- Werte erhöhen für das nächste Level
                 SET baseCostWood = baseCostWood * 1.1;
                 SET baseCostStone = baseCostStone * 1.1;
                 SET baseCostOre = baseCostOre * 1.1;
@@ -254,16 +283,24 @@ CREATE TABLE Buildings (
 
                 SET lvl = lvl + 1;
             END WHILE;
+        END LOOP;
 
-            SET buildingIndex = buildingIndex + 1;
-        END WHILE;
+        -- Close the cursor
+        CLOSE cur;
 
         -- Temporäre Tabelle löschen
         DROP TEMPORARY TABLE IF EXISTS TempBuildings;
     END //
+
     DELIMITER ;
 
+    -- Call the procedure
     CALL PopulateBuildingConfig();
+
+    -- Check the result
+    SELECT * FROM BuildingConfig;
+
+
 
 -- Prozedur: ProcessBuildingQueue
     DELIMITER //
@@ -393,6 +430,7 @@ CREATE TABLE Buildings (
         buildingType,
         startTime,
         endTime,
+        level,
         TIMESTAMPDIFF(SECOND, NOW(), endTime) AS remainingTimeSeconds, -- Verbleibende Zeit in Sekunden
         ROUND(
             100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / TIMESTAMPDIFF(SECOND, startTime, endTime)),
@@ -403,6 +441,7 @@ CREATE TABLE Buildings (
     ORDER BY endTime ASC; -- Sortiere nach dem frühesten Abschlusszeitpunkt
 
 -- Beispielaufrufe
+SHOW EVENTS;
 CALL CreatePlayerWithSettlement('Chris');
 CALL UpgradeBuilding(1, 'Holzfäller');
 SELECT * FROM OpenBuildingQueue WHERE settlementId = 1;

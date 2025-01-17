@@ -176,17 +176,18 @@ class Database implements DatabaseInterface {
 
     public function getQueue($settlementId) {
         $sql = "
-            SELECT
-                queueId,
-                settlementId,
-                buildingType,
-                startTime,
-                endTime, 
-                completionPercentage 
-            FROM 
-                OpenBuildingQueue 
-            WHERE 
-                settlementId = :settlementId";
+        SELECT
+            queueId,
+            settlementId,
+            buildingType,
+            startTime,
+            endTime, 
+            completionPercentage,
+            level
+        FROM 
+            OpenBuildingQueue 
+        WHERE 
+            settlementId = :settlementId";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
