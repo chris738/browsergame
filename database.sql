@@ -130,7 +130,6 @@ CREATE TABLE Buildings (
 
     DELIMITER ;
 
-
 -- Prozedur: Gebäude upgraden
     DROP PROCEDURE IF EXISTS UpgradeBuilding;
     DELIMITER //
@@ -147,13 +146,24 @@ CREATE TABLE Buildings (
         DECLARE nextLevelOreCost FLOAT;
         DECLARE nextBuildTime INT;
         DECLARE lastEndTime DATETIME;
+        DECLARE maxQueueLevel INT;
 
         -- Aktuelles Level aus Buildings abrufen
         SELECT level INTO currentBuildingLevel
         FROM Buildings
         WHERE settlementId = inSettlementId AND buildingType = inBuildingType;
 
-        SET nextLevel = currentBuildingLevel + 1;
+        -- Maximales Level im Queue Aufrufen
+        SELECT COALESCE(MAX(level), 0) INTO maxQueueLevel
+        FROM BuildingQueue
+        WHERE settlementId = inSettlementId AND buildingType = inBuildingType;
+
+        -- Setzen des Nächsten Levels
+        IF maxQueueLevel > 0 THEN
+            SET nextLevel = maxQueueLevel + 1;
+        ELSE
+            SET nextLevel = currentBuildingLevel + 1;
+        END IF;
 
         -- Kosten und Bauzeit für das nächste Level aus BuildingConfig abrufen
         SELECT costWood, costStone, costOre, buildTime INTO 
@@ -200,7 +210,6 @@ CREATE TABLE Buildings (
         END IF;
     END //
     DELIMITER ;
-
 
 -- Prozedur: PopulateBuildingConfig
     DELETE FROM BuildingConfig;
@@ -299,8 +308,6 @@ CREATE TABLE Buildings (
 
     -- Check the result
     SELECT * FROM BuildingConfig;
-
-
 
 -- Prozedur: ProcessBuildingQueue
     DELIMITER //
@@ -440,8 +447,97 @@ CREATE TABLE Buildings (
     WHERE NOW() < endTime -- Nur Bauvorhaben, die noch nicht abgeschlossen sind
     ORDER BY endTime ASC; -- Sortiere nach dem frühesten Abschlusszeitpunkt
 
+-- View Kostengebäude unter Berücksichtigung der Wartescheife
+    CREATE OR REPLACE VIEW BuildingDetails AS
+    SELECT 
+        b.settlementId,                           -- Siedlung
+        b.buildingType,                           -- Gebäudetyp
+        b.level AS currentLevel,                  -- Aktuelles Level aus Buildings
+        COALESCE((
+            SELECT MAX(bq.level) + 1              -- Höchstes Level in BuildingQueue + 1
+            FROM BuildingQueue bq
+            WHERE bq.settlementId = b.settlementId
+            AND bq.buildingType = b.buildingType
+        ), b.level + 1) AS nextLevel,             -- Oder aktuelles Level + 1, falls keine Warteschlange existiert
+        bc.costWood,                              -- Kosten für das nächste Level
+        bc.costStone,
+        bc.costOre,
+        COALESCE(bc.productionRate, 0) AS productionRate, -- Produktionsrate für das nächste Level
+        bc.settlers                               -- Siedlerbedarf für das nächste Level
+    FROM Buildings b
+    INNER JOIN BuildingConfig bc
+    ON b.buildingType = bc.buildingType
+    AND bc.level = COALESCE((
+        SELECT MAX(bq.level) + 1              -- Höchstes Level in BuildingQueue + 1
+        FROM BuildingQueue bq
+        WHERE bq.settlementId = b.settlementId
+            AND bq.buildingType = b.buildingType
+    ), b.level + 1);                          -- Oder aktuelles Level + 1, falls keine Warteschlange existiert
+
+-- View: get settlers
+    CREATE OR REPLACE VIEW SettlementSettlers AS
+    SELECT 
+        s.settlementId,
+        -- Used settlers from Buildings and BuildingQueue
+        (
+            COALESCE(
+                (SELECT SUM(bc.settlers) 
+                FROM Buildings b
+                INNER JOIN BuildingConfig bc 
+                ON b.buildingType = bc.buildingType AND b.level = bc.level
+                WHERE b.settlementId = s.settlementId), 0
+            ) + 
+            COALESCE(
+                (SELECT SUM(bc.settlers) 
+                FROM BuildingQueue bq
+                INNER JOIN BuildingConfig bc 
+                ON bq.buildingType = bc.buildingType AND bq.level = bc.level
+                WHERE bq.settlementId = s.settlementId), 0
+            )
+        ) AS usedSettlers,
+        -- Max settlers based on Farm level
+        COALESCE(
+            (SELECT bc.productionRate
+            FROM Buildings b
+            INNER JOIN BuildingConfig bc
+            ON b.buildingType = bc.buildingType AND b.level = bc.level
+            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
+            LIMIT 1), 0
+        ) AS maxSettlers,
+        -- Free settlers (maxSettlers - usedSettlers)
+        GREATEST(
+            COALESCE(
+                (SELECT bc.productionRate
+                FROM Buildings b
+                INNER JOIN BuildingConfig bc
+                ON b.buildingType = bc.buildingType AND b.level = bc.level
+                WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
+                LIMIT 1), 0
+            ) - (
+                COALESCE(
+                    (SELECT SUM(bc.settlers) 
+                    FROM Buildings b
+                    INNER JOIN BuildingConfig bc 
+                    ON b.buildingType = bc.buildingType AND b.level = bc.level
+                    WHERE b.settlementId = s.settlementId), 0
+                ) + 
+                COALESCE(
+                    (SELECT SUM(bc.settlers) 
+                    FROM BuildingQueue bq
+                    INNER JOIN BuildingConfig bc 
+                    ON bq.buildingType = bc.buildingType AND bq.level = bc.level
+                    WHERE bq.settlementId = s.settlementId), 0
+                )
+            ), 0
+        ) AS freeSettlers
+    FROM Settlement s;
+
+
+
+
 -- Beispielaufrufe
 SHOW EVENTS;
 CALL CreatePlayerWithSettlement('Chris');
 CALL UpgradeBuilding(1, 'Holzfäller');
 SELECT * FROM OpenBuildingQueue WHERE settlementId = 1;
+SELECT * FROM SettlementSettlers;

@@ -9,7 +9,7 @@ body {
     background-color: #35424a;
     color: #ffffff;
     text-align: center;
-    padding: 10px 0;
+    padding: 5px 0;
 }
 
 .resources {
@@ -63,6 +63,7 @@ div.resource p .regen {
     padding: 15px;
     text-align: left;
     vertical-align: middle;
+    line-height: 1.2;  /* Verringert die Zeilenhöhe */
 }
 
 .buildings th {
@@ -85,11 +86,11 @@ div.resource p .regen {
 }
 
 .buildings td:nth-child(3) {
-    width: 70%;
+    width: 71%;
 }
 
 .buildings td:nth-child(4) {
-    width: 7%;
+    width: 20%;
 }
 
 .buildings td:last-child {

@@ -41,35 +41,35 @@ class Database implements DatabaseInterface {
                     ), 
                     0
                 ) AS storageCapacity,
-                settlers
+                ss.maxSettlers,
+                ss.freeSettlers
             FROM 
                 Settlement s
+            LEFT JOIN 
+                SettlementSettlers ss
+            ON 
+                s.settlementId = ss.settlementId
             WHERE 
                 s.settlementId = :settlementId";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
         $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        return $resources = $stmt->fetch(PDO::FETCH_ASSOC);
     }
+    
     
     public function getBuilding($settlementId, $buildingType) {
         $sql = "
             SELECT 
-                b.level, 
-                bc.costWood, 
-                bc.costStone, 
-                bc.costOre, 
-                COALESCE(bc.productionRate, 0) AS productionRate,
-                bc.settlers
-            FROM 
-                Buildings b
-            INNER JOIN 
-                BuildingConfig bc
-            ON 
-                b.buildingType = bc.buildingType AND b.level = bc.level
-            WHERE 
-                b.settlementId = :settlementId AND b.buildingType = :buildingType";
+                b.currentLevel,
+                b.nextLevel, 
+                b.costWood, 
+                b.costStone, 
+                b.costOre, 
+                b.settlers
+            FROM BuildingDetails b
+            WHERE b.settlementId = :settlementId AND b.buildingType = :buildingType";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);

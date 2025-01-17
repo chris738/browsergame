@@ -5,14 +5,14 @@ function formatNumberWithDots(number) {
 
 function updateCostColors(resources) {
     const costElements = [
-        { type: 'holzfäller', wood: 'holzfällerKostenHolz', stone: 'holzfällerKostenStein', ore: 'holzfällerKostenErz' },
-        { type: 'steinbruch', wood: 'steinbruchKostenHolz', stone: 'steinbruchKostenStein', ore: 'steinbruchKostenErz' },
-        { type: 'erzbergwerk', wood: 'erzbergwerkKostenHolz', stone: 'erzbergwerkKostenStein', ore: 'erzbergwerkKostenErz' },
-        { type: 'lager', wood: 'lagerKostenHolz', stone: 'lagerKostenStein', ore: 'lagerKostenErz' }
+        { type: 'holzfäller', wood: 'holzfällerKostenHolz', stone: 'holzfällerKostenStein', ore: 'holzfällerKostenErz', settlers: 'holzfällerKostenSiedler'},
+        { type: 'steinbruch', wood: 'steinbruchKostenHolz', stone: 'steinbruchKostenStein', ore: 'steinbruchKostenErz', settlers: 'steinbruchKostenSiedler' },
+        { type: 'erzbergwerk', wood: 'erzbergwerkKostenHolz', stone: 'erzbergwerkKostenStein', ore: 'erzbergwerkKostenErz', settlers: 'erzbergwerkKostenSiedler' },
+        { type: 'lager', wood: 'lagerKostenHolz', stone: 'lagerKostenStein', ore: 'lagerKostenErz', settlers: 'lagerKostenSiedler' }
     ];
 
     costElements.forEach(element => {
-        ['wood', 'stone', 'ore'].forEach(resourceType => {
+        ['wood', 'stone', 'ore', 'settlers'].forEach(resourceType => {
             const elementId = element[resourceType];
             const elementNode = document.getElementById(elementId);
 
@@ -59,7 +59,8 @@ function fetchResources(settlementId) {
                 document.getElementById('stein').textContent = formatNumberWithDots(data.resources.resources.stone);
                 document.getElementById('erz').textContent = formatNumberWithDots(data.resources.resources.ore);
                 document.getElementById('lagerKapazität').textContent = formatNumberWithDots(data.resources.resources.storageCapacity);
-                document.getElementById('usedSiedler').textContent = formatNumberWithDots(data.resources.resources.settlers);
+                document.getElementById('settlers').textContent = formatNumberWithDots(data.resources.resources.freeSettlers);
+                document.getElementById('maxSettlers').textContent = formatNumberWithDots(data.resources.resources.maxSettlers);
 
                 // Farben der Kosten aktualisieren
                 updateCostColors(data.resources.resources);
@@ -82,7 +83,8 @@ function fetchBuildings(settlementId) {
                     document.getElementById(`${buildingId}KostenHolz`).textContent = `${formatNumberWithDots(data.building.costWood)} Holz`;
                     document.getElementById(`${buildingId}KostenStein`).textContent = `${formatNumberWithDots(data.building.costStone)} Stein`;
                     document.getElementById(`${buildingId}KostenErz`).textContent = `${formatNumberWithDots(data.building.costOre)} Erz`;
-                    document.getElementById(`${buildingId}Siedler`).textContent = `${formatNumberWithDots(data.building.settlers)} Siedler`;
+                    document.getElementById(`${buildingId}KostenSiedler`).textContent = `${formatNumberWithDots(data.building.costSettlers)} Siedler`;
+                    document.getElementById(`${buildingId}upgradeButton`).textContent = `Upgrade auf ${formatNumberWithDots(data.building.nextLevel)}`;
                 }
             })
             .catch(error => console.error(`Fehler beim Abrufen der Daten für ${buildingType}:`, error));
@@ -106,6 +108,7 @@ function upgradeBuilding(buildingType) {
                 //alert(data.message); // Zeigt Erfolgsnachricht an
                 fetchBuildings(settlementId); // Aktualisiere die Gebäudedaten
                 fetchResources(settlementId);
+                fetchBuildingQueue(settlementId);
             } else {
                 alert(data.message); // Zeigt Fehlermeldung an
             }
@@ -176,6 +179,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Gebäudedaten einmal pro Minute aktualisieren
     fetchBuildings(settlementId);
-    setInterval(() => fetchBuildings(settlementId), 3000); // 60000ms = 1 Minute
+    setInterval(() => fetchBuildings(settlementId), 5000); // 60000ms = 1 Minute
 });
 

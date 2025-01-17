@@ -2,10 +2,6 @@
 require_once 'database.php';
 header('Content-Type: text/html; charset=utf-8');
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 // Funktion zum Laden der Daten aus der Datenbank und zum Formatieren für das Frontend
 function fetchResources($settlementId) {
     $database = new Database();
@@ -20,7 +16,8 @@ function fetchResources($settlementId) {
             'stone' => $resources['stone'],
             'ore' => $resources['ore'],
             'storageCapacity' => $resources['storageCapacity'],
-            'settlers' => $resources['settlers']
+            'maxSettlers' => $resources['maxSettlers'], // Max settlers
+            'freeSettlers' => $resources['freeSettlers'] // Free settlers
         ],
     ];
 }
@@ -73,11 +70,12 @@ function fetchBuilding($settlementId, $buildingType) {
         return ['error' => "Gebäude $buildingType konnte nicht abgerufen werden."];
     }
     return [
-        'level' => $building['level'],
+        'level' => $building['currentLevel'],
+        'nextLevel' => $building['nextLevel'],
         'costWood' => $building['costWood'],
         'costStone' => $building['costStone'],
         'costOre' => $building['costOre'],
-        'settlers' => $building['settlers']
+        'costSettlers' => $building['settlers']
     ];
 }
 

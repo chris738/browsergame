@@ -48,24 +48,24 @@
             <p>Lager: <span id="lagerKapazität">0</span></p>
         </div>
         <div class="resource">
-            <p>Siedler: <span id="usedSiedler">0</span></p>
+            <p>Siedler: <span id="settlers">0</span> / <span id="maxSettlers">0</span></p>
         </div>
     </section>
     
     <section class="buildings">
-    <table>
-        <thead>
-            <tr>
-                <th>Gebäude</th>
-                <th>Stufe</th>
-                <th>Fortschritt</th>
-                <th>Endzeitpunkt</th>
-            </tr>
-        </thead>
-        <tbody id="buildingQueueBody">
+        <table>
+            <thead>
+                <tr>
+                    <th>Gebäude</th>
+                    <th>Stufe</th>
+                    <th>Fortschritt</th>
+                    <th>Endzeitpunkt</th>
+                </tr>
+            </thead>
+            <tbody id="buildingQueueBody">
 
-        </tbody>
-    </table>
+            </tbody>
+        </table>
     </section>
 
 
@@ -88,10 +88,13 @@
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenHolz">0 Holz</span>
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 Stein</span>
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 Erz</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Siedler">0 Siedler</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenSiedler">0 Siedler</span>
                     </td>
                     <td style="text-align: right;">
-                        <button onclick="upgradeBuilding('<?= htmlspecialchars($building['id']) ?>')">Upgrade</button>
+                        <!-- Button with a unique ID -->
+                        <button id="<?= htmlspecialchars($building['id']) ?>upgradeButton" onclick="upgradeBuilding('<?= htmlspecialchars($building['id']) ?>')">
+                        Upgrade
+                        </button>
                     </td>
                 </tr>
             <?php endforeach; ?>
