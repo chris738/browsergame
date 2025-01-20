@@ -31,7 +31,6 @@ CREATE TABLE Settlement (
     wood FLOAT NOT NULL DEFAULT 1000.0,
     stone FLOAT NOT NULL DEFAULT 1000.0,
     ore FLOAT NOT NULL DEFAULT 1000.0,
-    settlers FLOAT NOT NULL DEFAULT 100.0,
     playerId INT NOT NULL,
     FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
 );
@@ -132,9 +131,9 @@ CREATE TABLE Buildings (
 
 -- Prozedur: Gebäude upgraden
     DROP PROCEDURE IF EXISTS UpgradeBuilding;
-    DELIMITER //
 
-    CREATE PROCEDURE UpgradeBuilding (
+    DELIMITER //
+    CREATE PROCEDURE UpgradeBuilding(
         IN inSettlementId INT,
         IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
     )
@@ -200,9 +199,13 @@ CREATE TABLE Buildings (
             );
 
             -- Prüfen, ob ein Bauvorhaben aktiv ist
-            IF NOT EXISTS (SELECT 1 FROM BuildingQueue WHERE isActive = TRUE) THEN
+            IF NOT EXISTS (
+                SELECT 1
+                FROM BuildingQueue
+                WHERE isActive = TRUE AND settlementId = inSettlementId
+            ) THEN
                 -- Aktiviert das erste Bauvorhaben
-                CALL ProcessBuildingQueue();
+                CALL ProcessBuildingQueue(inSettlementId);
             END IF;
         ELSE
             SIGNAL SQLSTATE '45000'
@@ -310,53 +313,87 @@ CREATE TABLE Buildings (
     SELECT * FROM BuildingConfig;
 
 -- Prozedur: ProcessBuildingQueue
+    DROP PROCEDURE IF EXISTS ProcessBuildingQueue;
+
     DELIMITER //
-    CREATE PROCEDURE ProcessBuildingQueue()
+    CREATE PROCEDURE ProcessBuildingQueue(IN IN_settlementId INT)
     BEGIN
         DECLARE nextQueueId INT;
-        DECLARE nextSettlementId INT;
         DECLARE nextBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm');
         DECLARE nextEndTime DATETIME;
+        DECLARE activeCount INT;
 
-        -- Entferne abgeschlossene Bauvorhaben
-        DELETE FROM BuildingQueue
-        WHERE isActive = TRUE AND endTime <= NOW();
+        REPEAT
+            -- Check if there is any active item in the queue
+            SELECT COUNT(*)
+            INTO activeCount
+            FROM BuildingQueue
+            WHERE settlementId = IN_settlementId AND isActive = TRUE;
 
-        -- Prüfe, ob ein weiteres Bauvorhaben existiert
-        SELECT queueId, settlementId, buildingType, endTime
-        INTO nextQueueId, nextSettlementId, nextBuildingType, nextEndTime
-        FROM BuildingQueue
-        WHERE isActive = FALSE
-        ORDER BY queueId ASC
-        LIMIT 1;
+            -- If no item is active, activate the first item
+            IF activeCount = 0 THEN
+                SELECT queueId, buildingType, endTime
+                INTO nextQueueId, nextBuildingType, nextEndTime
+                FROM BuildingQueue
+                WHERE settlementId = IN_settlementId AND isActive = FALSE
+                ORDER BY queueId ASC
+                LIMIT 1;
 
-        -- Falls ein weiteres Bauvorhaben existiert, aktiviere es
-        IF nextQueueId IS NOT NULL THEN
-            -- Bauvorhaben aktivieren
-            UPDATE BuildingQueue
-            SET isActive = TRUE,
-                startTime = NOW(),
-                endTime = DATE_ADD(NOW(), INTERVAL TIMESTAMPDIFF(SECOND, NOW(), nextEndTime) SECOND)
-            WHERE queueId = nextQueueId;
+                IF nextQueueId IS NOT NULL THEN
+                    UPDATE BuildingQueue
+                    SET isActive = TRUE,
+                        startTime = NOW(),
+                        endTime = IF(nextEndTime > NOW(), nextEndTime, DATE_ADD(NOW(), INTERVAL 1 SECOND))
+                    WHERE queueId = nextQueueId;
+                END IF;
+            END IF;
 
-            -- Event erstellen, um das nächste Bauvorhaben zu aktivieren
-            SET @eventName = CONCAT('ProcessBuildingQueue_', nextQueueId);
-            SET @eventSQL = CONCAT(
-                'CREATE EVENT ', @eventName, '
-                ON SCHEDULE AT "', nextEndTime, '"
-                DO BEGIN
+            -- Process the active task
+            SELECT queueId, buildingType, endTime
+            INTO nextQueueId, nextBuildingType, nextEndTime
+            FROM BuildingQueue
+            WHERE settlementId = IN_settlementId AND isActive = TRUE
+            ORDER BY queueId ASC
+            LIMIT 1;
+
+            IF nextQueueId IS NOT NULL THEN
+                IF nextEndTime > NOW() THEN
+                    -- Create an event to process the next task
+                    SET @eventName = CONCAT('ProcessBuildingQueue_Settlement_', IN_settlementId);
+                    SET @eventSQL = CONCAT(
+                        'CREATE EVENT ', @eventName, '
+                        ON SCHEDULE AT "', DATE_FORMAT(nextEndTime, '%Y-%m-%d %H:%i:%s'), '"
+                        DO 
+                            UPDATE Buildings
+                            SET level = level + 1
+                            WHERE settlementId = ', IN_settlementId, ' AND buildingType = "', nextBuildingType, '";
+                            DELETE FROM BuildingQueue
+                            WHERE queueId = ', nextQueueId, ';'
+                    );
+                    PREPARE stmt FROM @eventSQL;
+                    EXECUTE stmt;
+                    DEALLOCATE PREPARE stmt;
+
+                    LEAVE;
+                ELSE
+                    -- Directly level up the building
                     UPDATE Buildings
                     SET level = level + 1
-                    WHERE settlementId = ', nextSettlementId, ' AND buildingType = "', nextBuildingType, '";
-                    CALL ProcessBuildingQueue();
-                END;'
-            );
-            PREPARE stmt FROM @eventSQL;
-            EXECUTE stmt;
-            DEALLOCATE PREPARE stmt;
-        END IF;
+                    WHERE settlementId = IN_settlementId AND buildingType = nextBuildingType;
+
+                    -- Remove the completed task
+                    DELETE FROM BuildingQueue
+                    WHERE queueId = nextQueueId;
+                END IF;
+            END IF;
+        UNTIL FALSE
+        END REPEAT;
     END //
     DELIMITER ;
+
+    SET GLOBAL max_sp_recursion_depth = 64;
+
+
 
 -- Event: Resourcen Updaten
     DROP EVENT IF EXISTS UpdateResources;
@@ -478,59 +515,88 @@ CREATE TABLE Buildings (
     CREATE OR REPLACE VIEW SettlementSettlers AS
     SELECT 
         s.settlementId,
-        -- Used settlers from Buildings and BuildingQueue
+        -- Used settlers from Buildings and BuildingQueue, summing up all levels
         (
             COALESCE(
-                (SELECT SUM(bc.settlers) 
-                FROM Buildings b
-                INNER JOIN BuildingConfig bc 
-                ON b.buildingType = bc.buildingType AND b.level = bc.level
-                WHERE b.settlementId = s.settlementId), 0
+                (
+                    SELECT SUM(totalSettlers) 
+                    FROM (
+                        SELECT b.settlementId, b.buildingType, SUM(bc.settlers) AS totalSettlers
+                        FROM Buildings b
+                        INNER JOIN BuildingConfig bc
+                        ON b.buildingType = bc.buildingType AND bc.level <= b.level
+                        GROUP BY b.settlementId, b.buildingType
+                    ) AS BuildingSummed
+                    WHERE BuildingSummed.settlementId = s.settlementId
+                ), 0
             ) + 
             COALESCE(
-                (SELECT SUM(bc.settlers) 
-                FROM BuildingQueue bq
-                INNER JOIN BuildingConfig bc 
-                ON bq.buildingType = bc.buildingType AND bq.level = bc.level
-                WHERE bq.settlementId = s.settlementId), 0
+                (
+                    SELECT SUM(totalSettlers) 
+                    FROM (
+                        SELECT bq.settlementId, bq.buildingType, SUM(bc.settlers) AS totalSettlers
+                        FROM BuildingQueue bq
+                        INNER JOIN BuildingConfig bc
+                        ON bq.buildingType = bc.buildingType AND bc.level <= bq.level
+                        GROUP BY bq.settlementId, bq.buildingType
+                    ) AS QueueSummed
+                    WHERE QueueSummed.settlementId = s.settlementId
+                ), 0
             )
         ) AS usedSettlers,
         -- Max settlers based on Farm level
         COALESCE(
-            (SELECT bc.productionRate
-            FROM Buildings b
-            INNER JOIN BuildingConfig bc
-            ON b.buildingType = bc.buildingType AND b.level = bc.level
-            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
-            LIMIT 1), 0
-        ) AS maxSettlers,
-        -- Free settlers (maxSettlers - usedSettlers)
-        GREATEST(
-            COALESCE(
-                (SELECT bc.productionRate
+            (
+                SELECT bc.productionRate
                 FROM Buildings b
                 INNER JOIN BuildingConfig bc
                 ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
-                LIMIT 1), 0
+                LIMIT 1
+            ), 0
+        ) AS maxSettlers,
+        -- Free settlers (maxSettlers - usedSettlers)
+        GREATEST(
+            COALESCE(
+                (
+                    SELECT bc.productionRate
+                    FROM Buildings b
+                    INNER JOIN BuildingConfig bc
+                    ON b.buildingType = bc.buildingType AND b.level = bc.level
+                    WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
+                    LIMIT 1
+                ), 0
             ) - (
                 COALESCE(
-                    (SELECT SUM(bc.settlers) 
-                    FROM Buildings b
-                    INNER JOIN BuildingConfig bc 
-                    ON b.buildingType = bc.buildingType AND b.level = bc.level
-                    WHERE b.settlementId = s.settlementId), 0
+                    (
+                        SELECT SUM(totalSettlers) 
+                        FROM (
+                            SELECT b.settlementId, b.buildingType, SUM(bc.settlers) AS totalSettlers
+                            FROM Buildings b
+                            INNER JOIN BuildingConfig bc
+                            ON b.buildingType = bc.buildingType AND bc.level <= b.level
+                            GROUP BY b.settlementId, b.buildingType
+                        ) AS BuildingSummed
+                        WHERE BuildingSummed.settlementId = s.settlementId
+                    ), 0
                 ) + 
                 COALESCE(
-                    (SELECT SUM(bc.settlers) 
-                    FROM BuildingQueue bq
-                    INNER JOIN BuildingConfig bc 
-                    ON bq.buildingType = bc.buildingType AND bq.level = bc.level
-                    WHERE bq.settlementId = s.settlementId), 0
+                    (
+                        SELECT SUM(totalSettlers) 
+                        FROM (
+                            SELECT bq.settlementId, bq.buildingType, SUM(bc.settlers) AS totalSettlers
+                            FROM BuildingQueue bq
+                            INNER JOIN BuildingConfig bc
+                            ON bq.buildingType = bc.buildingType AND bc.level <= bq.level
+                            GROUP BY bq.settlementId, bq.buildingType
+                        ) AS QueueSummed
+                        WHERE QueueSummed.settlementId = s.settlementId
+                    ), 0
                 )
             ), 0
         ) AS freeSettlers
     FROM Settlement s;
+
 
 
 
@@ -541,3 +607,4 @@ CALL CreatePlayerWithSettlement('Chris');
 CALL UpgradeBuilding(1, 'Holzfäller');
 SELECT * FROM OpenBuildingQueue WHERE settlementId = 1;
 SELECT * FROM SettlementSettlers;
+CALL ProcessBuildingQueue(5);
