@@ -93,7 +93,7 @@ function fetchBuildings(settlementId) {
 }
 
 function upgradeBuilding(buildingType) {
-    const settlementId = 2; // Beispiel-Siedlungs-ID
+    const settlementId = 6; // Beispiel-Siedlungs-ID
 
     fetch('backend.php?settlementId=' + settlementId, {
         method: 'POST',
@@ -165,7 +165,7 @@ function fetchBuildingQueue(settlementId) {
 }
 
 
-const settlementId = 2; // Beispiel-Siedlungs-ID
+const settlementId = 6; // Beispiel-Siedlungs-ID
 getSettlementName(settlementId);
 
 document.addEventListener('DOMContentLoaded', () => {

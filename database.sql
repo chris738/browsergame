@@ -373,8 +373,6 @@ CREATE TABLE Buildings (
                     PREPARE stmt FROM @eventSQL;
                     EXECUTE stmt;
                     DEALLOCATE PREPARE stmt;
-
-                    LEAVE;
                 ELSE
                     -- Directly level up the building
                     UPDATE Buildings
