@@ -148,6 +148,7 @@ BEGIN
         DECLARE nextEndTime DATETIME;
         DECLARE maxQueueLevel INT;
         DECLARE nextQueueId INT;
+        DECLARE nextBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm');
 
         
         SELECT level INTO currentBuildingLevel
@@ -203,8 +204,8 @@ BEGIN
             SELECT `queueId`, `endTime`, `buildingType`
                 INTO nextQueueId, nextEndTime, nextBuildingType
                 FROM `BuildingQueue`
-                WHERE settlementId = inSettlementId;
-                ORDER BY DESC
+                WHERE settlementId = inSettlementId
+                ORDER BY queueId DESC
                 LIMIT 1;
 
             SET @eventName = CONCAT('ProcessBuildingQueueNr_', nextQueueId);
