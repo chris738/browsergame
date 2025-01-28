@@ -133,11 +133,11 @@ CREATE TABLE Buildings (
     DROP PROCEDURE IF EXISTS UpgradeBuilding;
 
     DELIMITER //
-    CREATE PROCEDURE UpgradeBuilding(
+    CREATE DEFINER=`root`@`localhost` PROCEDURE `UpgradeBuilding`(
         IN inSettlementId INT,
         IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
     )
-    BEGIN
+BEGIN
         DECLARE currentBuildingLevel INT;
         DECLARE nextLevel INT;
         DECLARE nextLevelWoodCost FLOAT;
@@ -145,49 +145,51 @@ CREATE TABLE Buildings (
         DECLARE nextLevelOreCost FLOAT;
         DECLARE nextBuildTime INT;
         DECLARE lastEndTime DATETIME;
+        DECLARE nextEndTime DATETIME;
         DECLARE maxQueueLevel INT;
+        DECLARE nextQueueId INT;
 
-        -- Aktuelles Level aus Buildings abrufen
+        
         SELECT level INTO currentBuildingLevel
         FROM Buildings
         WHERE settlementId = inSettlementId AND buildingType = inBuildingType;
 
-        -- Maximales Level im Queue Aufrufen
+        
         SELECT COALESCE(MAX(level), 0) INTO maxQueueLevel
         FROM BuildingQueue
         WHERE settlementId = inSettlementId AND buildingType = inBuildingType;
 
-        -- Setzen des Nächsten Levels
+        
         IF maxQueueLevel > 0 THEN
             SET nextLevel = maxQueueLevel + 1;
         ELSE
             SET nextLevel = currentBuildingLevel + 1;
         END IF;
 
-        -- Kosten und Bauzeit für das nächste Level aus BuildingConfig abrufen
+        
         SELECT costWood, costStone, costOre, buildTime INTO 
             nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost, nextBuildTime
         FROM BuildingConfig
         WHERE buildingType = inBuildingType AND level = nextLevel;
 
-        -- Überprüfen, ob genug Ressourcen vorhanden sind
+        
         IF (SELECT wood FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelWoodCost AND
         (SELECT stone FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelStoneCost AND
         (SELECT ore FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelOreCost THEN
 
-            -- Ressourcen abziehen
+            
             UPDATE Settlement
             SET wood = wood - nextLevelWoodCost,
                 stone = stone - nextLevelStoneCost,
                 ore = ore - nextLevelOreCost
             WHERE settlementId = inSettlementId;
 
-            -- Letztes Endzeit aus BuildingQueue abrufen oder NOW() verwenden, wenn keine Einträge existieren
+            
             SELECT COALESCE(MAX(endTime), NOW()) INTO lastEndTime
             FROM BuildingQueue
             WHERE settlementId = inSettlementId;
 
-            -- Einfügen des Bauvorhabens in die Warteschlange
+            
             INSERT INTO BuildingQueue (settlementId, buildingType, startTime, endTime, isActive, level)
             VALUES (
                 inSettlementId,
@@ -198,15 +200,28 @@ CREATE TABLE Buildings (
                 nextLevel
             );
 
-            -- Prüfen, ob ein Bauvorhaben aktiv ist
-            IF NOT EXISTS (
-                SELECT 1
-                FROM BuildingQueue
-                WHERE isActive = TRUE AND settlementId = inSettlementId
-            ) THEN
-                -- Aktiviert das erste Bauvorhaben
-                CALL ProcessBuildingQueue(inSettlementId);
-            END IF;
+            SELECT `queueId`, `endTime`, `buildingType`
+                INTO nextQueueId, nextEndTime, nextBuildingType
+                FROM `BuildingQueue`
+                WHERE settlementId = inSettlementId;
+                ORDER BY DESC
+                LIMIT 1;
+
+            SET @eventName = CONCAT('ProcessBuildingQueueNr_', nextQueueId);
+            SET @eventSQL = CONCAT(
+                'CREATE EVENT ', @eventName, '
+                ON SCHEDULE AT "', DATE_FORMAT(nextEndTime, '%Y-%m-%d %H:%i:%s'), '"
+                    DO 
+                    UPDATE Buildings
+                    SET level = level + 1
+                    WHERE settlementId = ', inSettlementId, ' AND buildingType = "', nextBuildingType, '";
+                    DELETE FROM BuildingQueue
+                    WHERE queueId = ', nextQueueId, ';'
+            );
+            PREPARE stmt FROM @eventSQL;
+            EXECUTE stmt;
+            DEALLOCATE PREPARE stmt;
+
         ELSE
             SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Nicht genügend Ressourcen für das Upgrade';
