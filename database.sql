@@ -215,9 +215,7 @@ BEGIN
                     DO 
                     UPDATE Buildings
                     SET level = level + 1
-                    WHERE settlementId = ', inSettlementId, ' AND buildingType = "', nextBuildingType, '";
-                    DELETE FROM BuildingQueue
-                    WHERE queueId = ', nextQueueId, ';'
+                    WHERE settlementId = ', inSettlementId, ' AND buildingType = "', nextBuildingType, '";'
             );
             PREPARE stmt FROM @eventSQL;
             EXECUTE stmt;
