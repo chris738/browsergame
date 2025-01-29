@@ -16,4 +16,4 @@ Die `Database.sql` Datei solle so ein zu ein in mysql eingefügt werden können
 
 mit ```CreatePlayerWithSettlement('SpielerName')``` lässt sich das erste Settlement erstellen.
 
-Auch die Dateien sollten einfach nach `/var/www/html/game` kopiert werden können und mit `localhost/game/index.php/settlementId=1` aufrufbar sein.
+Auch die Dateien sollten einfach nach `/var/www/html/game` kopiert werden können und mit `localhost/game/index.php?settlementId=1` aufrufbar sein.
