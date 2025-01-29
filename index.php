@@ -15,6 +15,10 @@
         //["name" => "Kaserne", "id" => "kaserne"],
         //["name" => "Universität", "id" => "uni"],
     ];
+
+    // Eingehende Anfrage verarbeiten
+    $method = $_SERVER['REQUEST_METHOD'];
+    $settlementId = $_GET['settlementId'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -24,6 +28,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Siedlungsaufbau</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        const settlementId = <?php echo $settlementId; ?>;
+    </script>
     <script src="backend.js" defer></script>
 </head>
 <body>
@@ -92,8 +99,9 @@
                     </td>
                     <td style="text-align: right;">
                         <!-- Button with a unique ID -->
-                        <button id="<?= htmlspecialchars($building['id']) ?>upgradeButton" onclick="upgradeBuilding('<?= htmlspecialchars($building['id']) ?>')">
-                        Upgrade
+                        <button id="<?= htmlspecialchars($building['id']) ?>upgradeButton" 
+                            onclick="upgradeBuilding('<?= htmlspecialchars($building['id']) ?>','<?= htmlspecialchars($settlementId) ?>')">
+                            Upgrade
                         </button>
                     </td>
                 </tr>

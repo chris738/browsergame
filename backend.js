@@ -8,7 +8,8 @@ function updateCostColors(resources) {
         { type: 'holzfäller', wood: 'holzfällerKostenHolz', stone: 'holzfällerKostenStein', ore: 'holzfällerKostenErz', settlers: 'holzfällerKostenSiedler'},
         { type: 'steinbruch', wood: 'steinbruchKostenHolz', stone: 'steinbruchKostenStein', ore: 'steinbruchKostenErz', settlers: 'steinbruchKostenSiedler' },
         { type: 'erzbergwerk', wood: 'erzbergwerkKostenHolz', stone: 'erzbergwerkKostenStein', ore: 'erzbergwerkKostenErz', settlers: 'erzbergwerkKostenSiedler' },
-        { type: 'lager', wood: 'lagerKostenHolz', stone: 'lagerKostenStein', ore: 'lagerKostenErz', settlers: 'lagerKostenSiedler' }
+        { type: 'lager', wood: 'lagerKostenHolz', stone: 'lagerKostenStein', ore: 'lagerKostenErz', settlers: 'lagerKostenSiedler' },
+        { type: 'farm', wood: 'farmKostenHolz', stone: 'farmKostenStein', ore: 'farmKostenErz', settlers: 'farmKostenSiedler' }
     ];
 
     costElements.forEach(element => {
@@ -92,9 +93,7 @@ function fetchBuildings(settlementId) {
     });
 }
 
-function upgradeBuilding(buildingType) {
-    const settlementId = 6; // Beispiel-Siedlungs-ID
-
+function upgradeBuilding(buildingType, settlementId) {
     fetch('backend.php?settlementId=' + settlementId, {
         method: 'POST',
         headers: {
@@ -164,8 +163,6 @@ function fetchBuildingQueue(settlementId) {
         .catch(error => console.error('Fehler beim Abrufen der BuildingQueue:', error));
 }
 
-
-const settlementId = 6; // Beispiel-Siedlungs-ID
 getSettlementName(settlementId);
 
 document.addEventListener('DOMContentLoaded', () => {
