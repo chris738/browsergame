@@ -15,71 +15,74 @@
     -- Wechsel zur neuen Datenbank
     USE browsergame;
 
+    -- enable global event scheudler
+    SET GLOBAL event_scheduler = ON;
+
 -- Tabelle: Spieler
-CREATE TABLE Spieler (
-    playerId INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    punkte INT NOT NULL DEFAULT 0,
-    gold INT NOT NULL DEFAULT 500,
-    UNIQUE (name)
-);
+    CREATE TABLE Spieler (
+        playerId INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        punkte INT NOT NULL DEFAULT 0,
+        gold INT NOT NULL DEFAULT 500,
+        UNIQUE (name)
+    );
 
 -- Tabelle: Settlement
-CREATE TABLE Settlement (
-    settlementId INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    wood FLOAT NOT NULL DEFAULT 1000.0,
-    stone FLOAT NOT NULL DEFAULT 1000.0,
-    ore FLOAT NOT NULL DEFAULT 1000.0,
-    playerId INT NOT NULL,
-    FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
-);
+    CREATE TABLE Settlement (
+        settlementId INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        wood FLOAT NOT NULL DEFAULT 1000.0,
+        stone FLOAT NOT NULL DEFAULT 1000.0,
+        ore FLOAT NOT NULL DEFAULT 1000.0,
+        playerId INT NOT NULL,
+        FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
+    );
 
 -- Tabelle: Map
-CREATE TABLE Map (
-    settlementId INT PRIMARY KEY,
-    xCoordinate INT NOT NULL,
-    yCoordinate INT NOT NULL,
-    UNIQUE (xCoordinate, yCoordinate),
-    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
-);
+    CREATE TABLE Map (
+        settlementId INT PRIMARY KEY,
+        xCoordinate INT NOT NULL,
+        yCoordinate INT NOT NULL,
+        UNIQUE (xCoordinate, yCoordinate),
+        FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
+    );
 
 -- Tabelle: BuildingConfig
-CREATE TABLE BuildingConfig (
-    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
-    level INT NOT NULL,
-    costWood FLOAT NOT NULL,
-    costStone FLOAT NOT NULL,
-    costOre FLOAT NOT NULL,
-    settlers FLOAT NOT NULL DEFAULT 0.0,
-    productionRate FLOAT NOT NULL,
-    buildTime INT,
-    PRIMARY KEY (buildingType, level)
-);
+    CREATE TABLE BuildingConfig (
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+        level INT NOT NULL,
+        costWood FLOAT NOT NULL,
+        costStone FLOAT NOT NULL,
+        costOre FLOAT NOT NULL,
+        settlers FLOAT NOT NULL DEFAULT 0.0,
+        productionRate FLOAT NOT NULL,
+        buildTime INT,
+        PRIMARY KEY (buildingType, level)
+    );
 
 -- Tabelle: BuildingQueue
-CREATE TABLE BuildingQueue (
-    queueId INT AUTO_INCREMENT PRIMARY KEY,
-    settlementId INT NOT NULL,
-    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
-    startTime DATETIME NOT NULL,
-    endTime DATETIME NOT NULL,
-    isActive BOOLEAN NOT NULL DEFAULT FALSE,
-    level INT NOT NULL DEFAULT 0,
-    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
-    FOREIGN KEY (buildingType) REFERENCES BuildingConfig(buildingType) ON DELETE CASCADE
-);
+    CREATE TABLE BuildingQueue (
+        queueId INT AUTO_INCREMENT PRIMARY KEY,
+        settlementId INT NOT NULL,
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+        startTime DATETIME NOT NULL,
+        endTime DATETIME NOT NULL,
+        isActive BOOLEAN NOT NULL DEFAULT FALSE,
+        level INT NOT NULL DEFAULT 0,
+        FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+        FOREIGN KEY (buildingType) REFERENCES BuildingConfig(buildingType) ON DELETE CASCADE
+    );
 
 -- Tabelle: Buildings
-CREATE TABLE Buildings (
-    settlementId INT NOT NULL,
-    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
-    level INT NOT NULL DEFAULT 1,
-    visable boolean NOT NULL DEFAULT false,
-    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
-    FOREIGN KEY (buildingType, level) REFERENCES BuildingConfig(buildingType, level) ON DELETE CASCADE,
-    PRIMARY KEY (settlementId, buildingType)
-);
+    CREATE TABLE Buildings (
+        settlementId INT NOT NULL,
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+        level INT NOT NULL DEFAULT 1,
+        visable boolean NOT NULL DEFAULT false,
+        FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+        FOREIGN KEY (buildingType, level) REFERENCES BuildingConfig(buildingType, level) ON DELETE CASCADE,
+        PRIMARY KEY (settlementId, buildingType)
+    );
 
 -- Prozedur: Spieler erstellen und initialisieren
     DROP PROCEDURE IF EXISTS CreatePlayerWithSettlement;
@@ -133,12 +136,12 @@ CREATE TABLE Buildings (
     DROP PROCEDURE IF EXISTS UpgradeBuilding;
 
     DELIMITER //
-DROP PROCEDURE UpgradeBuilding;
-CREATE DEFINER=`root`@`localhost` PROCEDURE `UpgradeBuilding`(
-        IN inSettlementId INT,
-        IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
-    )
-BEGIN
+    DROP PROCEDURE UpgradeBuilding;
+    CREATE DEFINER=`root`@`localhost` PROCEDURE `UpgradeBuilding`(
+            IN inSettlementId INT,
+            IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
+        )
+    BEGIN
         DECLARE currentBuildingLevel INT;
         DECLARE nextLevel INT;
         DECLARE nextLevelWoodCost FLOAT;
@@ -327,87 +330,6 @@ BEGIN
     -- Check the result
     SELECT * FROM BuildingConfig;
 
--- Prozedur: ProcessBuildingQueue
-    DROP PROCEDURE IF EXISTS ProcessBuildingQueue;
-
-    DELIMITER //
-    CREATE PROCEDURE ProcessBuildingQueue(IN IN_settlementId INT)
-    BEGIN
-        DECLARE nextQueueId INT;
-        DECLARE nextBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm');
-        DECLARE nextEndTime DATETIME;
-        DECLARE activeCount INT;
-
-        REPEAT
-            -- Check if there is any active item in the queue
-            SELECT COUNT(*)
-            INTO activeCount
-            FROM BuildingQueue
-            WHERE settlementId = IN_settlementId AND isActive = TRUE;
-
-            -- If no item is active, activate the first item
-            IF activeCount = 0 THEN
-                SELECT queueId, buildingType, endTime
-                INTO nextQueueId, nextBuildingType, nextEndTime
-                FROM BuildingQueue
-                WHERE settlementId = IN_settlementId AND isActive = FALSE
-                ORDER BY queueId ASC
-                LIMIT 1;
-
-                IF nextQueueId IS NOT NULL THEN
-                    UPDATE BuildingQueue
-                    SET isActive = TRUE,
-                        startTime = NOW(),
-                        endTime = IF(nextEndTime > NOW(), nextEndTime, DATE_ADD(NOW(), INTERVAL 1 SECOND))
-                    WHERE queueId = nextQueueId;
-                END IF;
-            END IF;
-
-            -- Process the active task
-            SELECT queueId, buildingType, endTime
-            INTO nextQueueId, nextBuildingType, nextEndTime
-            FROM BuildingQueue
-            WHERE settlementId = IN_settlementId AND isActive = TRUE
-            ORDER BY queueId ASC
-            LIMIT 1;
-
-            IF nextQueueId IS NOT NULL THEN
-                IF nextEndTime > NOW() THEN
-                    -- Create an event to process the next task
-                    SET @eventName = CONCAT('ProcessBuildingQueue_Settlement_', IN_settlementId);
-                    SET @eventSQL = CONCAT(
-                        'CREATE EVENT ', @eventName, '
-                        ON SCHEDULE AT "', DATE_FORMAT(nextEndTime, '%Y-%m-%d %H:%i:%s'), '"
-                        DO 
-                            UPDATE Buildings
-                            SET level = level + 1
-                            WHERE settlementId = ', IN_settlementId, ' AND buildingType = "', nextBuildingType, '";
-                            DELETE FROM BuildingQueue
-                            WHERE queueId = ', nextQueueId, ';'
-                    );
-                    PREPARE stmt FROM @eventSQL;
-                    EXECUTE stmt;
-                    DEALLOCATE PREPARE stmt;
-                ELSE
-                    -- Directly level up the building
-                    UPDATE Buildings
-                    SET level = level + 1
-                    WHERE settlementId = IN_settlementId AND buildingType = nextBuildingType;
-
-                    -- Remove the completed task
-                    DELETE FROM BuildingQueue
-                    WHERE queueId = nextQueueId;
-                END IF;
-            END IF;
-        UNTIL FALSE
-        END REPEAT;
-    END //
-    DELIMITER ;
-
-    SET GLOBAL max_sp_recursion_depth = 64;
-
-
-
 -- Event: Resourcen Updaten
     DROP EVENT IF EXISTS UpdateResources;
 
@@ -478,6 +400,8 @@ BEGIN
     -- Aktiviere das Event
     ALTER EVENT UpdateResources ENABLE;
     SET GLOBAL event_scheduler = ON;
+
+-- Event: Clean BuildingQueue (todo once an hour)
 
 -- View: Warteschleife
     CREATE VIEW OpenBuildingQueue AS
