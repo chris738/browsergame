@@ -7,6 +7,7 @@ interface DatabaseInterface {
     public function getRegen($settlementId);
     public function getSettlementName($settlementId);
     public function getQueue($settlementId);
+    public function getMap();
 }
 
 class Database implements DatabaseInterface {
@@ -57,7 +58,6 @@ class Database implements DatabaseInterface {
         $stmt->execute();
         return $resources = $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
     
     public function getBuilding($settlementId, $buildingType) {
         $sql = "
@@ -193,7 +193,18 @@ class Database implements DatabaseInterface {
         $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
+    public function getMap() {
+        $sql = "
+        SELECT
+            settlementId, xCoordinate, yCoordinate
+        FROM 
+            Map";
+        
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 

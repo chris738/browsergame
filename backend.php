@@ -111,6 +111,25 @@ function getSettlementName($settlementId) {
     ];
 }
 
+function getMap() {
+    $database = new Database();
+    $map = $database->getMap();
+
+    if (!$map) {
+        return ['error' => 'getMap konnten nicht abgerufen werden.'];
+    }
+
+    return [
+        'map' => array_map(function($map) {
+            return [
+                'settlementId' => $map['settlementId'],
+                'xCoordinate' => $map['xCoordinate'],
+                'yCoordinate' => $map['yCoordinate'],
+            ];
+        }, $map),
+    ];
+}
+
 // Eingehende Anfrage verarbeiten
 $method = $_SERVER['REQUEST_METHOD'];
 $settlementId = $_GET['settlementId'] ?? null;
@@ -118,6 +137,7 @@ $buildingType = $_GET['buildingType'] ?? null;
 $getRegen = $_GET['getRegen'] ?? null;
 $getSettlementName = $_GET['getSettlementName'] ?? null;
 $getBuildingQueue = $_GET['getBuildingQueue'] ?? null;
+$getMap = $_GET['getMap'] ?? null;
 
 try {
     if ($method === 'GET') {
@@ -144,8 +164,13 @@ try {
         }
 
         //Settlement Name
-        if ($getBuildingQueue == True) {
-            $response = ['info' => fetchBuildingQueue($settlementId)];
+        if ($getSettlementName == True) {
+            $response = ['info' => getSettlementName($settlementId)];
+        }
+
+        //Settlement Name
+        if ($getMap == True) {
+            $response = ['info' => getMap()];
         }
 
         echo json_encode($response);
