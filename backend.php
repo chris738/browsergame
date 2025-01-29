@@ -163,9 +163,9 @@ try {
             $response = ['info' => getSettlementName($settlementId)];
         }
 
-        //Settlement Name
-        if ($getSettlementName == True) {
-            $response = ['info' => getSettlementName($settlementId)];
+        //fetchBuildingQueue
+        if ($getBuildingQueue == True) {
+            $response = ['info' => fetchBuildingQueue($settlementId)];
         }
 
         //Settlement Name
