@@ -7,6 +7,9 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
 
 <nav class="navigation">
     <div class="nav-links">
+        <div class="settlement-name">
+            <span id="Siedlungsname">Siedlungsname</span>
+        </div>
         <a href="index.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : '' ?>">
             Siedlung
         </a>
@@ -15,10 +18,6 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
         </a>
     </div>
 </nav>
-
-<header class="header">
-    <h1><span id="Siedlungsname">Siedlungsname</span></h1>
-</header>
 
 <section class="resources">
     <div class="resource">
