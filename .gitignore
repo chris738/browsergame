@@ -20,9 +20,17 @@ Thumbs.db
 config.local.php
 database.local.php
 
+# Environment files
+.env
+.env.local
+
 # User uploads and generated content
 /uploads/
 /generated/
+
+# Docker volumes and data
+/docker/data/
+/docker/logs/
 
 # Backup files
 *.bak
@@ -31,4 +39,3 @@ database_backup_*
 
 # System files
 *.pid
-.env.local

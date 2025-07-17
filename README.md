@@ -4,6 +4,31 @@ Ein webbasiertes Strategiespiel, bei dem Spieler ihre eigenen Siedlungen aufbaue
 
 ## 🚀 Quick Start
 
+### Option 1: Docker (Empfohlen / Recommended) 🐳
+
+Der einfachste Weg ist die Verwendung von Docker:
+
+```bash
+# Docker Quick Start
+git clone https://github.com/chris738/browsergame.git
+cd browsergame
+./docker-start.sh
+```
+
+Das war's! Das Spiel läuft unter http://localhost:8080
+
+### Option 2: Automatische Installation 🔧
+
+Für Ubuntu/Debian/CentOS/RHEL Systeme:
+
+```bash
+git clone https://github.com/chris738/browsergame.git
+cd browsergame
+./install.sh
+```
+
+### Option 3: Manuelle Installation
+
 ```bash
 # Ubuntu/Debian Quick Install
 sudo apt update && sudo apt install apache2 php php-mysql mariadb-server git -y
@@ -137,33 +162,78 @@ git clone https://github.com/chris738/browsergame.git C:\xampp\htdocs\game
 
 ### Docker Installation (Alternative)
 
-```bash
-# Docker-Compose erstellen
-cat > docker-compose.yml << EOF
-version: '3'
-services:
-  web:
-    image: php:8.1-apache
-    ports:
-      - "8080:80"
-    volumes:
-      - .:/var/www/html
-    depends_on:
-      - db
-  db:
-    image: mariadb:10.9
-    environment:
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: browsergame
-      MYSQL_USER: browsergame
-      MYSQL_PASSWORD: sicheresPasswort
-    ports:
-      - "3306:3306"
-EOF
+#### Voraussetzungen
+- Docker 20.10+
+- Docker Compose 2.0+
 
-# Container starten
-docker-compose up -d
+#### Schnellstart
+```bash
+# Repository klonen
+git clone https://github.com/chris738/browsergame.git
+cd browsergame
+
+# Mit Docker starten
+./docker-start.sh
+
+# Oder manuell mit docker-compose
+docker-compose up -d --build
 ```
+
+#### Docker Befehle
+```bash
+# Stoppen
+./docker-start.sh stop
+# oder
+docker-compose down
+
+# Neustarten
+./docker-start.sh restart
+
+# Logs anzeigen
+./docker-start.sh logs
+
+# Status prüfen
+./docker-start.sh status
+```
+
+#### Zugriff
+- **Spiel**: http://localhost:8080/
+- **Admin Panel**: http://localhost:8080/admin.php
+- **Installation Check**: http://localhost:8080/installation-check.php
+
+#### Docker Konfiguration
+Die Docker-Umgebung verwendet:
+- **PHP 8.1** mit Apache
+- **MariaDB 10.9**
+- **Automatische Datenbankinitialisierung**
+- **Vorkonfigurierter TestPlayer**
+
+### Automatische Installation (Neu!)
+
+Für unterstützte Linux-Distributionen gibt es jetzt ein Installationsskript:
+
+```bash
+# Repository klonen
+git clone https://github.com/chris738/browsergame.git
+cd browsergame
+
+# Automatische Installation starten
+./install.sh
+```
+
+**Unterstützte Systeme:**
+- Ubuntu 18.04+ / Debian 10+
+- CentOS 7+ / RHEL 7+
+- Rocky Linux / AlmaLinux
+
+Das Script installiert automatisch:
+- Apache Webserver
+- PHP 8+ mit MySQL-Extension
+- MariaDB Server
+- Spiel-Dateien und Datenbank
+- Erstellt initialen Admin-Spieler
+
+### Manuelle Installation
 
 ## ✅ Installation überprüfen
 
@@ -208,8 +278,24 @@ Dieses Script überprüft:
 
 ## 🔧 Konfiguration
 
+### Umgebungsvariablen
+
+Das Spiel unterstützt jetzt Umgebungsvariablen für die Datenbankkonfiguration:
+
+```bash
+# .env Datei erstellen (optional)
+cp .env.example .env
+```
+
+**Verfügbare Variablen:**
+- `DB_HOST` - Datenbank Host (Standard: localhost)
+- `DB_NAME` - Datenbankname (Standard: browsergame)
+- `DB_USER` - Datenbankbenutzer (Standard: browsergame)
+- `DB_PASSWORD` - Datenbankpasswort (Standard: sicheresPasswort)
+
 ### Datenbankverbindung ändern
-Bearbeite `database.php` für andere Datenbankeinstellungen:
+**Docker:** Bearbeite `docker-compose.yml`
+**Manuell:** Bearbeite `database.php` oder verwende Umgebungsvariablen
 ```php
 private $host = 'dein-host';
 private $dbname = 'dein-datenbankname';
