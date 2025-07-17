@@ -86,6 +86,7 @@ function fetchBuildings(settlementId) {
                     document.getElementById(`${buildingId}KostenStein`).textContent = `${formatNumberWithDots(data.building.costStone)} Stein`;
                     document.getElementById(`${buildingId}KostenErz`).textContent = `${formatNumberWithDots(data.building.costOre)} Erz`;
                     document.getElementById(`${buildingId}KostenSiedler`).textContent = `${formatNumberWithDots(data.building.costSettlers)} Siedler`;
+                    document.getElementById(`${buildingId}Bauzeit`).textContent = `${formatNumberWithDots(data.building.buildTime)}s Bauzeit`;
                     document.getElementById(`${buildingId}upgradeButton`).textContent = `Upgrade auf ${formatNumberWithDots(data.building.nextLevel)}`;
                 } else {
                     // If building data is missing, ensure level shows 0 explicitly

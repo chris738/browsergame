@@ -70,6 +70,7 @@
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 Stein</span>
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 Erz</span>
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenSiedler">0 Siedler</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Bauzeit">0s Bauzeit</span>
                     </td>
                     <td style="text-align: right;">
                         <!-- Button with a unique ID -->
