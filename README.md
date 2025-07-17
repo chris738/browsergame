@@ -121,6 +121,54 @@ Das Spiel bietet verschiedene Reset-Optionen:
 ./docker-start.sh reset-db  # Nur Datenbank
 ```
 
+## 🔄 Datenbank-Neuerstellung / Database Rebuild
+
+### Neue Rebuild-Skripte für Schema-Änderungen
+
+Für Entwicklung und Schema-Änderungen gibt es neue, fokussierte Skripte:
+
+#### Haupt-Rebuild-Skript
+```bash
+# Interaktiv (mit Bestätigung)
+./rebuild-database.sh
+
+# Automatisch (ohne Bestätigung)  
+./rebuild-database.sh --force
+
+# Hilfe anzeigen
+./rebuild-database.sh --help
+```
+
+#### Schnell-Rebuild für Entwicklung
+```bash
+# Für schnelle Entwicklungszyklen
+./quick-rebuild-db.sh
+```
+
+#### Tests ausführen
+```bash
+# Funktionalität testen
+./test-rebuild-scripts.sh
+```
+
+**Was wird neu erstellt:**
+- Komplettes Schema aus `database.sql`
+- Alle Tabellen, Prozeduren, Events und Views
+- Initial-Spieler-Daten
+- Gebäude-Konfiguration
+
+**Verwendung:**
+- 🔧 **Entwicklung**: Schema-Änderungen testen
+- 🗄️ **Datenbank-Updates**: Neue Tabellen/Strukturen 
+- 🚀 **Schnelle Iteration**: Mit `quick-rebuild-db.sh`
+- 📖 **Dokumentation**: Siehe `DATABASE_REBUILD.md`
+
+**Unterschied zu Reset-Skripten:**
+- Fokussiert auf Schema-Neuerstellung
+- Einfacher und wartungsfreundlicher Code
+- Speziell für Copilot/AI-Entwicklung optimiert
+- Unterstützt `docker compose` und `docker-compose`
+
 ### ⚠️ Wichtige Hinweise
 
 - **ALLE DATEN GEHEN VERLOREN** bei einem Reset

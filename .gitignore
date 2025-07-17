@@ -42,3 +42,6 @@ database_backup_*
 
 # Test files (development only)
 test_*.php
+# Database rebuild temporary files
+rebuild_*.log
+rebuild_*.tmp
