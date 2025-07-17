@@ -231,8 +231,39 @@ button {
 
 .settlement:hover {
     transform: translate(-50%, -50%) scale(1.2);
-    background-color: #3498db;
-    border-color: #2980b9;
+}
+
+/* Selected settlement - white */
+.settlement.selected-settlement {
+    background-color: #ffffff;
+    border-color: #2c3e50;
+}
+
+.settlement.selected-settlement:hover {
+    background-color: #f8f9fa;
+    border-color: #1a252f;
+}
+
+/* Own settlements - black */
+.settlement.own-settlement {
+    background-color: #2c3e50;
+    border-color: #1a252f;
+}
+
+.settlement.own-settlement:hover {
+    background-color: #34495e;
+    border-color: #1a252f;
+}
+
+/* Other settlements - brown */
+.settlement.other-settlement {
+    background-color: #8b4513;
+    border-color: #654321;
+}
+
+.settlement.other-settlement:hover {
+    background-color: #a0522d;
+    border-color: #654321;
 }
 
 .main-content {
