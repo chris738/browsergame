@@ -22,6 +22,9 @@
     -- enable global event scheudler
     SET GLOBAL event_scheduler = ON;
 
+    -- Verify event scheduler is enabled (for troubleshooting)
+    -- SHOW VARIABLES LIKE 'event_scheduler';
+
 -- Tabelle: Spieler
     CREATE TABLE Spieler (
         playerId INT AUTO_INCREMENT PRIMARY KEY,

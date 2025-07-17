@@ -108,9 +108,56 @@ class Database implements DatabaseInterface {
                 }
             }
 
+            // Ensure event scheduler is enabled for automatic resource generation
+            $this->ensureEventSchedulerEnabled();
+
             $this->schemaInitialized = true;
         } catch (PDOException $e) {
             error_log("Error checking database schema: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Ensure event scheduler is enabled for automatic resource generation
+     */
+    private function ensureEventSchedulerEnabled() {
+        try {
+            // Check if event scheduler is already enabled
+            $stmt = $this->conn->prepare("SHOW VARIABLES LIKE 'event_scheduler'");
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result && strtoupper($result['Value']) === 'ON') {
+                error_log("Event scheduler is already enabled");
+                return true;
+            }
+
+            // Try to enable event scheduler
+            // Note: This requires SUPER privilege, so it might fail for regular users
+            try {
+                $this->conn->exec("SET GLOBAL event_scheduler = ON");
+                error_log("Event scheduler enabled successfully");
+                return true;
+            } catch (PDOException $e) {
+                // If we can't enable it directly, log a warning
+                error_log("Cannot enable event scheduler (requires SUPER privilege): " . $e->getMessage());
+                error_log("Please manually run as root: mysql -e \"SET GLOBAL event_scheduler = ON;\"");
+                
+                // Check if UpdateResources event exists
+                $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM information_schema.EVENTS WHERE EVENT_NAME = 'UpdateResources' AND EVENT_SCHEMA = ?");
+                $stmt->execute([$this->dbname]);
+                $eventResult = $stmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($eventResult['count'] == 0) {
+                    error_log("UpdateResources event not found. Automatic resource generation may not work.");
+                    error_log("Please run the database initialization script to create the event.");
+                }
+                
+                return false;
+            }
+        } catch (PDOException $e) {
+            error_log("Error checking event scheduler status: " . $e->getMessage());
+            return false;
         }
     }
 

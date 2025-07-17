@@ -356,6 +356,19 @@ SET GLOBAL event_scheduler = ON;
 
 -- Events überprüfen
 SHOW EVENTS;
+
+-- Event-Scheduler Status prüfen
+SHOW VARIABLES LIKE 'event_scheduler';
+```
+
+**Wichtiger Hinweis:** Der Event-Scheduler ist essentiell für die automatische Ressourcenproduktion. Ohne ihn erhöhen sich die Ressourcen nicht automatisch. Das Spiel prüft automatisch beim Start, ob der Event-Scheduler aktiviert ist, aber bei Problemen kann er manuell aktiviert werden:
+
+```bash
+# Automatisches Aktivierungsskript verwenden
+./init-event-scheduler.sh
+
+# Oder manuell als root:
+mysql -u root -e "SET GLOBAL event_scheduler = ON;"
 ```
 
 ### Logs überprüfen
