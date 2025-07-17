@@ -826,29 +826,38 @@ class Database implements DatabaseInterface {
     }
 
     public function getAllQueues() {
-        $sql = "
-            SELECT 
-                bq.queueId,
-                bq.settlementId,
-                s.name as settlementName,
-                bq.buildingType,
-                bq.level,
-                bq.startTime,
-                bq.endTime,
-                bq.isActive,
-                ROUND(
-                    100 - (TIMESTAMPDIFF(SECOND, NOW(), bq.endTime) * 100.0 / 
-                           TIMESTAMPDIFF(SECOND, bq.startTime, bq.endTime)),
-                    2
-                ) AS completionPercentage
-            FROM BuildingQueue bq
-            LEFT JOIN Settlement s ON bq.settlementId = s.settlementId
-            WHERE NOW() < bq.endTime
-            ORDER BY bq.endTime ASC";
-        
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($this->connectionFailed) {
+            return [];
+        }
+
+        try {
+            $sql = "
+                SELECT 
+                    bq.queueId,
+                    bq.settlementId,
+                    s.name as settlementName,
+                    bq.buildingType,
+                    bq.level,
+                    bq.startTime,
+                    bq.endTime,
+                    bq.isActive,
+                    ROUND(
+                        100 - (TIMESTAMPDIFF(SECOND, NOW(), bq.endTime) * 100.0 / 
+                               TIMESTAMPDIFF(SECOND, bq.startTime, bq.endTime)),
+                        2
+                    ) AS completionPercentage
+                FROM BuildingQueue bq
+                LEFT JOIN Settlement s ON bq.settlementId = s.settlementId
+                WHERE NOW() < bq.endTime
+                ORDER BY bq.endTime ASC";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Failed to fetch queues: " . $e->getMessage());
+            return [];
+        }
     }
 
     public function createPlayer($name, $gold = 500) {
