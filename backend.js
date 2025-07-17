@@ -25,7 +25,7 @@ function updateCostColors(resources) {
                 const costValue = parseFloat(rawText.replace(',', '.').replace(/[^\d.]/g, '')) || 0;
 
                 // Verfügbare Ressourcen
-                const available = resources[resourceType];
+                const available = resourceType === 'settlers' ? resources.freeSettlers : resources[resourceType];
 
                 // Überprüfe, ob die Ressourcen ausreichen
                 if (available < costValue) {
