@@ -39,3 +39,6 @@ database_backup_*
 
 # System files
 *.pid
+
+# Test files (development only)
+test_*.php
