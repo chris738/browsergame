@@ -183,12 +183,14 @@ class Database implements DatabaseInterface {
                     DECLARE nextLevelWoodCost FLOAT DEFAULT 100;
                     DECLARE nextLevelStoneCost FLOAT DEFAULT 100;
                     DECLARE nextLevelOreCost FLOAT DEFAULT 100;
+                    DECLARE nextLevelSettlerCost FLOAT DEFAULT 0;
                     DECLARE nextBuildTime INT DEFAULT 30;
                     DECLARE lastEndTime DATETIME;
                     DECLARE maxQueueLevel INT DEFAULT 0;
                     DECLARE currentWood FLOAT DEFAULT 0;
                     DECLARE currentStone FLOAT DEFAULT 0;
                     DECLARE currentOre FLOAT DEFAULT 0;
+                    DECLARE currentFreeSettlers FLOAT DEFAULT 0;
 
                     -- Get current building level (default to 1 if building doesn't exist)
                     SELECT COALESCE(level, 1) INTO currentBuildingLevel
@@ -212,8 +214,9 @@ class Database implements DatabaseInterface {
                     SELECT COALESCE(costWood, 100 * POW(1.1, nextLevel)), 
                            COALESCE(costStone, 100 * POW(1.1, nextLevel)), 
                            COALESCE(costOre, 100 * POW(1.1, nextLevel)),
+                           COALESCE(settlers, 1),
                            COALESCE(buildTime, 30)
-                    INTO nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost, nextBuildTime
+                    INTO nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost, nextLevelSettlerCost, nextBuildTime
                     FROM BuildingConfig
                     WHERE buildingType = inBuildingType AND level = nextLevel
                     LIMIT 1;
@@ -225,8 +228,14 @@ class Database implements DatabaseInterface {
                     WHERE settlementId = inSettlementId
                     LIMIT 1;
 
-                    -- Check if settlement has enough resources
-                    IF currentWood >= nextLevelWoodCost AND currentStone >= nextLevelStoneCost AND currentOre >= nextLevelOreCost THEN
+                    -- Get current free settlers
+                    SELECT COALESCE(freeSettlers, 0) INTO currentFreeSettlers
+                    FROM SettlementSettlers
+                    WHERE settlementId = inSettlementId
+                    LIMIT 1;
+
+                    -- Check if settlement has enough resources and settlers
+                    IF currentWood >= nextLevelWoodCost AND currentStone >= nextLevelStoneCost AND currentOre >= nextLevelOreCost AND currentFreeSettlers >= nextLevelSettlerCost THEN
 
                         -- Deduct resources
                         UPDATE Settlement
@@ -253,7 +262,7 @@ class Database implements DatabaseInterface {
 
                     ELSE
                         SIGNAL SQLSTATE '45000'
-                        SET MESSAGE_TEXT = 'Nicht genügend Ressourcen für das Upgrade';
+                        SET MESSAGE_TEXT = 'Nicht genügend Ressourcen oder Siedler für das Upgrade';
                     END IF;
                 END";
 
