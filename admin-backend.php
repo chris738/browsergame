@@ -42,6 +42,30 @@ try {
                 echo json_encode(['stats' => $stats]);
                 break;
                 
+            case 'buildingConfigs':
+                $configs = $database->getAllBuildingConfigs();
+                echo json_encode(['buildingConfigs' => $configs]);
+                break;
+                
+            case 'buildingConfig':
+                $buildingType = $_GET['buildingType'] ?? '';
+                $level = $_GET['level'] ?? 0;
+                
+                if (empty($buildingType) || $level <= 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Building type and level are required']);
+                    break;
+                }
+                
+                $config = $database->getBuildingConfig($buildingType, $level);
+                if ($config) {
+                    echo json_encode(['buildingConfig' => $config]);
+                } else {
+                    http_response_code(404);
+                    echo json_encode(['error' => 'Building config not found']);
+                }
+                break;
+                
             default:
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid action']);
@@ -122,6 +146,56 @@ try {
                 }
                 break;
                 
+            case 'createBuildingConfig':
+                $buildingType = $input['buildingType'] ?? '';
+                $level = $input['level'] ?? 0;
+                $costWood = $input['costWood'] ?? 0;
+                $costStone = $input['costStone'] ?? 0;
+                $costOre = $input['costOre'] ?? 0;
+                $settlers = $input['settlers'] ?? 0;
+                $productionRate = $input['productionRate'] ?? 0;
+                $buildTime = $input['buildTime'] ?? 30;
+                
+                if (empty($buildingType) || $level <= 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Building type and level are required']);
+                    break;
+                }
+                
+                $success = $database->createBuildingConfig($buildingType, $level, $costWood, $costStone, $costOre, $settlers, $productionRate, $buildTime);
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Building config created successfully']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Failed to create building config (may already exist)']);
+                }
+                break;
+                
+            case 'updateBuildingConfig':
+                $buildingType = $input['buildingType'] ?? '';
+                $level = $input['level'] ?? 0;
+                $costWood = $input['costWood'] ?? 0;
+                $costStone = $input['costStone'] ?? 0;
+                $costOre = $input['costOre'] ?? 0;
+                $settlers = $input['settlers'] ?? 0;
+                $productionRate = $input['productionRate'] ?? 0;
+                $buildTime = $input['buildTime'] ?? 30;
+                
+                if (empty($buildingType) || $level <= 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Building type and level are required']);
+                    break;
+                }
+                
+                $success = $database->updateBuildingConfig($buildingType, $level, $costWood, $costStone, $costOre, $settlers, $productionRate, $buildTime);
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Building config updated successfully']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Failed to update building config']);
+                }
+                break;
+                
             default:
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid action']);
@@ -165,6 +239,25 @@ try {
                 } else {
                     http_response_code(500);
                     echo json_encode(['error' => 'Failed to delete queue entry']);
+                }
+                break;
+                
+            case 'deleteBuildingConfig':
+                $buildingType = $input['buildingType'] ?? '';
+                $level = $input['level'] ?? 0;
+                
+                if (empty($buildingType) || $level <= 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Building type and level are required']);
+                    break;
+                }
+                
+                $success = $database->deleteBuildingConfig($buildingType, $level);
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Building config deleted successfully']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Failed to delete building config']);
                 }
                 break;
                 

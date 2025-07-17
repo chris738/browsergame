@@ -22,6 +22,13 @@ interface DatabaseInterface {
     public function updateSettlementResources($settlementId, $wood, $stone, $ore);
     public function deleteQueue($queueId);
     public function clearAllQueues();
+    
+    // Building configuration management methods
+    public function getAllBuildingConfigs();
+    public function getBuildingConfig($buildingType, $level);
+    public function updateBuildingConfig($buildingType, $level, $costWood, $costStone, $costOre, $settlers, $productionRate, $buildTime);
+    public function createBuildingConfig($buildingType, $level, $costWood, $costStone, $costOre, $settlers, $productionRate, $buildTime);
+    public function deleteBuildingConfig($buildingType, $level);
 }
 
 class Database implements DatabaseInterface {
@@ -819,29 +826,38 @@ class Database implements DatabaseInterface {
     }
 
     public function getAllQueues() {
-        $sql = "
-            SELECT 
-                bq.queueId,
-                bq.settlementId,
-                s.name as settlementName,
-                bq.buildingType,
-                bq.level,
-                bq.startTime,
-                bq.endTime,
-                bq.isActive,
-                ROUND(
-                    100 - (TIMESTAMPDIFF(SECOND, NOW(), bq.endTime) * 100.0 / 
-                           TIMESTAMPDIFF(SECOND, bq.startTime, bq.endTime)),
-                    2
-                ) AS completionPercentage
-            FROM BuildingQueue bq
-            LEFT JOIN Settlement s ON bq.settlementId = s.settlementId
-            WHERE NOW() < bq.endTime
-            ORDER BY bq.endTime ASC";
-        
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($this->connectionFailed) {
+            return [];
+        }
+
+        try {
+            $sql = "
+                SELECT 
+                    bq.queueId,
+                    bq.settlementId,
+                    s.name as settlementName,
+                    bq.buildingType,
+                    bq.level,
+                    bq.startTime,
+                    bq.endTime,
+                    bq.isActive,
+                    ROUND(
+                        100 - (TIMESTAMPDIFF(SECOND, NOW(), bq.endTime) * 100.0 / 
+                               TIMESTAMPDIFF(SECOND, bq.startTime, bq.endTime)),
+                        2
+                    ) AS completionPercentage
+                FROM BuildingQueue bq
+                LEFT JOIN Settlement s ON bq.settlementId = s.settlementId
+                WHERE NOW() < bq.endTime
+                ORDER BY bq.endTime ASC";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Failed to fetch queues: " . $e->getMessage());
+            return [];
+        }
     }
 
     public function createPlayer($name, $gold = 500) {
@@ -991,6 +1007,111 @@ class Database implements DatabaseInterface {
             $stmt->execute();
             return true;
         } catch (PDOException $e) {
+            return false;
+        }
+    }
+
+    // Building Configuration Management Methods
+    public function getAllBuildingConfigs() {
+        if ($this->connectionFailed) {
+            return [];
+        }
+
+        try {
+            $sql = "SELECT * FROM BuildingConfig ORDER BY buildingType, level";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Failed to fetch building configs: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getBuildingConfig($buildingType, $level) {
+        if ($this->connectionFailed) {
+            return null;
+        }
+
+        try {
+            $sql = "SELECT * FROM BuildingConfig WHERE buildingType = :buildingType AND level = :level";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+            $stmt->bindParam(':level', $level, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Failed to fetch building config: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    public function updateBuildingConfig($buildingType, $level, $costWood, $costStone, $costOre, $settlers, $productionRate, $buildTime) {
+        if ($this->connectionFailed) {
+            return false;
+        }
+
+        try {
+            $sql = "UPDATE BuildingConfig 
+                    SET costWood = :costWood, costStone = :costStone, costOre = :costOre, 
+                        settlers = :settlers, productionRate = :productionRate, buildTime = :buildTime 
+                    WHERE buildingType = :buildingType AND level = :level";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':costWood', $costWood, PDO::PARAM_STR);
+            $stmt->bindParam(':costStone', $costStone, PDO::PARAM_STR);
+            $stmt->bindParam(':costOre', $costOre, PDO::PARAM_STR);
+            $stmt->bindParam(':settlers', $settlers, PDO::PARAM_STR);
+            $stmt->bindParam(':productionRate', $productionRate, PDO::PARAM_STR);
+            $stmt->bindParam(':buildTime', $buildTime, PDO::PARAM_INT);
+            $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+            $stmt->bindParam(':level', $level, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log("Failed to update building config: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function createBuildingConfig($buildingType, $level, $costWood, $costStone, $costOre, $settlers, $productionRate, $buildTime) {
+        if ($this->connectionFailed) {
+            return false;
+        }
+
+        try {
+            $sql = "INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, settlers, productionRate, buildTime) 
+                    VALUES (:buildingType, :level, :costWood, :costStone, :costOre, :settlers, :productionRate, :buildTime)";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+            $stmt->bindParam(':level', $level, PDO::PARAM_INT);
+            $stmt->bindParam(':costWood', $costWood, PDO::PARAM_STR);
+            $stmt->bindParam(':costStone', $costStone, PDO::PARAM_STR);
+            $stmt->bindParam(':costOre', $costOre, PDO::PARAM_STR);
+            $stmt->bindParam(':settlers', $settlers, PDO::PARAM_STR);
+            $stmt->bindParam(':productionRate', $productionRate, PDO::PARAM_STR);
+            $stmt->bindParam(':buildTime', $buildTime, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log("Failed to create building config: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function deleteBuildingConfig($buildingType, $level) {
+        if ($this->connectionFailed) {
+            return false;
+        }
+
+        try {
+            $sql = "DELETE FROM BuildingConfig WHERE buildingType = :buildingType AND level = :level";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+            $stmt->bindParam(':level', $level, PDO::PARAM_INT);
+            $stmt->execute();
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log("Failed to delete building config: " . $e->getMessage());
             return false;
         }
     }
