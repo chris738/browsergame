@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   web:
     build: .
@@ -29,6 +27,7 @@ services:
     volumes:
       - ./database.sql:/docker-entrypoint-initdb.d/01-init.sql
       - ./docker/init-player.sql:/docker-entrypoint-initdb.d/02-init-player.sql
+      - ./docker/mariadb.cnf:/etc/mysql/conf.d/browsergame.cnf
       - db_data:/var/lib/mysql
     networks:
       - browsergame-network

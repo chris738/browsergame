@@ -1,0 +1,9 @@
+[mysqld]
+# Enable event scheduler for automatic resource generation in browsergame
+event_scheduler=ON
+
+# Optimize for browsergame performance
+innodb_buffer_pool_size=256M
+max_connections=200
+query_cache_size=32M
+query_cache_type=1
