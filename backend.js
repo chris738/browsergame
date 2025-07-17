@@ -72,6 +72,7 @@ function fetchResources(settlementId) {
 
 function fetchBuildings(settlementId) {
     const buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+    let completedRequests = 0;
 
     buildingTypes.forEach(buildingType => {
         fetch(`backend.php?settlementId=${settlementId}&buildingType=${buildingType}`)
@@ -86,10 +87,35 @@ function fetchBuildings(settlementId) {
                     document.getElementById(`${buildingId}KostenErz`).textContent = `${formatNumberWithDots(data.building.costOre)} Erz`;
                     document.getElementById(`${buildingId}KostenSiedler`).textContent = `${formatNumberWithDots(data.building.costSettlers)} Siedler`;
                     document.getElementById(`${buildingId}upgradeButton`).textContent = `Upgrade auf ${formatNumberWithDots(data.building.nextLevel)}`;
+                } else {
+                    // If building data is missing, ensure level shows 0 explicitly
+                    const buildingId = buildingType.toLowerCase();
+                    const levelElement = document.getElementById(`${buildingId}`);
+                    if (levelElement && levelElement.textContent === '') {
+                        levelElement.textContent = '0';
+                    }
+                }
+                
+                // Only call getRegen once when all building requests are complete
+                completedRequests++;
+                if (completedRequests === buildingTypes.length) {
+                    getRegen(settlementId);
                 }
             })
-            .catch(error => console.error(`Fehler beim Abrufen der Daten für ${buildingType}:`, error));
-            getRegen(settlementId);
+            .catch(error => {
+                console.error(`Fehler beim Abrufen der Daten für ${buildingType}:`, error);
+                // On error, ensure the building level shows 0 instead of staying empty
+                const buildingId = buildingType.toLowerCase();
+                const levelElement = document.getElementById(`${buildingId}`);
+                if (levelElement && levelElement.textContent === '') {
+                    levelElement.textContent = '0';
+                }
+                
+                completedRequests++;
+                if (completedRequests === buildingTypes.length) {
+                    getRegen(settlementId);
+                }
+            });
     });
 }
 
