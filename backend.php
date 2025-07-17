@@ -89,12 +89,12 @@ function handleBuildingUpgrade($settlementId, $input) {
     }
 
     // Datenbankzugriff und Upgrade
-    $success = $database->upgradeBuilding($settlementId, $buildingType);
+    $result = $database->upgradeBuilding($settlementId, $buildingType);
 
-    if ($success) {
-        return json_encode(['success' => true, 'message' => "$buildingType wurde erfolgreich aufgewertet."]);
+    if ($result['success']) {
+        return json_encode(['success' => true, 'message' => $result['message']]);
     } else {
-        return json_encode(['success' => false, 'message' => "$buildingType konnte nicht aufgewertet werden in backend.php."]);
+        return json_encode(['success' => false, 'message' => $result['message']]);
     }
 }
 
