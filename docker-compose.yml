@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+    environment:
+      - DB_HOST=db
+      - DB_NAME=browsergame
+      - DB_USER=browsergame
+      - DB_PASSWORD=sicheresPasswort
+    depends_on:
+      - db
+    networks:
+      - browsergame-network
+
+  db:
+    image: mariadb:10.9
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: browsergame
+      MYSQL_USER: browsergame
+      MYSQL_PASSWORD: sicheresPasswort
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./docker/init-player.sql:/docker-entrypoint-initdb.d/02-init-player.sql
+      - db_data:/var/lib/mysql
+    networks:
+      - browsergame-network
+
+volumes:
+  db_data:
+
+networks:
+  browsergame-network:
+    driver: bridge
