@@ -76,6 +76,18 @@ class Database implements DatabaseInterface {
     }
 
     public function getResources($settlementId) {
+        // Return mock data if database connection failed
+        if ($this->connectionFailed) {
+            return [
+                'wood' => 1000,
+                'stone' => 500,
+                'ore' => 200,
+                'storageCapacity' => 10000,
+                'maxSettlers' => 100,
+                'freeSettlers' => 50
+            ];
+        }
+
         $sql = "
             SELECT 
                 s.wood, 
@@ -109,6 +121,18 @@ class Database implements DatabaseInterface {
     }
     
     public function getBuilding($settlementId, $buildingType) {
+        // Return mock data if database connection failed
+        if ($this->connectionFailed) {
+            return [
+                'currentLevel' => 1,
+                'nextLevel' => 2,
+                'costWood' => 100,
+                'costStone' => 50,
+                'costOre' => 25,
+                'settlers' => 5
+            ];
+        }
+
         $sql = "
             SELECT 
                 b.currentLevel,
@@ -135,6 +159,14 @@ class Database implements DatabaseInterface {
     }
     
     public function upgradeBuilding($settlementId, $buildingType) {
+        // Return mock success response if database connection failed
+        if ($this->connectionFailed) {
+            return [
+                'success' => true,
+                'message' => "Das Gebäude '$buildingType' wurde erfolgreich upgegradet (Mock-Modus)."
+            ];
+        }
+
         try {
             $sql = "CALL UpgradeBuilding(:settlementId, :buildingType)";
             $stmt = $this->conn->prepare($sql);
@@ -171,6 +203,15 @@ class Database implements DatabaseInterface {
     }
 
     public function getRegen($settlementId) {
+        // Return mock data if database connection failed
+        if ($this->connectionFailed) {
+            return [
+                'woodProductionRate' => 10,
+                'stoneProductionRate' => 5,
+                'oreProductionRate' => 2
+            ];
+        }
+
         $sql = "
         SELECT 
             -- Get the total production rate for Holzfäller (Wood)
@@ -209,6 +250,11 @@ class Database implements DatabaseInterface {
     }
 
     public function getSettlementName($settlementId) {
+        // Return mock data if database connection failed
+        if ($this->connectionFailed) {
+            return ['SettlementName' => 'Test-Siedlung'];
+        }
+
         $sql = "
             SELECT 
                 s.name AS SettlementName
@@ -224,6 +270,11 @@ class Database implements DatabaseInterface {
     }
 
     public function getQueue($settlementId) {
+        // Return mock empty queue if database connection failed
+        if ($this->connectionFailed) {
+            return [];
+        }
+
         $sql = "
         SELECT
             queueId,
