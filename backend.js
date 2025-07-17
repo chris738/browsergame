@@ -27,20 +27,12 @@ function updateCostColors(resources) {
                 // Verfügbare Ressourcen
                 const available = resourceType === 'settlers' ? resources.freeSettlers : resources[resourceType];
 
-                // Debug logging for troubleshooting (can be removed later)
-                if (element.type === 'holzfäller' && resourceType === 'settlers') {
-                    console.log(`Debug ${element.type} ${resourceType}: available=${available}, cost=${costValue}, sufficient=${available >= costValue}`);
-                }
-
                 // Überprüfe, ob die Ressourcen ausreichen
                 if (available < costValue) {
                     elementNode.classList.add('insufficient');
                 } else {
                     elementNode.classList.remove('insufficient');
                 }
-            } else {
-                // Debug: Log missing elements
-                console.warn(`Element not found: ${elementId}`);
             }
         });
     });

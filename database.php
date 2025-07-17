@@ -512,15 +512,15 @@ class Database implements DatabaseInterface {
     }
 
     public function getResources($settlementId) {
-        // Return mock data if database connection failed
+        // Return mock data if database connection failed - modified for testing insufficient resources
         if ($this->connectionFailed) {
             return [
-                'wood' => 1000,
-                'stone' => 500,
-                'ore' => 200,
+                'wood' => 50,        // Insufficient for 100 wood cost
+                'stone' => 30,       // Insufficient for 50 stone cost  
+                'ore' => 200,        // Sufficient for 25 ore cost
                 'storageCapacity' => 10000,
                 'maxSettlers' => 100,
-                'freeSettlers' => 50
+                'freeSettlers' => 3  // Insufficient for 5 settler cost
             ];
         }
 
