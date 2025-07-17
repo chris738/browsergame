@@ -56,7 +56,7 @@
 
 -- Tabelle: BuildingConfig
     CREATE TABLE BuildingConfig (
-        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
         level INT NOT NULL,
         costWood FLOAT NOT NULL,
         costStone FLOAT NOT NULL,
@@ -71,7 +71,7 @@
     CREATE TABLE BuildingQueue (
         queueId INT AUTO_INCREMENT PRIMARY KEY,
         settlementId INT NOT NULL,
-        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
         startTime DATETIME NOT NULL,
         endTime DATETIME NOT NULL,
         isActive BOOLEAN NOT NULL DEFAULT FALSE,
@@ -83,7 +83,7 @@
 -- Tabelle: Buildings
     CREATE TABLE Buildings (
         settlementId INT NOT NULL,
-        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
         level INT NOT NULL DEFAULT 1,
         visable boolean NOT NULL DEFAULT false,
         FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
@@ -126,7 +126,8 @@
             ('Steinbruch', 1),
             ('Erzbergwerk', 1),
             ('Lager', 1),
-            ('Farm', 1);
+            ('Farm', 1),
+            ('Rathaus', 1);
 
         -- Gebäude erstellen
         INSERT INTO Buildings (settlementId, buildingType) VALUES
@@ -134,7 +135,8 @@
             (newSettlementId, 'Steinbruch'),
             (newSettlementId, 'Erzbergwerk'),
             (newSettlementId, 'Lager'),
-            (newSettlementId, 'Farm');
+            (newSettlementId, 'Farm'),
+            (newSettlementId, 'Rathaus');
     END //
 
     DELIMITER ;
@@ -145,7 +147,7 @@
     DELIMITER //
     CREATE DEFINER=`root`@`localhost` PROCEDURE `UpgradeBuilding`(
             IN inSettlementId INT,
-            IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
+            IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus')
         )
     BEGIN
         DECLARE currentBuildingLevel INT;
@@ -158,7 +160,9 @@
         DECLARE nextEndTime DATETIME;
         DECLARE maxQueueLevel INT;
         DECLARE nextQueueId INT;
-        DECLARE nextBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm');
+        DECLARE nextBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus');
+        DECLARE townHallLevel INT DEFAULT 0;
+        DECLARE buildTimeReduction FLOAT DEFAULT 1.0;
 
         
         SELECT level INTO currentBuildingLevel
@@ -182,6 +186,20 @@
             nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost, nextBuildTime
         FROM BuildingConfig
         WHERE buildingType = inBuildingType AND level = nextLevel;
+
+        -- Get Town Hall level for build time reduction
+        SELECT COALESCE(level, 0) INTO townHallLevel
+        FROM Buildings
+        WHERE settlementId = inSettlementId AND buildingType = 'Rathaus';
+
+        -- Calculate build time reduction based on Town Hall level (5% per level)
+        SET buildTimeReduction = 1.0 - (townHallLevel * 0.05);
+        IF buildTimeReduction < 0.1 THEN
+            SET buildTimeReduction = 0.1; -- Minimum 10% of original build time
+        END IF;
+        
+        -- Apply build time reduction
+        SET nextBuildTime = ROUND(nextBuildTime * buildTimeReduction);
 
         
         IF (SELECT wood FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelWoodCost AND
@@ -268,11 +286,11 @@
 
         CREATE TEMPORARY TABLE TempBuildings (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            name ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
+            name ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus')
         );
 
         INSERT INTO TempBuildings (name) VALUES
-            ('Holzfäller'), ('Steinbruch'), ('Erzbergwerk'), ('Lager'), ('Farm');
+            ('Holzfäller'), ('Steinbruch'), ('Erzbergwerk'), ('Lager'), ('Farm'), ('Rathaus');
 
         -- Debugging: Check TempBuildings
         SELECT * FROM TempBuildings;
@@ -299,6 +317,8 @@
                 SET baseProduction = 10000.0;
             ELSEIF buildingType = 'Farm' THEN
                 SET baseProduction = 100.0;
+            ELSEIF buildingType = 'Rathaus' THEN
+                SET baseProduction = 0.0; -- Town Hall doesn't produce resources, it provides build time reduction
             ELSE
                 SET baseProduction = 3600.0;
             END IF;

@@ -5,6 +5,7 @@ function formatNumberWithDots(number) {
 
 function updateCostColors(resources) {
     const costElements = [
+        { type: 'rathaus', wood: 'rathausKostenHolz', stone: 'rathausKostenStein', ore: 'rathausKostenErz', settlers: 'rathausKostenSiedler'},
         { type: 'holzfäller', wood: 'holzfällerKostenHolz', stone: 'holzfällerKostenStein', ore: 'holzfällerKostenErz', settlers: 'holzfällerKostenSiedler'},
         { type: 'steinbruch', wood: 'steinbruchKostenHolz', stone: 'steinbruchKostenStein', ore: 'steinbruchKostenErz', settlers: 'steinbruchKostenSiedler' },
         { type: 'erzbergwerk', wood: 'erzbergwerkKostenHolz', stone: 'erzbergwerkKostenStein', ore: 'erzbergwerkKostenErz', settlers: 'erzbergwerkKostenSiedler' },
@@ -83,7 +84,7 @@ function fetchResourcesForColorUpdate(settlementId) {
 }
 
 function fetchBuildings(settlementId) {
-    const buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+    const buildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
     let completedRequests = 0;
 
     buildingTypes.forEach(buildingType => {
