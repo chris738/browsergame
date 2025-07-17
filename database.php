@@ -182,7 +182,7 @@ class Database implements DatabaseInterface {
             // Create procedure with proper delimiter handling
             $procedureSQL = "CREATE PROCEDURE UpgradeBuilding(
                     IN inSettlementId INT,
-                    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
+                    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus')
                 )
                 BEGIN
                     DECLARE currentBuildingLevel INT DEFAULT 1;
@@ -306,7 +306,7 @@ class Database implements DatabaseInterface {
                 FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
             )",
             "CREATE TABLE IF NOT EXISTS BuildingConfig (
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
                 level INT NOT NULL,
                 costWood FLOAT NOT NULL,
                 costStone FLOAT NOT NULL,
@@ -319,7 +319,7 @@ class Database implements DatabaseInterface {
             "CREATE TABLE IF NOT EXISTS BuildingQueue (
                 queueId INT AUTO_INCREMENT PRIMARY KEY,
                 settlementId INT NOT NULL,
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
                 startTime DATETIME NOT NULL,
                 endTime DATETIME NOT NULL,
                 isActive BOOLEAN NOT NULL DEFAULT FALSE,
@@ -328,7 +328,7 @@ class Database implements DatabaseInterface {
             )",
             "CREATE TABLE IF NOT EXISTS Buildings (
                 settlementId INT NOT NULL,
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
                 level INT NOT NULL DEFAULT 1,
                 visable boolean NOT NULL DEFAULT false,
                 FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
@@ -356,7 +356,9 @@ class Database implements DatabaseInterface {
                 ('Lager', 1, 100, 100, 100, 1, 10000, 30),
                 ('Lager', 2, 110, 110, 110, 1.1, 11000, 40),
                 ('Farm', 1, 100, 100, 100, 1, 100, 30),
-                ('Farm', 2, 110, 110, 110, 1.1, 110, 40)");
+                ('Farm', 2, 110, 110, 110, 1.1, 110, 40),
+                ('Rathaus', 1, 200, 200, 200, 2, 0, 60),
+                ('Rathaus', 2, 220, 220, 220, 2.2, 0, 80)");
         } catch (PDOException $e) {
             error_log("Failed to insert basic building config: " . $e->getMessage());
         }
@@ -934,7 +936,7 @@ class Database implements DatabaseInterface {
             $settlementId = $this->conn->lastInsertId();
             
             // Create buildings
-            $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+            $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus'];
             foreach ($buildingTypes as $buildingType) {
                 try {
                     $sql = "INSERT INTO Buildings (settlementId, buildingType) VALUES (:settlementId, :buildingType)";

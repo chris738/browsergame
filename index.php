@@ -1,7 +1,7 @@
 <?php
     // Liste der Gebäude mit ihren Eigenschaften
     $buildings = [
-        //["name" => "Rathaus", "id" => "rathaus"],
+        ["name" => "Rathaus", "id" => "rathaus"],
         ["name" => "Holzfäller", "id" => "holzfäller"],
         ["name" => "Steinbruch", "id" => "steinbruch"],
         ["name" => "Erzbergwerk", "id" => "erzbergwerk"],
