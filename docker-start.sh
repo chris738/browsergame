@@ -118,6 +118,47 @@ case "${1:-}" in
     "status")
         docker-compose ps
         ;;
+    "reset")
+        log_warning "⚠️ This will completely reset the game including all data!"
+        read -p "Are you sure? (yes/no): " -r
+        if [[ $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
+            if [ -f "./reset.sh" ]; then
+                ./reset.sh --force
+            else
+                log_error "reset.sh not found!"
+                exit 1
+            fi
+        else
+            log_info "Reset cancelled"
+        fi
+        ;;
+    "reset-db")
+        log_warning "⚠️ This will reset the database only!"
+        read -p "Are you sure? (yes/no): " -r
+        if [[ $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
+            if [ -f "./reset-database.sh" ]; then
+                ./reset-database.sh --force
+            else
+                log_error "reset-database.sh not found!"
+                exit 1
+            fi
+        else
+            log_info "Database reset cancelled"
+        fi
+        ;;
+    "help"|"--help")
+        echo "Browsergame Docker Management Script"
+        echo
+        echo "Usage:"
+        echo "  ./docker-start.sh           - Start the game"
+        echo "  ./docker-start.sh stop      - Stop containers"
+        echo "  ./docker-start.sh restart   - Restart containers"
+        echo "  ./docker-start.sh logs      - Show container logs"
+        echo "  ./docker-start.sh status    - Show container status"
+        echo "  ./docker-start.sh reset     - Complete reset (ALL DATA LOST)"
+        echo "  ./docker-start.sh reset-db  - Database reset only"
+        echo "  ./docker-start.sh help      - Show this help"
+        ;;
     *)
         main
         ;;
