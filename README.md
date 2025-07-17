@@ -60,6 +60,68 @@ mysql -u root -p < /var/www/html/game/database.sql
 - **Lager**: Erhöht die Lagerkapazität für Ressourcen
 - **Farm**: Stellt Siedler für andere Gebäude bereit
 
+## 🔄 Spiel zurücksetzen / Game Reset
+
+### Reset-Skripte / Reset Scripts
+
+Das Spiel bietet verschiedene Reset-Optionen:
+
+#### Kompletter Reset
+```bash
+# Interaktiv (mit Bestätigung)
+./reset.sh
+
+# Automatisch (ohne Bestätigung) - VORSICHT!
+./reset.sh --force
+
+# Hilfe anzeigen
+./reset.sh --help
+```
+
+**Was wird zurückgesetzt:**
+- Alle Spieler und Siedlungen
+- Alle Gebäude und Ressourcen
+- Komplett Datenbank
+- Docker-Container (bei Docker-Setup)
+- Warteschlangen und Events
+
+#### Nur Datenbank zurücksetzen
+```bash
+# Interaktiv (mit Bestätigung)
+./reset-database.sh
+
+# Automatisch (ohne Bestätigung)
+./reset-database.sh --force
+
+# Hilfe anzeigen
+./reset-database.sh --help
+```
+
+**Was wird zurückgesetzt:**
+- Alle Spieler und Siedlungen
+- Alle Gebäude und Ressourcen
+- Warteschlangen und Events
+
+**Was bleibt erhalten:**
+- Docker-Container (falls verwendet)
+- Webserver-Konfiguration
+- Dateiberechtigungen
+
+#### Docker-integrierte Reset-Optionen
+```bash
+# Über docker-start.sh
+./docker-start.sh reset     # Kompletter Reset
+./docker-start.sh reset-db  # Nur Datenbank
+```
+
+### ⚠️ Wichtige Hinweise
+
+- **ALLE DATEN GEHEN VERLOREN** bei einem Reset
+- Reset-Skripte erkennen automatisch Docker- oder manuelle Installation
+- Nach dem Reset wird automatisch ein neuer Testspieler erstellt
+- Backups werden **nicht** automatisch erstellt
+- Nur für Entwicklungsumgebungen empfohlen
+
 ## 🛠️ Systemanforderungen
 
 - **Webserver**: Apache 2.4+
@@ -194,6 +256,15 @@ docker-compose down
 
 # Status prüfen
 ./docker-start.sh status
+
+# Kompletter Reset (ALLE DATEN GEHEN VERLOREN!)
+./docker-start.sh reset
+
+# Nur Datenbank zurücksetzen
+./docker-start.sh reset-db
+
+# Hilfe anzeigen
+./docker-start.sh help
 ```
 
 #### Zugriff
