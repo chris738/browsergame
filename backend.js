@@ -70,6 +70,18 @@ function fetchResources(settlementId) {
         .catch(error => console.error('Fehler beim Abrufen der Daten in backend.js:', error));
 }
 
+function fetchResourcesForColorUpdate(settlementId) {
+    fetch(`backend.php?settlementId=${settlementId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.resources) {
+                // Only update cost colors, don't update the resource displays
+                updateCostColors(data.resources.resources);
+            }
+        })
+        .catch(error => console.error('Fehler beim Abrufen der Ressourcen für Farbupdate:', error));
+}
+
 function fetchBuildings(settlementId) {
     const buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
     let completedRequests = 0;
@@ -97,10 +109,12 @@ function fetchBuildings(settlementId) {
                     }
                 }
                 
-                // Only call getRegen once when all building requests are complete
+                // Only call getRegen and update cost colors once when all building requests are complete
                 completedRequests++;
                 if (completedRequests === buildingTypes.length) {
                     getRegen(settlementId);
+                    // Trigger cost color update after all buildings are loaded
+                    fetchResourcesForColorUpdate(settlementId);
                 }
             })
             .catch(error => {
@@ -115,6 +129,8 @@ function fetchBuildings(settlementId) {
                 completedRequests++;
                 if (completedRequests === buildingTypes.length) {
                     getRegen(settlementId);
+                    // Trigger cost color update after all buildings are loaded
+                    fetchResourcesForColorUpdate(settlementId);
                 }
             });
     });
