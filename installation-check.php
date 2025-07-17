@@ -147,8 +147,8 @@ header('Content-Type: text/html; charset=utf-8');
         <ul>
             <li><strong>README.md</strong> - Vollständige Installationsanweisungen</li>
             <li><strong>ADMIN_README.md</strong> - Admin Panel Dokumentation</li>
-            <li><strong>Spiel URL</strong> - <code><?php echo $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; ?>index.php?settlementId=1</code></li>
-            <li><strong>Admin URL</strong> - <code><?php echo $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']; ?>admin.php</code></li>
+            <li><strong>Spiel URL</strong> - <code><?php echo ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQUEST_URI'] ?? '/'); ?>index.php?settlementId=1</code></li>
+            <li><strong>Admin URL</strong> - <code><?php echo ($_SERVER['HTTP_HOST'] ?? 'localhost') . ($_SERVER['REQUEST_URI'] ?? '/'); ?>admin.php</code></li>
         </ul>
     </div>
 
