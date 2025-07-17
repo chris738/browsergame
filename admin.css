@@ -1,5 +1,138 @@
 /* Admin Panel Specific Styles */
 
+/* Admin Navigation */
+.admin-navigation {
+    background-color: #35424a;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.admin-title h1 {
+    margin: 0;
+    font-size: 24px;
+    color: white;
+}
+
+.admin-nav-link {
+    color: #bbb;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+.admin-nav-link:hover {
+    color: white;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.admin-nav-link.active {
+    color: white;
+    background-color: #3498db;
+}
+
+.admin-nav-actions {
+    display: flex;
+    align-items: center;
+}
+
+/* Building Configuration Specific Styles */
+.filter-controls {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.filter-controls .form-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0;
+}
+
+.filter-controls label {
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.filter-controls select,
+.filter-controls input {
+    min-width: 120px;
+}
+
+.generator-form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.form-row .form-group:last-child {
+    margin-right: 0;
+}
+
+/* Table improvements for building configs */
+#buildingConfigsTable th:nth-child(3),
+#buildingConfigsTable th:nth-child(4),
+#buildingConfigsTable th:nth-child(5),
+#buildingConfigsTable th:nth-child(6),
+#buildingConfigsTable th:nth-child(7),
+#buildingConfigsTable td:nth-child(3),
+#buildingConfigsTable td:nth-child(4),
+#buildingConfigsTable td:nth-child(5),
+#buildingConfigsTable td:nth-child(6),
+#buildingConfigsTable td:nth-child(7) {
+    text-align: right;
+}
+
+#buildingConfigsTable th:nth-child(8),
+#buildingConfigsTable td:nth-child(8) {
+    text-align: center;
+}
+
+/* Modal improvements for building configs */
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #35424a;
+}
+
+/* Success message styling */
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border: 1px solid #c3e6cb;
+}
+
 /* Login Form */
 .admin-login {
     max-width: 400px;
@@ -28,26 +161,21 @@
     color: #333;
 }
 
-.form-group input {
+.form-group input,
+.form-group select {
     width: 100%;
     padding: 8px 12px;
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
+    box-sizing: border-box;
 }
 
-.form-group input:focus {
+.form-group input:focus,
+.form-group select:focus {
     outline: none;
     border-color: #35424a;
     box-shadow: 0 0 5px rgba(53, 66, 74, 0.3);
-}
-
-/* Admin Navigation */
-.admin-nav {
-    position: absolute;
-    right: 20px;
-    top: 50%;
-    transform: translateY(-50%);
 }
 
 .logout-btn {
@@ -150,7 +278,7 @@
     overflow-x: auto;
 }
 
-#playersTable, #settlementsTable, #queuesTable {
+#playersTable, #settlementsTable, #queuesTable, #buildingConfigsTable {
     width: 100%;
     border-collapse: collapse;
     background-color: #ffffff;
@@ -161,14 +289,15 @@
 
 #playersTable th, #playersTable td,
 #settlementsTable th, #settlementsTable td,
-#queuesTable th, #queuesTable td {
+#queuesTable th, #queuesTable td,
+#buildingConfigsTable th, #buildingConfigsTable td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: left;
     vertical-align: middle;
 }
 
-#playersTable th, #settlementsTable th, #queuesTable th {
+#playersTable th, #settlementsTable th, #queuesTable th, #buildingConfigsTable th {
     background-color: #35424a;
     color: #ffffff;
     font-weight: bold;
@@ -177,13 +306,15 @@
 
 #playersTable tr:nth-child(even),
 #settlementsTable tr:nth-child(even),
-#queuesTable tr:nth-child(even) {
+#queuesTable tr:nth-child(even),
+#buildingConfigsTable tr:nth-child(even) {
     background-color: #f9f9f9;
 }
 
 #playersTable tr:hover,
 #settlementsTable tr:hover,
-#queuesTable tr:hover {
+#queuesTable tr:hover,
+#buildingConfigsTable tr:hover {
     background-color: #f1f1f1;
 }
 
@@ -234,11 +365,13 @@
 
 .modal-content {
     background-color: #fff;
-    margin: 10% auto;
+    margin: 5% auto;
     padding: 30px;
     border-radius: 8px;
-    max-width: 500px;
+    max-width: 600px;
     position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
 }
 
 .close {
@@ -263,15 +396,6 @@
     border-radius: 4px;
     margin: 20px;
     border: 1px solid #f5c6cb;
-}
-
-.success-message {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 12px;
-    border-radius: 4px;
-    margin: 20px;
-    border: 1px solid #c3e6cb;
 }
 
 .error {
@@ -299,6 +423,17 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    .admin-navigation {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .admin-nav-links {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
     .admin-container {
         padding: 10px;
     }
@@ -307,8 +442,14 @@
         grid-template-columns: 1fr;
     }
     
-    .admin-controls {
+    .admin-controls,
+    .filter-controls {
         flex-direction: column;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
     }
     
     .admin-btn {
@@ -317,9 +458,9 @@
     }
     
     .modal-content {
-        margin: 5% auto;
+        margin: 2% auto;
         padding: 20px;
-        max-width: 90%;
+        max-width: 95%;
     }
     
     .table-container {
