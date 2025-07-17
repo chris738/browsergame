@@ -4,18 +4,25 @@ Ein webbasiertes Strategiespiel, bei dem Spieler ihre eigenen Siedlungen aufbaue
 
 ## 🚀 Quick Start
 
-### Option 1: Docker (Empfohlen / Recommended) 🐳
+### Option 1: Docker All-in-One (Empfohlen / Recommended) 🐳
 
-Der einfachste Weg ist die Verwendung von Docker:
+Der einfachste Weg ist die Verwendung des neuen All-in-One Docker Starts mit integriertem Event Scheduler:
 
 ```bash
-# Docker Quick Start
+# Docker All-in-One Start mit Event Scheduler
 git clone https://github.com/chris738/browsergame.git
 cd browsergame
 ./docker-start.sh
 ```
 
-Das war's! Das Spiel läuft unter http://localhost:8080
+**Was passiert automatisch:**
+- ✅ Startet alle Docker Container
+- ✅ Initialisiert die Datenbank komplett
+- ✅ Aktiviert den Event Scheduler für automatische Ressourcengenerierung
+- ✅ Erstellt einen Testspieler
+- ✅ Überprüft dass alle Systeme funktionieren
+
+Das war's! Das Spiel läuft unter http://localhost:8080 mit vollständig aktivierter automatischer Ressourcengenerierung.
 
 ### Option 2: Automatische Installation 🔧
 

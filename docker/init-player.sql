@@ -12,6 +12,9 @@ SELECT 'Initial player created successfully' AS status;
 SELECT * FROM Spieler LIMIT 5;
 SELECT * FROM Settlement LIMIT 5;
 
+-- Ensure event scheduler remains enabled after initialization
+SET GLOBAL event_scheduler = ON;
+
 -- Verify event scheduler is enabled
 SHOW VARIABLES LIKE 'event_scheduler';
 
