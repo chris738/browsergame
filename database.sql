@@ -96,7 +96,7 @@
 
     DELIMITER //
 
-    CREATE PROCEDURE CreatePlayerWithSettlement (IN playerName VARCHAR(100))
+    CREATE PROCEDURE CreatePlayerWithSettlement (IN playerName VARCHAR(100), IN playerGold INT)
     BEGIN
         DECLARE newPlayerId INT;
         DECLARE newSettlementId INT;
@@ -108,7 +108,7 @@
         SET yCoord = FLOOR(RAND() * 21) - 10;
 
         -- Spieler erstellen
-        INSERT INTO Spieler (name, punkte) VALUES (playerName, 0);
+        INSERT INTO Spieler (name, punkte, gold) VALUES (playerName, 0, playerGold);
         SET newPlayerId = LAST_INSERT_ID();
 
         -- Siedlung erstellen
@@ -546,7 +546,7 @@
 
 -- Beispielaufrufe
 SHOW EVENTS;
-CALL CreatePlayerWithSettlement('Chris');
+CALL CreatePlayerWithSettlement('Chris', 500);
 CALL UpgradeBuilding(1, 'Holzfäller');
 SELECT * FROM OpenBuildingQueue WHERE settlementId = 1;
 SELECT * FROM SettlementSettlers;

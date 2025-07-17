@@ -789,6 +789,14 @@ class Database implements DatabaseInterface {
     }
 
     public function getAllPlayers() {
+        if ($this->connectionFailed) {
+            return [
+                ['playerId' => 1, 'name' => 'Demo Player 1', 'points' => 100, 'gold' => 500],
+                ['playerId' => 2, 'name' => 'Demo Player 2', 'points' => 200, 'gold' => 750],
+                ['playerId' => 3, 'name' => 'Demo Player 3', 'points' => 50, 'gold' => 1000]
+            ];
+        }
+        
         $sql = "SELECT playerId, name, punkte as points, gold FROM Spieler ORDER BY playerId";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -796,6 +804,13 @@ class Database implements DatabaseInterface {
     }
 
     public function getAllSettlements() {
+        if ($this->connectionFailed) {
+            return [
+                ['settlementId' => 1, 'name' => 'Demo Settlement 1', 'wood' => 1000, 'stone' => 500, 'ore' => 200, 'playerName' => 'Demo Player 1', 'xCoordinate' => 1, 'yCoordinate' => 1],
+                ['settlementId' => 2, 'name' => 'Demo Settlement 2', 'wood' => 2000, 'stone' => 1000, 'ore' => 500, 'playerName' => 'Demo Player 2', 'xCoordinate' => -2, 'yCoordinate' => 3]
+            ];
+        }
+        
         $sql = "
             SELECT 
                 s.settlementId,
@@ -817,6 +832,13 @@ class Database implements DatabaseInterface {
     }
 
     public function getAllQueues() {
+        if ($this->connectionFailed) {
+            return [
+                ['queueId' => 1, 'settlementId' => 1, 'settlementName' => 'Demo Settlement 1', 'buildingType' => 'Holzfäller', 'level' => 2, 'startTime' => '2025-01-17 13:00:00', 'endTime' => '2025-01-17 14:00:00', 'isActive' => 1, 'completionPercentage' => 75],
+                ['queueId' => 2, 'settlementId' => 2, 'settlementName' => 'Demo Settlement 2', 'buildingType' => 'Steinbruch', 'level' => 1, 'startTime' => '2025-01-17 13:30:00', 'endTime' => '2025-01-17 14:30:00', 'isActive' => 1, 'completionPercentage' => 50]
+            ];
+        }
+        
         $sql = "
             SELECT 
                 bq.queueId,
@@ -843,16 +865,23 @@ class Database implements DatabaseInterface {
     }
 
     public function createPlayer($name, $gold = 500) {
+        if ($this->connectionFailed) {
+            error_log("Cannot create player: Database connection failed");
+            return false;
+        }
+        
         try {
             // Ensure schema is initialized
             $this->initializeSchemaIfNeeded();
             
             // Try to call the stored procedure first
             try {
-                $sql = "CALL CreatePlayerWithSettlement(:playerName)";
+                $sql = "CALL CreatePlayerWithSettlement(:playerName, :playerGold)";
                 $stmt = $this->conn->prepare($sql);
                 $stmt->bindParam(':playerName', $name, PDO::PARAM_STR);
+                $stmt->bindParam(':playerGold', $gold, PDO::PARAM_INT);
                 $stmt->execute();
+                return true;
             } catch (PDOException $e) {
                 if ($e->getCode() == '1305') { // PROCEDURE does not exist
                     error_log("CreatePlayerWithSettlement procedure missing, using direct SQL...");
@@ -860,17 +889,6 @@ class Database implements DatabaseInterface {
                 }
                 throw $e;
             }
-            
-            // Update gold if different from default
-            if ($gold != 500) {
-                $updateSql = "UPDATE Spieler SET gold = :gold WHERE name = :name";
-                $updateStmt = $this->conn->prepare($updateSql);
-                $updateStmt->bindParam(':gold', $gold, PDO::PARAM_INT);
-                $updateStmt->bindParam(':name', $name, PDO::PARAM_STR);
-                $updateStmt->execute();
-            }
-            
-            return true;
         } catch (PDOException $e) {
             error_log("Error creating player: " . $e->getMessage());
             return false;
@@ -904,6 +922,36 @@ class Database implements DatabaseInterface {
             $stmt->bindParam(':playerId', $playerId, PDO::PARAM_INT);
             $stmt->execute();
             $settlementId = $this->conn->lastInsertId();
+            
+            // Place settlement on map
+            try {
+                $sql = "INSERT INTO Map (settlementId, xCoordinate, yCoordinate) VALUES (:settlementId, :xCoord, :yCoord)";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+                $stmt->bindParam(':xCoord', $xCoord, PDO::PARAM_INT);
+                $stmt->bindParam(':yCoord', $yCoord, PDO::PARAM_INT);
+                $stmt->execute();
+            } catch (PDOException $e) {
+                // If coordinates are taken, try different ones
+                for ($attempt = 0; $attempt < 10; $attempt++) {
+                    $xCoord = rand(-10, 10);
+                    $yCoord = rand(-10, 10);
+                    try {
+                        $sql = "INSERT INTO Map (settlementId, xCoordinate, yCoordinate) VALUES (:settlementId, :xCoord, :yCoord)";
+                        $stmt = $this->conn->prepare($sql);
+                        $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+                        $stmt->bindParam(':xCoord', $xCoord, PDO::PARAM_INT);
+                        $stmt->bindParam(':yCoord', $yCoord, PDO::PARAM_INT);
+                        $stmt->execute();
+                        break;
+                    } catch (PDOException $e2) {
+                        if ($attempt === 9) {
+                            error_log("Could not find free coordinates for settlement after 10 attempts");
+                        }
+                        continue;
+                    }
+                }
+            }
             
             // Create buildings
             $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];

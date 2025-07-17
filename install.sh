@@ -136,7 +136,7 @@ EOF
     
     # Create initial player
     mysql -u root -p$DB_ROOT_PASSWORD browsergame << EOF
-CALL CreatePlayerWithSettlement('Admin');
+CALL CreatePlayerWithSettlement('Admin', 500);
 EOF
     
     log_success "Database setup completed"
