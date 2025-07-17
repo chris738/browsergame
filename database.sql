@@ -6,8 +6,12 @@
     -- Erstellung einer neuen Datenbank
     CREATE DATABASE browsergame;
 
-    -- Erstellung eines neuen Benutzers
+    -- Erstellung eines neuen Benutzers mit Standard-Zugangsdaten
     CREATE USER IF NOT EXISTS 'browsergame'@'localhost' IDENTIFIED BY 'sicheresPasswort';
+    
+    -- Zusätzlich: Root-Benutzer Zugriff sicherstellen (für Standard-Installation)
+    -- Root hat bereits Vollzugriff, aber explizit für diese Datenbank freigeben
+    GRANT ALL PRIVILEGES ON browsergame.* TO 'root'@'localhost';
 
     -- Berechtigungen für den Benutzer
     GRANT ALL PRIVILEGES ON browsergame.* TO 'browsergame'@'localhost';
@@ -136,7 +140,6 @@
     DROP PROCEDURE IF EXISTS UpgradeBuilding;
 
     DELIMITER //
-    DROP PROCEDURE UpgradeBuilding;
     CREATE DEFINER=`root`@`localhost` PROCEDURE `UpgradeBuilding`(
             IN inSettlementId INT,
             IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')

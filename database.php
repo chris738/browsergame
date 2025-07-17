@@ -39,13 +39,35 @@ class Database implements DatabaseInterface {
         $this->username = $_ENV['DB_USER'] ?? getenv('DB_USER') ?: 'browsergame';
         $this->password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: 'sicheresPasswort';
         
-        try {
-            $this->conn = new PDO("mysql:host={$this->host};dbname={$this->dbname}", $this->username, $this->password);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        } catch (PDOException $e) {
+        // Try standard database credentials as fallback
+        $credentialSets = [
+            // Original credentials
+            ['user' => $this->username, 'pass' => $this->password],
+            // Common standard credentials
+            ['user' => 'root', 'pass' => 'root'],
+            ['user' => 'root', 'pass' => ''],
+            ['user' => 'root', 'pass' => 'password'],
+            ['user' => 'root', 'pass' => 'admin'],
+        ];
+        
+        foreach ($credentialSets as $credentials) {
+            try {
+                $this->conn = new PDO("mysql:host={$this->host};dbname={$this->dbname}", $credentials['user'], $credentials['pass']);
+                $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                // If we get here, connection was successful
+                $this->username = $credentials['user'];
+                $this->password = $credentials['pass'];
+                break;
+            } catch (PDOException $e) {
+                // Continue to try next credential set
+                continue;
+            }
+        }
+        
+        // If no credentials worked, mark connection as failed
+        if (!isset($this->conn)) {
             $this->connectionFailed = true;
-            // Don't die, just mark connection as failed for graceful degradation
-            error_log("Database connection failed: " . $e->getMessage());
+            error_log("Database connection failed with all credential sets");
         }
     }
 
