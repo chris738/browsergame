@@ -31,6 +31,7 @@ class Database implements DatabaseInterface {
     private $password;
     private $conn;
     private $connectionFailed = false;
+    private $schemaInitialized = false;
 
     public function __construct() {
         // Support environment variables for Docker/containerized deployments
@@ -68,11 +69,389 @@ class Database implements DatabaseInterface {
         if (!isset($this->conn)) {
             $this->connectionFailed = true;
             error_log("Database connection failed with all credential sets");
+        } else {
+            // Try to initialize schema if connected
+            $this->initializeSchemaIfNeeded();
         }
     }
 
     public function isConnected() {
         return !$this->connectionFailed;
+    }
+
+    /**
+     * Check if database schema is initialized and initialize if needed
+     */
+    private function initializeSchemaIfNeeded() {
+        if ($this->connectionFailed || $this->schemaInitialized) {
+            return;
+        }
+
+        try {
+            // Check if UpgradeBuilding procedure exists
+            $stmt = $this->conn->prepare("SHOW PROCEDURE STATUS WHERE Name = 'UpgradeBuilding' AND Db = ?");
+            $stmt->execute([$this->dbname]);
+            $procedureExists = $stmt->rowCount() > 0;
+
+            if (!$procedureExists) {
+                error_log("UpgradeBuilding procedure not found, initializing database schema...");
+                $this->initializeDatabaseSchema();
+                
+                // If the full schema initialization failed, try creating just the essential procedure
+                $stmt = $this->conn->prepare("SHOW PROCEDURE STATUS WHERE Name = 'UpgradeBuilding' AND Db = ?");
+                $stmt->execute([$this->dbname]);
+                $procedureExists = $stmt->rowCount() > 0;
+                
+                if (!$procedureExists) {
+                    error_log("Full schema initialization failed, creating minimal UpgradeBuilding procedure...");
+                    $this->createEssentialUpgradeBuildingProcedure();
+                }
+            }
+
+            $this->schemaInitialized = true;
+        } catch (PDOException $e) {
+            error_log("Error checking database schema: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Create a minimal UpgradeBuilding procedure if the full schema initialization fails
+     */
+    private function createEssentialUpgradeBuildingProcedure() {
+        try {
+            // First ensure essential tables exist
+            $this->createEssentialTables();
+            
+            // Drop procedure if exists
+            $this->conn->exec("DROP PROCEDURE IF EXISTS UpgradeBuilding");
+            
+            // Create procedure with proper delimiter handling
+            $procedureSQL = "CREATE PROCEDURE UpgradeBuilding(
+                    IN inSettlementId INT,
+                    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm')
+                )
+                BEGIN
+                    DECLARE currentBuildingLevel INT DEFAULT 1;
+                    DECLARE nextLevel INT DEFAULT 2;
+                    DECLARE nextLevelWoodCost FLOAT DEFAULT 100;
+                    DECLARE nextLevelStoneCost FLOAT DEFAULT 100;
+                    DECLARE nextLevelOreCost FLOAT DEFAULT 100;
+                    DECLARE nextBuildTime INT DEFAULT 30;
+                    DECLARE lastEndTime DATETIME;
+                    DECLARE maxQueueLevel INT DEFAULT 0;
+                    DECLARE currentWood FLOAT DEFAULT 0;
+                    DECLARE currentStone FLOAT DEFAULT 0;
+                    DECLARE currentOre FLOAT DEFAULT 0;
+
+                    -- Get current building level (default to 1 if building doesn't exist)
+                    SELECT COALESCE(level, 1) INTO currentBuildingLevel
+                    FROM Buildings
+                    WHERE settlementId = inSettlementId AND buildingType = inBuildingType
+                    LIMIT 1;
+
+                    -- Get max queue level for this building
+                    SELECT COALESCE(MAX(level), 0) INTO maxQueueLevel
+                    FROM BuildingQueue
+                    WHERE settlementId = inSettlementId AND buildingType = inBuildingType;
+
+                    -- Calculate next level
+                    IF maxQueueLevel > 0 THEN
+                        SET nextLevel = maxQueueLevel + 1;
+                    ELSE
+                        SET nextLevel = currentBuildingLevel + 1;
+                    END IF;
+
+                    -- Get costs for next level (use defaults if not found in config)
+                    SELECT COALESCE(costWood, 100 * POW(1.1, nextLevel)), 
+                           COALESCE(costStone, 100 * POW(1.1, nextLevel)), 
+                           COALESCE(costOre, 100 * POW(1.1, nextLevel)),
+                           COALESCE(buildTime, 30)
+                    INTO nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost, nextBuildTime
+                    FROM BuildingConfig
+                    WHERE buildingType = inBuildingType AND level = nextLevel
+                    LIMIT 1;
+
+                    -- Get current resources
+                    SELECT COALESCE(wood, 0), COALESCE(stone, 0), COALESCE(ore, 0)
+                    INTO currentWood, currentStone, currentOre
+                    FROM Settlement 
+                    WHERE settlementId = inSettlementId
+                    LIMIT 1;
+
+                    -- Check if settlement has enough resources
+                    IF currentWood >= nextLevelWoodCost AND currentStone >= nextLevelStoneCost AND currentOre >= nextLevelOreCost THEN
+
+                        -- Deduct resources
+                        UPDATE Settlement
+                        SET wood = wood - nextLevelWoodCost,
+                            stone = stone - nextLevelStoneCost,
+                            ore = ore - nextLevelOreCost
+                        WHERE settlementId = inSettlementId;
+
+                        -- Get last end time for queue
+                        SELECT COALESCE(MAX(endTime), NOW()) INTO lastEndTime
+                        FROM BuildingQueue
+                        WHERE settlementId = inSettlementId;
+
+                        -- Add to building queue
+                        INSERT INTO BuildingQueue (settlementId, buildingType, startTime, endTime, isActive, level)
+                        VALUES (
+                            inSettlementId,
+                            inBuildingType,
+                            lastEndTime,
+                            DATE_ADD(lastEndTime, INTERVAL nextBuildTime SECOND),
+                            FALSE,
+                            nextLevel
+                        );
+
+                    ELSE
+                        SIGNAL SQLSTATE '45000'
+                        SET MESSAGE_TEXT = 'Nicht genügend Ressourcen für das Upgrade';
+                    END IF;
+                END";
+
+            $this->conn->exec($procedureSQL);
+            
+            error_log("Essential UpgradeBuilding procedure created successfully");
+            return true;
+        } catch (PDOException $e) {
+            error_log("Failed to create essential UpgradeBuilding procedure: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create essential tables if they don't exist
+     */
+    private function createEssentialTables() {
+        $tables = [
+            "CREATE TABLE IF NOT EXISTS Spieler (
+                playerId INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                punkte INT NOT NULL DEFAULT 0,
+                gold INT NOT NULL DEFAULT 500,
+                UNIQUE (name)
+            )",
+            "CREATE TABLE IF NOT EXISTS Settlement (
+                settlementId INT AUTO_INCREMENT PRIMARY KEY,
+                name VARCHAR(100) NOT NULL,
+                wood FLOAT NOT NULL DEFAULT 1000.0,
+                stone FLOAT NOT NULL DEFAULT 1000.0,
+                ore FLOAT NOT NULL DEFAULT 1000.0,
+                playerId INT NOT NULL,
+                FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
+            )",
+            "CREATE TABLE IF NOT EXISTS BuildingConfig (
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+                level INT NOT NULL,
+                costWood FLOAT NOT NULL,
+                costStone FLOAT NOT NULL,
+                costOre FLOAT NOT NULL,
+                settlers FLOAT NOT NULL DEFAULT 0.0,
+                productionRate FLOAT NOT NULL,
+                buildTime INT,
+                PRIMARY KEY (buildingType, level)
+            )",
+            "CREATE TABLE IF NOT EXISTS BuildingQueue (
+                queueId INT AUTO_INCREMENT PRIMARY KEY,
+                settlementId INT NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+                startTime DATETIME NOT NULL,
+                endTime DATETIME NOT NULL,
+                isActive BOOLEAN NOT NULL DEFAULT FALSE,
+                level INT NOT NULL DEFAULT 0,
+                FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
+            )",
+            "CREATE TABLE IF NOT EXISTS Buildings (
+                settlementId INT NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm') NOT NULL,
+                level INT NOT NULL DEFAULT 1,
+                visable boolean NOT NULL DEFAULT false,
+                FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+                PRIMARY KEY (settlementId, buildingType)
+            )"
+        ];
+
+        foreach ($tables as $tableSQL) {
+            try {
+                $this->conn->exec($tableSQL);
+            } catch (PDOException $e) {
+                error_log("Failed to create table: " . $e->getMessage());
+            }
+        }
+
+        // Insert some basic building config if it doesn't exist
+        try {
+            $this->conn->exec("INSERT IGNORE INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, settlers, productionRate, buildTime) VALUES
+                ('Holzfäller', 1, 100, 100, 100, 1, 3600, 30),
+                ('Holzfäller', 2, 110, 110, 110, 1.1, 3960, 40),
+                ('Steinbruch', 1, 100, 100, 100, 1, 3600, 30),
+                ('Steinbruch', 2, 110, 110, 110, 1.1, 3960, 40),
+                ('Erzbergwerk', 1, 100, 100, 100, 1, 3600, 30),
+                ('Erzbergwerk', 2, 110, 110, 110, 1.1, 3960, 40),
+                ('Lager', 1, 100, 100, 100, 1, 10000, 30),
+                ('Lager', 2, 110, 110, 110, 1.1, 11000, 40),
+                ('Farm', 1, 100, 100, 100, 1, 100, 30),
+                ('Farm', 2, 110, 110, 110, 1.1, 110, 40)");
+        } catch (PDOException $e) {
+            error_log("Failed to insert basic building config: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Initialize database schema from database.sql file
+     */
+    private function initializeDatabaseSchema() {
+        $sqlFile = __DIR__ . '/database.sql';
+        
+        if (!file_exists($sqlFile)) {
+            error_log("database.sql file not found at: " . $sqlFile);
+            return false;
+        }
+
+        try {
+            $sql = file_get_contents($sqlFile);
+            if ($sql === false) {
+                error_log("Could not read database.sql file");
+                return false;
+            }
+
+            // Extract only the schema parts we need (skip database/user creation)
+            $sql = $this->filterSchemaSQL($sql);
+            
+            // Split SQL into individual statements and execute them
+            $statements = $this->splitSqlStatements($sql);
+            
+            foreach ($statements as $statement) {
+                $statement = trim($statement);
+                if (empty($statement)) {
+                    continue;
+                }
+
+                try {
+                    $stmt = $this->conn->prepare($statement);
+                    if ($stmt) {
+                        $stmt->execute();
+                        $stmt->closeCursor(); // Close cursor to prevent result set issues
+                        $stmt = null; // Clear statement
+                    }
+                } catch (PDOException $e) {
+                    // Log but continue with other statements - some might fail due to existing objects
+                    error_log("SQL statement failed (continuing): " . $e->getMessage() . " | Statement: " . substr($statement, 0, 100) . "...");
+                }
+            }
+            
+            error_log("Database schema initialization completed");
+            return true;
+        } catch (Exception $e) {
+            error_log("Error initializing database schema: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Filter SQL to only include schema creation, not database/user management
+     */
+    private function filterSchemaSQL($sql) {
+        $lines = explode("\n", $sql);
+        $filteredLines = [];
+        $skipUntilUse = true;
+        $skipExampleCalls = false;
+        
+        foreach ($lines as $line) {
+            $trimmedLine = trim($line);
+            
+            // Skip database creation and user management commands
+            if ($skipUntilUse) {
+                // Look for USE statement to start including lines
+                if (preg_match('/^\s*USE\s+/i', $trimmedLine)) {
+                    $skipUntilUse = false;
+                    continue; // Skip the USE statement itself
+                }
+                continue;
+            }
+            
+            // Check for start of example calls section
+            if (preg_match('/--\s*Beispielaufrufe/i', $trimmedLine)) {
+                $skipExampleCalls = true;
+                continue;
+            }
+            
+            // Skip example calls and manual test statements
+            if ($skipExampleCalls) {
+                continue;
+            }
+            
+            // Skip certain commands that might cause issues
+            if (preg_match('/^\s*(DROP\s+DATABASE|CREATE\s+DATABASE|CREATE\s+USER|GRANT|SET\s+GLOBAL|SHOW\s+|SELECT\s+\*|CALL\s+|DELETE\s+FROM|UPDATE\s+.*SET|CREATE\s+EVENT\s+UpgradeBuildingEventNr_)/i', $trimmedLine)) {
+                continue;
+            }
+            
+            $filteredLines[] = $line;
+        }
+        
+        return implode("\n", $filteredLines);
+    }
+
+    /**
+     * Split SQL file into individual statements, handling DELIMITER changes
+     */
+    private function splitSqlStatements($sql) {
+        $statements = [];
+        $currentStatement = '';
+        $delimiter = ';';
+        $inDelimiterBlock = false;
+        
+        $lines = explode("\n", $sql);
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            
+            // Skip empty lines and comments
+            if (empty($line) || strpos($line, '--') === 0) {
+                continue;
+            }
+            
+            // Handle DELIMITER changes
+            if (preg_match('/^DELIMITER\s+(.+)$/i', $line, $matches)) {
+                // Save current statement if any
+                if (!empty($currentStatement)) {
+                    $statements[] = $currentStatement;
+                    $currentStatement = '';
+                }
+                $delimiter = $matches[1];
+                $inDelimiterBlock = true;
+                continue;
+            }
+            
+            $currentStatement .= $line . "\n";
+            
+            // Check if statement ends with current delimiter
+            if (substr($line, -strlen($delimiter)) === $delimiter) {
+                if ($inDelimiterBlock && $delimiter !== ';') {
+                    // Remove the delimiter from the statement
+                    $currentStatement = substr($currentStatement, 0, -strlen($delimiter) - 1);
+                    $statements[] = $currentStatement;
+                    $currentStatement = '';
+                    $delimiter = ';';
+                    $inDelimiterBlock = false;
+                } else {
+                    // Remove the semicolon and add to statements
+                    $currentStatement = substr($currentStatement, 0, -2);
+                    if (!empty(trim($currentStatement))) {
+                        $statements[] = $currentStatement;
+                    }
+                    $currentStatement = '';
+                }
+            }
+        }
+        
+        // Add any remaining statement
+        if (!empty(trim($currentStatement))) {
+            $statements[] = $currentStatement;
+        }
+        
+        return $statements;
     }
 
     public function getResources($settlementId) {
@@ -167,6 +546,9 @@ class Database implements DatabaseInterface {
             ];
         }
 
+        // Ensure schema is initialized
+        $this->initializeSchemaIfNeeded();
+
         try {
             $sql = "CALL UpgradeBuilding(:settlementId, :buildingType)";
             $stmt = $this->conn->prepare($sql);
@@ -189,6 +571,30 @@ class Database implements DatabaseInterface {
             }
         } catch (PDOException $e) {
             // Fehler aus der Datenbank abfangen
+            if ($e->getCode() == '1305') { // PROCEDURE does not exist
+                error_log("UpgradeBuilding procedure missing, attempting to reinitialize schema...");
+                $this->schemaInitialized = false;
+                $this->initializeSchemaIfNeeded();
+                
+                // Try again after schema initialization
+                try {
+                    $stmt = $this->conn->prepare($sql);
+                    $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+                    $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+                    $stmt->execute();
+                    
+                    return [
+                        'success' => true,
+                        'message' => "Das Gebäude '$buildingType' wurde erfolgreich upgegradet (nach Schema-Initialisierung)."
+                    ];
+                } catch (PDOException $e2) {
+                    return [
+                        'success' => false,
+                        'message' => "Fehler beim Upgrade in database.php: " . $e2->getMessage()
+                    ];
+                }
+            }
+            
             return [
                 'success' => false,
                 'message' => "Fehler beim Upgrade in database.php: " . $e->getMessage()
@@ -391,10 +797,22 @@ class Database implements DatabaseInterface {
 
     public function createPlayer($name, $gold = 500) {
         try {
-            $sql = "CALL CreatePlayerWithSettlement(:playerName)";
-            $stmt = $this->conn->prepare($sql);
-            $stmt->bindParam(':playerName', $name, PDO::PARAM_STR);
-            $stmt->execute();
+            // Ensure schema is initialized
+            $this->initializeSchemaIfNeeded();
+            
+            // Try to call the stored procedure first
+            try {
+                $sql = "CALL CreatePlayerWithSettlement(:playerName)";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->bindParam(':playerName', $name, PDO::PARAM_STR);
+                $stmt->execute();
+            } catch (PDOException $e) {
+                if ($e->getCode() == '1305') { // PROCEDURE does not exist
+                    error_log("CreatePlayerWithSettlement procedure missing, using direct SQL...");
+                    return $this->createPlayerDirect($name, $gold);
+                }
+                throw $e;
+            }
             
             // Update gold if different from default
             if ($gold != 500) {
@@ -407,6 +825,59 @@ class Database implements DatabaseInterface {
             
             return true;
         } catch (PDOException $e) {
+            error_log("Error creating player: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Create player directly with SQL if stored procedure is not available
+     */
+    private function createPlayerDirect($name, $gold = 500) {
+        try {
+            $this->conn->beginTransaction();
+            
+            // Create player
+            $sql = "INSERT INTO Spieler (name, punkte, gold) VALUES (:name, 0, :gold)";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':name', $name, PDO::PARAM_STR);
+            $stmt->bindParam(':gold', $gold, PDO::PARAM_INT);
+            $stmt->execute();
+            $playerId = $this->conn->lastInsertId();
+            
+            // Generate random coordinates
+            $xCoord = rand(-10, 10);
+            $yCoord = rand(-10, 10);
+            
+            // Create settlement
+            $settlementName = $name . '_Settlement';
+            $sql = "INSERT INTO Settlement (name, wood, stone, ore, playerId) VALUES (:name, 10000, 10000, 10000, :playerId)";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':name', $settlementName, PDO::PARAM_STR);
+            $stmt->bindParam(':playerId', $playerId, PDO::PARAM_INT);
+            $stmt->execute();
+            $settlementId = $this->conn->lastInsertId();
+            
+            // Create buildings
+            $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+            foreach ($buildingTypes as $buildingType) {
+                try {
+                    $sql = "INSERT INTO Buildings (settlementId, buildingType) VALUES (:settlementId, :buildingType)";
+                    $stmt = $this->conn->prepare($sql);
+                    $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+                    $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+                    $stmt->execute();
+                } catch (PDOException $e) {
+                    // Continue if building already exists
+                    error_log("Building creation failed (continuing): " . $e->getMessage());
+                }
+            }
+            
+            $this->conn->commit();
+            return true;
+        } catch (PDOException $e) {
+            $this->conn->rollback();
+            error_log("Error in createPlayerDirect: " . $e->getMessage());
             return false;
         }
     }
