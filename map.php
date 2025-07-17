@@ -1,12 +1,73 @@
 <?php
-// Simplified map with static data for now (can be enhanced later with proper database calls)
-$mapData = [
-    ['xCoordinate' => 0, 'yCoordinate' => 0],
-    ['xCoordinate' => 1, 'yCoordinate' => 1],
-    ['xCoordinate' => -1, 'yCoordinate' => -1],
-    ['xCoordinate' => 2, 'yCoordinate' => 0],
-    ['xCoordinate' => 0, 'yCoordinate' => 2],
-];
+require_once 'database.php';
+
+// Get the current settlement ID from URL parameter
+$currentSettlementId = $_GET['settlementId'] ?? 1;
+
+// Initialize database and fetch real settlement data
+$database = new Database();
+$mapData = [];
+$currentPlayerId = null;
+
+try {
+    // Check if database is connected
+    if ($database->isConnected()) {
+        // Get the current player ID from the selected settlement
+        $currentSettlement = $database->getAllSettlements();
+        foreach ($currentSettlement as $settlement) {
+            if ($settlement['settlementId'] == $currentSettlementId) {
+                $currentPlayerId = $settlement['playerId'] ?? null;
+                break;
+            }
+        }
+        
+        // Get all settlements with their coordinates and player information
+        $allSettlements = $database->getAllSettlements();
+        foreach ($allSettlements as $settlement) {
+            if (isset($settlement['xCoordinate']) && isset($settlement['yCoordinate'])) {
+                $mapData[] = [
+                    'settlementId' => $settlement['settlementId'],
+                    'xCoordinate' => $settlement['xCoordinate'],
+                    'yCoordinate' => $settlement['yCoordinate'],
+                    'name' => $settlement['name'],
+                    'playerId' => $settlement['playerId'] ?? null,
+                    'playerName' => $settlement['playerName'] ?? 'Unknown'
+                ];
+            }
+        }
+    } else {
+        throw new Exception("Database not connected");
+    }
+} catch (Exception $e) {
+    // Fallback to demo settlement when database fails - showing only the current settlement
+    error_log("Map data fetch failed: " . $e->getMessage());
+    $currentPlayerId = 1; // Demo player ID
+    $mapData = [
+        [
+            'settlementId' => $currentSettlementId,
+            'xCoordinate' => 0,
+            'yCoordinate' => 0,
+            'name' => 'Test-Siedlung',
+            'playerId' => $currentPlayerId,
+            'playerName' => 'Spieler'
+        ]
+    ];
+}
+
+// If no settlements found, show at least the current settlement
+if (empty($mapData)) {
+    $currentPlayerId = 1;
+    $mapData = [
+        [
+            'settlementId' => $currentSettlementId,
+            'xCoordinate' => 0,
+            'yCoordinate' => 0,
+            'name' => 'Fallback Settlement',
+            'playerId' => $currentPlayerId,
+            'playerName' => 'Player'
+        ]
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -26,12 +87,24 @@ $mapData = [
         
         <div class="map-container">
             <div class="grid">
-                <?php foreach ($mapData as $point): ?>
+                <?php foreach ($mapData as $settlement): ?>
+                    <?php 
+                        // Determine settlement type for CSS class
+                        $settlementClass = 'settlement';
+                        if ($settlement['settlementId'] == $currentSettlementId) {
+                            $settlementClass .= ' selected-settlement'; // White for selected settlement
+                        } elseif ($settlement['playerId'] == $currentPlayerId) {
+                            $settlementClass .= ' own-settlement'; // Black for own settlements
+                        } else {
+                            $settlementClass .= ' other-settlement'; // Brown for other settlements
+                        }
+                    ?>
                     <div 
-                        class="settlement" 
-                        style="left: <?= ($point['xCoordinate'] + 10) * 20 ?>px; 
-                               top: <?= (10 - $point['yCoordinate']) * 20 ?>px;"
-                        title="Siedlung bei (<?= $point['xCoordinate'] ?>, <?= $point['yCoordinate'] ?>)">
+                        class="<?= $settlementClass ?>" 
+                        style="left: <?= ($settlement['xCoordinate'] + 10) * 20 ?>px; 
+                               top: <?= (10 - $settlement['yCoordinate']) * 20 ?>px;"
+                        title="<?= htmlspecialchars($settlement['name']) ?> (<?= $settlement['xCoordinate'] ?>, <?= $settlement['yCoordinate'] ?>) - Spieler: <?= htmlspecialchars($settlement['playerName']) ?>"
+                        onclick="window.location.href='index.php?settlementId=<?= $settlement['settlementId'] ?>'">
                     </div>
                 <?php endforeach; ?>
             </div>
