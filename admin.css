@@ -1,0 +1,328 @@
+/* Admin Panel Specific Styles */
+
+/* Login Form */
+.admin-login {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-login h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #35424a;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #333;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #35424a;
+    box-shadow: 0 0 5px rgba(53, 66, 74, 0.3);
+}
+
+/* Admin Navigation */
+.admin-nav {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.logout-btn {
+    background-color: #e74c3c;
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
+/* Admin Container */
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-section {
+    background-color: #ffffff;
+    margin-bottom: 30px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.admin-section h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #35424a;
+    border-bottom: 2px solid #35424a;
+    padding-bottom: 10px;
+}
+
+/* Statistics Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #e9ecef;
+}
+
+.stat-card h3 {
+    margin: 0 0 10px 0;
+    color: #35424a;
+    font-size: 16px;
+}
+
+.stat-number {
+    font-size: 32px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+/* Admin Controls */
+.admin-controls {
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.admin-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.admin-btn:hover {
+    background-color: #2980b9;
+}
+
+.admin-btn.danger {
+    background-color: #e74c3c;
+}
+
+.admin-btn.danger:hover {
+    background-color: #c0392b;
+}
+
+/* Table Styles */
+.table-container {
+    overflow-x: auto;
+}
+
+#playersTable, #settlementsTable, #queuesTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#playersTable th, #playersTable td,
+#settlementsTable th, #settlementsTable td,
+#queuesTable th, #queuesTable td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+#playersTable th, #settlementsTable th, #queuesTable th {
+    background-color: #35424a;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+#playersTable tr:nth-child(even),
+#settlementsTable tr:nth-child(even),
+#queuesTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+#playersTable tr:hover,
+#settlementsTable tr:hover,
+#queuesTable tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Action Buttons in Tables */
+.action-btn {
+    background-color: #35424a;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-right: 5px;
+    transition: background-color 0.3s;
+}
+
+.action-btn:hover {
+    background-color: #1d2529;
+}
+
+.action-btn.edit {
+    background-color: #f39c12;
+}
+
+.action-btn.edit:hover {
+    background-color: #d68910;
+}
+
+.action-btn.delete {
+    background-color: #e74c3c;
+}
+
+.action-btn.delete:hover {
+    background-color: #c0392b;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 8px;
+    max-width: 500px;
+    position: relative;
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.close:hover {
+    color: #000;
+}
+
+/* Error and Success Messages */
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 20px;
+    border: 1px solid #f5c6cb;
+}
+
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+    padding: 12px;
+    border-radius: 4px;
+    margin: 20px;
+    border: 1px solid #c3e6cb;
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* Progress Bar for Admin */
+.admin-progress-container {
+    width: 100%;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+    height: 16px;
+}
+
+.admin-progress-bar {
+    height: 100%;
+    background-color: #27ae60;
+    width: 0%;
+    border-radius: 10px;
+    transition: width 1s linear;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 10px;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-controls {
+        flex-direction: column;
+    }
+    
+    .admin-btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .modal-content {
+        margin: 5% auto;
+        padding: 20px;
+        max-width: 90%;
+    }
+    
+    .table-container {
+        font-size: 12px;
+    }
+}
