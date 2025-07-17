@@ -229,25 +229,8 @@
                 nextLevel
             );
 
-            SELECT `queueId`, `endTime`, `buildingType`
-                INTO nextQueueId, nextEndTime, nextBuildingType
-                FROM `BuildingQueue`
-                WHERE settlementId = inSettlementId
-                ORDER BY queueId DESC
-                LIMIT 1;
-
-            SET @eventName = CONCAT('ProcessBuildingQueueNr_', nextQueueId);
-            SET @eventSQL = CONCAT(
-                'CREATE EVENT ', @eventName, '
-                ON SCHEDULE AT "', DATE_FORMAT(nextEndTime, '%Y-%m-%d %H:%i:%s'), '"
-                    DO 
-                    UPDATE Buildings
-                    SET level = level + 1
-                    WHERE settlementId = ', inSettlementId, ' AND buildingType = "', nextBuildingType, '";'
-            );
-            PREPARE stmt FROM @eventSQL;
-            EXECUTE stmt;
-            DEALLOCATE PREPARE stmt;
+            -- Note: Building completion is now handled by the ProcessBuildingQueue event
+            -- which runs every 5 seconds and processes all completed building upgrades
 
         ELSE
             SIGNAL SQLSTATE '45000'
@@ -426,6 +409,29 @@
     -- Aktiviere das Event
     ALTER EVENT UpdateResources ENABLE;
     SET GLOBAL event_scheduler = ON;
+
+-- Event: Process completed building upgrades
+    DROP EVENT IF EXISTS ProcessBuildingQueue;
+
+    DELIMITER //
+    CREATE EVENT ProcessBuildingQueue
+    ON SCHEDULE EVERY 5 SECOND
+    DO
+    BEGIN
+        -- Process completed building upgrades
+        UPDATE Buildings b
+        INNER JOIN BuildingQueue bq ON b.settlementId = bq.settlementId AND b.buildingType = bq.buildingType
+        SET b.level = bq.level
+        WHERE NOW() >= bq.endTime;
+        
+        -- Remove completed queue items
+        DELETE FROM BuildingQueue 
+        WHERE NOW() >= endTime;
+    END //
+    DELIMITER ;
+
+    -- Aktiviere das Event
+    ALTER EVENT ProcessBuildingQueue ENABLE;
 
 -- Event: Clean BuildingQueue (todo once an hour)
 

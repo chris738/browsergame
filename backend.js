@@ -87,53 +87,67 @@ function fetchBuildings(settlementId) {
     const buildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
     let completedRequests = 0;
 
-    buildingTypes.forEach(buildingType => {
-        fetch(`backend.php?settlementId=${settlementId}&buildingType=${buildingType}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.building) {
-                    const buildingId = buildingType.toLowerCase();
-                    document.getElementById(`${buildingId}`).textContent = data.building.level;
+    buildingTypes.forEach((buildingType, index) => {
+        // Add a small delay to prevent overwhelming the database with concurrent requests
+        setTimeout(() => {
+            fetch(`backend.php?settlementId=${settlementId}&buildingType=${buildingType}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        console.error(`Backend error for ${buildingType}:`, data.error);
+                        throw new Error(data.error);
+                    }
+                    
+                    if (data.building) {
+                        const buildingId = buildingType.toLowerCase();
+                        document.getElementById(`${buildingId}`).textContent = data.building.level;
 
-                    document.getElementById(`${buildingId}KostenHolz`).textContent = `${formatNumberWithDots(data.building.costWood)} Holz`;
-                    document.getElementById(`${buildingId}KostenStein`).textContent = `${formatNumberWithDots(data.building.costStone)} Stein`;
-                    document.getElementById(`${buildingId}KostenErz`).textContent = `${formatNumberWithDots(data.building.costOre)} Erz`;
-                    document.getElementById(`${buildingId}KostenSiedler`).textContent = `${formatNumberWithDots(data.building.costSettlers)} Siedler`;
-                    document.getElementById(`${buildingId}Bauzeit`).textContent = `${formatNumberWithDots(data.building.buildTime)}s Bauzeit`;
-                    document.getElementById(`${buildingId}upgradeButton`).textContent = `Upgrade auf ${formatNumberWithDots(data.building.nextLevel)}`;
-                } else {
-                    // If building data is missing, ensure level shows 0 explicitly
+                        document.getElementById(`${buildingId}KostenHolz`).textContent = `${formatNumberWithDots(data.building.costWood)} Holz`;
+                        document.getElementById(`${buildingId}KostenStein`).textContent = `${formatNumberWithDots(data.building.costStone)} Stein`;
+                        document.getElementById(`${buildingId}KostenErz`).textContent = `${formatNumberWithDots(data.building.costOre)} Erz`;
+                        document.getElementById(`${buildingId}KostenSiedler`).textContent = `${formatNumberWithDots(data.building.costSettlers)} Siedler`;
+                        document.getElementById(`${buildingId}Bauzeit`).textContent = `${formatNumberWithDots(data.building.buildTime)}s Bauzeit`;
+                        document.getElementById(`${buildingId}upgradeButton`).textContent = `Upgrade auf ${formatNumberWithDots(data.building.nextLevel)}`;
+                    } else {
+                        console.warn(`No building data returned for ${buildingType}, response:`, data);
+                        // If building data is missing, ensure level shows 0 explicitly
+                        const buildingId = buildingType.toLowerCase();
+                        const levelElement = document.getElementById(`${buildingId}`);
+                        if (levelElement) {
+                            levelElement.textContent = '0';
+                        }
+                    }
+                    
+                    // Only call getRegen and update cost colors once when all building requests are complete
+                    completedRequests++;
+                    if (completedRequests === buildingTypes.length) {
+                        getRegen(settlementId);
+                        // Trigger cost color update after all buildings are loaded
+                        fetchResourcesForColorUpdate(settlementId);
+                    }
+                })
+                .catch(error => {
+                    console.error(`Fehler beim Abrufen der Daten für ${buildingType}:`, error);
+                    // On error, ensure the building level shows 0 instead of staying empty
                     const buildingId = buildingType.toLowerCase();
                     const levelElement = document.getElementById(`${buildingId}`);
-                    if (levelElement && levelElement.textContent === '') {
+                    if (levelElement) {
                         levelElement.textContent = '0';
                     }
-                }
-                
-                // Only call getRegen and update cost colors once when all building requests are complete
-                completedRequests++;
-                if (completedRequests === buildingTypes.length) {
-                    getRegen(settlementId);
-                    // Trigger cost color update after all buildings are loaded
-                    fetchResourcesForColorUpdate(settlementId);
-                }
-            })
-            .catch(error => {
-                console.error(`Fehler beim Abrufen der Daten für ${buildingType}:`, error);
-                // On error, ensure the building level shows 0 instead of staying empty
-                const buildingId = buildingType.toLowerCase();
-                const levelElement = document.getElementById(`${buildingId}`);
-                if (levelElement && levelElement.textContent === '') {
-                    levelElement.textContent = '0';
-                }
-                
-                completedRequests++;
-                if (completedRequests === buildingTypes.length) {
-                    getRegen(settlementId);
-                    // Trigger cost color update after all buildings are loaded
-                    fetchResourcesForColorUpdate(settlementId);
-                }
-            });
+                    
+                    completedRequests++;
+                    if (completedRequests === buildingTypes.length) {
+                        getRegen(settlementId);
+                        // Trigger cost color update after all buildings are loaded
+                        fetchResourcesForColorUpdate(settlementId);
+                    }
+                });
+        }, index * 100); // 100ms delay between each request
     });
 }
 

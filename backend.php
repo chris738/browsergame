@@ -147,9 +147,12 @@ try {
             exit;
         }
 
+        // Initialize response array
+        $response = [];
+        
         // Wenn buildingType gesetzt ist, Gebäudeinformationen hinzufügen
         if (!$buildingType) {
-            $response = ['resources' => fetchResources($settlementId)];
+            $response['resources'] = fetchResources($settlementId);
         } else {
             $response['building'] = fetchBuilding($settlementId, $buildingType);
         }
