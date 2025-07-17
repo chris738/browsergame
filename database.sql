@@ -443,7 +443,8 @@
         bc.costStone,
         bc.costOre,
         COALESCE(bc.productionRate, 0) AS productionRate, -- Produktionsrate für das nächste Level
-        bc.settlers                               -- Siedlerbedarf für das nächste Level
+        bc.settlers,                              -- Siedlerbedarf für das nächste Level
+        COALESCE(bc.buildTime, 30) AS buildTime   -- Bauzeit für das nächste Level
     FROM Buildings b
     INNER JOIN BuildingConfig bc
     ON b.buildingType = bc.buildingType

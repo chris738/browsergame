@@ -555,7 +555,8 @@ class Database implements DatabaseInterface {
                 'costWood' => 100,
                 'costStone' => 50,
                 'costOre' => 25,
-                'settlers' => 5
+                'settlers' => 5,
+                'buildTime' => 30
             ];
         }
 
@@ -566,7 +567,8 @@ class Database implements DatabaseInterface {
                 b.costWood, 
                 b.costStone, 
                 b.costOre, 
-                b.settlers
+                b.settlers,
+                b.buildTime
             FROM BuildingDetails b
             WHERE b.settlementId = :settlementId AND b.buildingType = :buildingType";
         

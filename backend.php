@@ -75,7 +75,8 @@ function fetchBuilding($settlementId, $buildingType) {
         'costWood' => $building['costWood'],
         'costStone' => $building['costStone'],
         'costOre' => $building['costOre'],
-        'costSettlers' => $building['settlers']
+        'costSettlers' => $building['settlers'],
+        'buildTime' => $building['buildTime']
     ];
 }
 
