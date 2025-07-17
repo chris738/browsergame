@@ -16,10 +16,10 @@ echo
 
 # Test 2: SQL file detection
 echo "Test 2: SQL file detection"
-if [[ -f "database.sql" ]]; then
-    echo "✓ database.sql found"
+if [[ -f "../sql/database.sql" ]]; then
+    echo "✓ ../sql/database.sql found"
 else
-    echo "✗ database.sql not found"
+    echo "✗ ../sql/database.sql not found"
     exit 1
 fi
 echo

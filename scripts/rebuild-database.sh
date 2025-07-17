@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Browsergame Database Rebuild Script
-# Drops existing database and recreates it from database.sql
+# Drops existing database and recreates it from ../sql/database.sql
 # Supports Docker and manual installations
 
 set -e
@@ -15,8 +15,8 @@ NC='\033[0m' # No Color
 
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SQL_FILE="$SCRIPT_DIR/database.sql"
-INIT_PLAYER_SQL="$SCRIPT_DIR/docker/init-player.sql"
+SQL_FILE="$SCRIPT_DIR/../sql/../sql/database.sql"
+INIT_PLAYER_SQL="$SCRIPT_DIR/../sql/init-player.sql"
 
 # Logging functions
 log_info() {
@@ -187,7 +187,7 @@ show_usage() {
     echo "  $0 --force      - Rebuild without confirmation"
     echo "  $0 --help       - Show this help"
     echo
-    echo "This script drops the existing database and rebuilds it from database.sql"
+    echo "This script drops the existing database and rebuilds it from ../sql/database.sql"
     echo "Perfect for when schema changes are made or database needs to be reset."
 }
 

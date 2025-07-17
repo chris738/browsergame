@@ -40,7 +40,7 @@ function updateCostColors(resources) {
 }
 
 function getRegen(settlementId) {
-    fetch(`backend.php?settlementId=${settlementId}&getRegen=true`)
+    fetch(`../php/backend.php?settlementId=${settlementId}&getRegen=true`)
     .then(response => response.json())
     .then(data => {
         if (data.regen) {
@@ -53,7 +53,7 @@ function getRegen(settlementId) {
 }
 
 function fetchResources(settlementId) {
-    fetch(`backend.php?settlementId=${settlementId}`)
+    fetch(`../php/backend.php?settlementId=${settlementId}`)
         .then(response => response.json())
         .then(data => {
             if (data.resources) {
@@ -72,7 +72,7 @@ function fetchResources(settlementId) {
 }
 
 function fetchResourcesForColorUpdate(settlementId) {
-    fetch(`backend.php?settlementId=${settlementId}`)
+    fetch(`../php/backend.php?settlementId=${settlementId}`)
         .then(response => response.json())
         .then(data => {
             if (data.resources) {
@@ -90,7 +90,7 @@ function fetchBuildings(settlementId) {
     buildingTypes.forEach((buildingType, index) => {
         // Add a small delay to prevent overwhelming the database with concurrent requests
         setTimeout(() => {
-            fetch(`backend.php?settlementId=${settlementId}&buildingType=${buildingType}`)
+            fetch(`../php/backend.php?settlementId=${settlementId}&buildingType=${buildingType}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
@@ -152,7 +152,7 @@ function fetchBuildings(settlementId) {
 }
 
 function upgradeBuilding(buildingType, settlementId) {
-    fetch('backend.php?settlementId=' + settlementId, {
+    fetch('../php/backend.php?settlementId=' + settlementId, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -177,7 +177,7 @@ function upgradeBuilding(buildingType, settlementId) {
 }
 
 function getSettlementName(settlementId) {
-    fetch(`backend.php?settlementId=${settlementId}&getSettlementName=True`)
+    fetch(`../php/backend.php?settlementId=${settlementId}&getSettlementName=True`)
         .then(response => response.json())
         .then(data => {
             if (data.info) {
@@ -188,7 +188,7 @@ function getSettlementName(settlementId) {
 }
 
 function fetchBuildingQueue(settlementId) {
-    fetch(`backend.php?settlementId=${settlementId}&getBuildingQueue=True`)
+    fetch(`../php/backend.php?settlementId=${settlementId}&getBuildingQueue=True`)
         .then(response => response.json())
         .then(data => {
             const buildingQueueBody = document.getElementById('buildingQueueBody');

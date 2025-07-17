@@ -126,11 +126,11 @@ FLUSH PRIVILEGES;
 EOF
     
     # Import database schema
-    if [ -f "database.sql" ]; then
-        mysql -u root -p$DB_ROOT_PASSWORD browsergame < database.sql
+    if [ -f "../sql/database.sql" ]; then
+        mysql -u root -p$DB_ROOT_PASSWORD browsergame < ../sql/database.sql
         log_success "Database schema imported"
     else
-        log_error "database.sql not found! Make sure you're running this script from the game directory."
+        log_error "../sql/database.sql not found! Make sure you're running this script from the game directory."
         exit 1
     fi
     

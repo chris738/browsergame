@@ -27,11 +27,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Siedlungsaufbau</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="backend.js" defer></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/backend.js" defer></script>
 </head>
 <body>
-    <?php include 'navigation.php'; ?>
+    <?php include 'php/navigation.php'; ?>
     
     <section class="buildings">
         <table>

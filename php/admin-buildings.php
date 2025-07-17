@@ -37,9 +37,9 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gebäude-Konfiguration - Admin</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin.css">
-    <script src="admin-buildings.js" defer></script>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="../js/admin-buildings.js" defer></script>
 </head>
 <body>
     <?php include 'admin-navigation.php'; ?>

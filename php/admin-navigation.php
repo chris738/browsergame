@@ -18,7 +18,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         </a>
     </div>
     <div class="admin-nav-actions">
-        <a href="admin.php?logout" class="logout-btn">Logout</a>
+        <a href="../admin.php?logout" class="logout-btn">Logout</a>
     </div>
 </nav>
 
