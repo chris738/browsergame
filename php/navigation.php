@@ -13,6 +13,9 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
         <a href="index.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : '' ?>">
             Settlement
         </a>
+        <a href="market.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'market.php') ? 'active' : '' ?>">
+            Market
+        </a>
         <a href="map.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'map.php') ? 'active' : '' ?>">
             Map
         </a>
