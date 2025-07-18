@@ -47,9 +47,9 @@ try {
             'settlementId' => $currentSettlementId,
             'xCoordinate' => 0,
             'yCoordinate' => 0,
-            'name' => 'Test-Siedlung',
+            'name' => 'Test Settlement',
             'playerId' => $currentPlayerId,
-            'playerName' => 'Spieler'
+            'playerName' => 'Player'
         ]
     ];
 }
@@ -70,11 +70,11 @@ if (empty($mapData)) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Karte - Siedlungsaufbau</title>
+    <title>Map - Settlement Building</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/backend.js" defer></script>
 </head>
@@ -82,8 +82,8 @@ if (empty($mapData)) {
     <?php include 'php/navigation.php'; ?>
     
     <main class="main-content">
-        <h2>Kartenansicht</h2>
-        <p>Hier siehst du die in der Nähe gelegenen Siedlungen:</p>
+        <h2>Map View</h2>
+        <p>Here you can see nearby settlements:</p>
         
         <div class="map-container">
             <div class="grid">
@@ -103,7 +103,7 @@ if (empty($mapData)) {
                         class="<?= $settlementClass ?>" 
                         style="left: <?= ($settlement['xCoordinate'] + 10) * 20 ?>px; 
                                top: <?= (10 - $settlement['yCoordinate']) * 20 ?>px;"
-                        title="<?= htmlspecialchars($settlement['name']) ?> (<?= $settlement['xCoordinate'] ?>, <?= $settlement['yCoordinate'] ?>) - Spieler: <?= htmlspecialchars($settlement['playerName']) ?>"
+                        title="<?= htmlspecialchars($settlement['name']) ?> (<?= $settlement['xCoordinate'] ?>, <?= $settlement['yCoordinate'] ?>) - Player: <?= htmlspecialchars($settlement['playerName']) ?>"
                         onclick="window.location.href='index.php?settlementId=<?= $settlement['settlementId'] ?>'">
                     </div>
                 <?php endforeach; ?>

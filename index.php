@@ -5,11 +5,22 @@
     $database = new Database();
     $buildingTypesData = $database->getDistinctBuildingTypes();
     
-    // Transform the data to match the expected format
-    $buildings = array_map(function($type) {
+    // Transform the data to match the expected format and translate to English
+    $buildingTranslations = [
+        'Rathaus' => 'Town Hall',
+        'Holzfäller' => 'Lumberjack',
+        'Steinbruch' => 'Quarry',
+        'Erzbergwerk' => 'Mine',
+        'Lager' => 'Storage',
+        'Farm' => 'Farm'
+    ];
+    
+    $buildings = array_map(function($type) use ($buildingTranslations) {
+        $translatedName = $buildingTranslations[$type['buildingType']] ?? $type['buildingType'];
         return [
-            'name' => $type['buildingType'],
-            'id' => strtolower($type['buildingType'])
+            'name' => $translatedName,
+            'id' => strtolower($type['buildingType']),
+            'originalName' => $type['buildingType'] // Keep original for backend communication
         ];
     }, $buildingTypesData);
 
@@ -19,11 +30,11 @@
 ?>
 
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siedlungsaufbau</title>
+    <title>Settlement Building</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/backend.js" defer></script>
 </head>
@@ -34,10 +45,10 @@
         <table>
             <thead>
                 <tr>
-                    <th>Gebäude</th>
-                    <th>Stufe</th>
-                    <th>Fortschritt</th>
-                    <th>Endzeitpunkt</th>
+                    <th>Building</th>
+                    <th>Level</th>
+                    <th>Progress</th>
+                    <th>End Time</th>
                 </tr>
             </thead>
             <tbody id="buildingQueueBody">
@@ -51,28 +62,44 @@
         <table>
         <thead>
             <tr>
-                <th>Gebäude</th>
-                <th>Stufe</th>
-                <th>Kosten</th>
-                <th>Aktion</th>
+                <th>Building</th>
+                <th>Level</th>
+                <th>Cost</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($buildings as $building): ?>
+            <?php 
+            // Building emoji mapping
+            $buildingEmojis = [
+                'rathaus' => ['emoji' => '🏛️', 'title' => 'Town Hall - Center of your settlement'],
+                'holzfäller' => ['emoji' => '🌲', 'title' => 'Lumberjack - Produces wood'],
+                'steinbruch' => ['emoji' => '🏔️', 'title' => 'Quarry - Produces stone'],
+                'erzbergwerk' => ['emoji' => '⛏️', 'title' => 'Mine - Produces ore'],
+                'lager' => ['emoji' => '🏪', 'title' => 'Storage - Increases storage capacity'],
+                'farm' => ['emoji' => '🚜', 'title' => 'Farm - Provides settlers for construction']
+            ];
+            
+            foreach ($buildings as $building): 
+                $emoji = $buildingEmojis[$building['id']] ?? ['emoji' => '🏗️', 'title' => 'Building'];
+            ?>
                 <tr>
-                    <td><?= htmlspecialchars($building['name']) ?></td>
+                    <td>
+                        <span class="building-emoji" title="<?= htmlspecialchars($emoji['title']) ?>"><?= $emoji['emoji'] ?></span>
+                        <?= htmlspecialchars($building['name']) ?>
+                    </td>
                     <td><span id="<?= htmlspecialchars($building['id']) ?>">0</span></td>
                     <td>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenHolz">0 Holz</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 Stein</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 Erz</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenSiedler">0 Siedler</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Bauzeit">0s Bauzeit</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenHolz">0 🪵</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 🪨</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 ⛏️</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenSiedler">0 👥</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Bauzeit">0s ⏱️</span>
                     </td>
                     <td style="text-align: right;">
                         <!-- Button with a unique ID -->
                         <button id="<?= htmlspecialchars($building['id']) ?>upgradeButton" 
-                            onclick="upgradeBuilding('<?= htmlspecialchars($building['id']) ?>','<?= htmlspecialchars($settlementId) ?>')">
+                            onclick="upgradeBuilding('<?= htmlspecialchars($building['originalName']) ?>','<?= htmlspecialchars($settlementId) ?>')">>
                             Upgrade
                         </button>
                     </td>
