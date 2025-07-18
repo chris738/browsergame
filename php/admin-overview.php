@@ -4,14 +4,14 @@ require_once 'database.php';
 
 // Check admin authentication
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: admin.php');
+    header('Location: ../admin.php');
     exit;
 }
 
 // Handle logout
 if (isset($_GET['logout'])) {
     session_destroy();
-    header('Location: admin.php');
+    header('Location: ../admin.php');
     exit;
 }
 
