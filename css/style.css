@@ -526,13 +526,7 @@ button {
     overflow: auto;
     position: relative;
     cursor: grab;
-    background: linear-gradient(45deg, #27ae60 25%, transparent 25%), 
-                linear-gradient(-45deg, #27ae60 25%, transparent 25%), 
-                linear-gradient(45deg, transparent 75%, #27ae60 75%), 
-                linear-gradient(-45deg, transparent 75%, #27ae60 75%);
-    background-size: 40px 40px;
-    background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
-    background-color: #2ecc71;
+    background-color: #1e3a2e;
 }
 
 .map-container-fullscreen:active {
@@ -545,6 +539,13 @@ button {
     position: relative;
     transform-origin: center center;
     transition: transform 0.2s ease;
+    background: linear-gradient(45deg, #27ae60 25%, transparent 25%), 
+                linear-gradient(-45deg, #27ae60 25%, transparent 25%), 
+                linear-gradient(45deg, transparent 75%, #27ae60 75%), 
+                linear-gradient(-45deg, transparent 75%, #27ae60 75%);
+    background-size: 40px 40px;
+    background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
+    background-color: #2ecc71;
 }
 
 .settlement-icon {
@@ -1327,6 +1328,156 @@ button {
     box-shadow: 0 5px 12px rgba(39, 174, 96, 0.4);
 }
 
+/* Inline Settlement Info Panel */
+.settlement-info-panel {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: none;
+    transition: all 0.3s ease;
+}
+
+.settlement-info-panel.show {
+    display: block;
+}
+
+.settlement-info-panel-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1999;
+    display: none;
+}
+
+.settlement-info-panel-overlay.show {
+    display: block;
+}
+
+.settlement-info-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px 15px;
+    border-bottom: 2px solid var(--card-border);
+    background: var(--resource-bg);
+    border-radius: 10px 10px 0 0;
+}
+
+.settlement-info-panel-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 20px;
+}
+
+.settlement-info-panel-close {
+    background: var(--button-bg);
+    color: var(--nav-text);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settlement-info-panel-close:hover {
+    background: var(--button-hover);
+    transform: scale(1.1);
+}
+
+.settlement-info-panel-content {
+    padding: 25px;
+}
+
+.settlement-info-panel .settlement-basic-info {
+    background: var(--resource-bg);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
+    margin-bottom: 20px;
+}
+
+.settlement-info-panel .settlement-basic-info h4 {
+    margin: 0 0 15px 0;
+    color: var(--text-color);
+    font-size: 18px;
+    text-align: center;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.settlement-info-panel .info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.settlement-info-panel .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--card-bg);
+    border-radius: 6px;
+    border: 1px solid var(--card-border);
+}
+
+.settlement-info-panel .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.settlement-info-panel .action-button {
+    background: linear-gradient(135deg, var(--nav-active), #2980b9);
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+}
+
+.settlement-info-panel .action-button:hover {
+    background: linear-gradient(135deg, #2980b9, #1f5f8b);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(52, 152, 219, 0.4);
+}
+
+.settlement-info-panel .action-button.manage {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    box-shadow: 0 2px 4px rgba(39, 174, 96, 0.3);
+}
+
+.settlement-info-panel .action-button.manage:hover {
+    background: linear-gradient(135deg, #229954, #27ae60);
+    box-shadow: 0 3px 8px rgba(39, 174, 96, 0.4);
+}
+
 /* Responsive design for settlement info */
 @media (max-width: 768px) {
     .settlement-info-container {
@@ -1347,5 +1498,18 @@ button {
     
     .trade-resources {
         justify-content: center;
+    }
+    
+    .settlement-info-panel {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .settlement-info-panel-content {
+        padding: 20px;
+    }
+    
+    .settlement-info-panel .actions {
+        flex-direction: column;
     }
 }
