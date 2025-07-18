@@ -2,6 +2,23 @@
 require_once 'database.php';
 header('Content-Type: text/html; charset=utf-8');
 
+// Centralized building type translations
+function getBuildingTranslations() {
+    return [
+        'Rathaus' => 'Town Hall',
+        'Holzfäller' => 'Lumberjack',
+        'Steinbruch' => 'Quarry',
+        'Erzbergwerk' => 'Mine',
+        'Lager' => 'Storage',
+        'Farm' => 'Farm'
+    ];
+}
+
+function translateBuildingName($germanName) {
+    $translations = getBuildingTranslations();
+    return $translations[$germanName] ?? $germanName;
+}
+
 // Funktion zum Laden der Daten aus der Datenbank und zum Formatieren für das Frontend
 function fetchResources($settlementId) {
     $database = new Database();
