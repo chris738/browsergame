@@ -1,26 +1,27 @@
 <?php
-require_once 'php/database.php';
+session_start();
+require_once 'database.php';
 
-// Get the current settlement ID from URL parameter
-$currentSettlementId = $_GET['settlementId'] ?? 1;
+// Check admin authentication
+if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
+    header('Location: ../admin.php');
+    exit;
+}
+
+// Handle logout
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: ../admin.php');
+    exit;
+}
 
 // Initialize database and fetch real settlement data
 $database = new Database();
 $mapData = [];
-$currentPlayerId = null;
 
 try {
     // Check if database is connected
     if ($database->isConnected()) {
-        // Get the current player ID from the selected settlement
-        $currentSettlement = $database->getAllSettlements();
-        foreach ($currentSettlement as $settlement) {
-            if ($settlement['settlementId'] == $currentSettlementId) {
-                $currentPlayerId = $settlement['playerId'] ?? null;
-                break;
-            }
-        }
-        
         // Get all settlements with their coordinates and player information
         $allSettlements = $database->getAllSettlements();
         foreach ($allSettlements as $settlement) {
@@ -39,32 +40,46 @@ try {
         throw new Exception("Database not connected");
     }
 } catch (Exception $e) {
-    // Fallback to demo settlement when database fails - showing only the current settlement
+    // Fallback to demo settlements when database fails
     error_log("Map data fetch failed: " . $e->getMessage());
-    $currentPlayerId = 1; // Demo player ID
     $mapData = [
         [
-            'settlementId' => $currentSettlementId,
+            'settlementId' => 1,
             'xCoordinate' => 0,
             'yCoordinate' => 0,
-            'name' => 'Test Settlement',
-            'playerId' => $currentPlayerId,
-            'playerName' => 'Player'
+            'name' => 'Demo Settlement 1',
+            'playerId' => 1,
+            'playerName' => 'Player 1'
+        ],
+        [
+            'settlementId' => 2,
+            'xCoordinate' => 3,
+            'yCoordinate' => 2,
+            'name' => 'Demo Settlement 2',
+            'playerId' => 2,
+            'playerName' => 'Player 2'
+        ],
+        [
+            'settlementId' => 3,
+            'xCoordinate' => -2,
+            'yCoordinate' => -1,
+            'name' => 'Demo Settlement 3',
+            'playerId' => 1,
+            'playerName' => 'Player 1'
         ]
     ];
 }
 
-// If no settlements found, show at least the current settlement
+// If no settlements found, show demo data
 if (empty($mapData)) {
-    $currentPlayerId = 1;
     $mapData = [
         [
-            'settlementId' => $currentSettlementId,
+            'settlementId' => 1,
             'xCoordinate' => 0,
             'yCoordinate' => 0,
             'name' => 'Fallback Settlement',
-            'playerId' => $currentPlayerId,
-            'playerName' => 'Player'
+            'playerId' => 1,
+            'playerName' => 'Admin'
         ]
     ];
 }
@@ -74,16 +89,17 @@ if (empty($mapData)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Map - Settlement Building</title>
-    <link rel="stylesheet" href="css/style.css">
-    <script src="js/backend.js" defer></script>
+    <title>Admin Map View - Settlement Building Game</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <script src="../js/backend.js" defer></script>
 </head>
 <body>
-    <?php include 'php/navigation.php'; ?>
+    <?php include 'admin-navigation.php'; ?>
     
-    <main class="main-content">
-        <h2>Map View</h2>
-        <p>Here you can see nearby settlements:</p>
+    <main class="admin-map-content">
+        <h2>Admin Map View</h2>
+        <p>Overview of all settlements in the game world:</p>
         
         <div class="map-controls">
             <button id="zoomIn" class="map-btn">🔍 Zoom In</button>
@@ -100,12 +116,13 @@ if (empty($mapData)) {
                         $settlementClass = 'settlement-icon';
                         $statusClass = '';
                         
-                        if ($settlement['settlementId'] == $currentSettlementId) {
-                            $statusClass = 'status-white'; // Selected settlement - white dot
-                        } elseif ($settlement['playerId'] == $currentPlayerId) {
-                            $statusClass = 'status-black'; // Own settlements - black dot
+                        // Determine status based on some criteria (for demo purposes)
+                        if ($settlement['playerId'] == 1) {
+                            $statusClass = 'status-white'; // Own settlements - white dot
+                        } elseif ($settlement['playerId'] <= 2) {
+                            $statusClass = 'status-black'; // Allied settlements - black dot  
                         } else {
-                            $statusClass = 'status-red'; // Other settlements - red dot
+                            $statusClass = 'status-red'; // Enemy settlements - red dot
                         }
                     ?>
                     <div 
@@ -113,7 +130,7 @@ if (empty($mapData)) {
                         data-x="<?= $settlement['xCoordinate'] ?>"
                         data-y="<?= $settlement['yCoordinate'] ?>"
                         title="<?= htmlspecialchars($settlement['name']) ?> (<?= $settlement['xCoordinate'] ?>, <?= $settlement['yCoordinate'] ?>) - Player: <?= htmlspecialchars($settlement['playerName']) ?>"
-                        onclick="window.location.href='index.php?settlementId=<?= $settlement['settlementId'] ?>'">
+                        onclick="selectSettlement(<?= $settlement['settlementId'] ?>)">
                         <div class="settlement-base">🏘️</div>
                         <div class="status-indicator"></div>
                     </div>
@@ -130,7 +147,7 @@ if (empty($mapData)) {
                         <div class="status-indicator"></div>
                     </div>
                 </div>
-                <span>Selected Settlement</span>
+                <span>Own Settlements</span>
             </div>
             <div class="legend-item">
                 <div class="legend-icon">
@@ -139,7 +156,7 @@ if (empty($mapData)) {
                         <div class="status-indicator"></div>
                     </div>
                 </div>
-                <span>Your Settlements</span>
+                <span>Allied Settlements</span>
             </div>
             <div class="legend-item">
                 <div class="legend-icon">
@@ -148,7 +165,7 @@ if (empty($mapData)) {
                         <div class="status-indicator"></div>
                     </div>
                 </div>
-                <span>Other Settlements</span>
+                <span>Enemy Settlements</span>
             </div>
         </div>
     </main>
@@ -246,6 +263,11 @@ if (empty($mapData)) {
             mapContainer.scrollLeft = scrollLeft - walkX;
             mapContainer.scrollTop = scrollTop - walkY;
         });
+        
+        // Settlement selection
+        function selectSettlement(settlementId) {
+            alert(`Selected settlement ID: ${settlementId}\nIn a full implementation, this would show settlement details or allow administration actions.`);
+        }
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializeMap);
