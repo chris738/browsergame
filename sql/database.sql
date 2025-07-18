@@ -470,7 +470,8 @@
         bc.costOre,
         COALESCE(bc.productionRate, 0) AS productionRate, -- Produktionsrate für das nächste Level
         bc.settlers,                              -- Siedlerbedarf für das nächste Level
-        COALESCE(bc.buildTime, 30) AS buildTime   -- Bauzeit für das nächste Level
+        -- Calculate town hall reduced build time (same logic as UpgradeBuilding procedure)
+        ROUND(COALESCE(bc.buildTime, 30) * GREATEST(0.1, 1.0 - (COALESCE(th.level, 0) * 0.05))) AS buildTime
     FROM Buildings b
     INNER JOIN BuildingConfig bc
     ON b.buildingType = bc.buildingType
@@ -479,7 +480,13 @@
         FROM BuildingQueue bq
         WHERE bq.settlementId = b.settlementId
             AND bq.buildingType = b.buildingType
-    ), b.level + 1);                          -- Oder aktuelles Level + 1, falls keine Warteschlange existiert
+    ), b.level + 1)                           -- Oder aktuelles Level + 1, falls keine Warteschlange existiert
+    -- Left join to get town hall level for build time reduction calculation
+    LEFT JOIN (
+        SELECT settlementId, level
+        FROM Buildings 
+        WHERE buildingType = 'Rathaus'
+    ) th ON b.settlementId = th.settlementId;
 
 -- View: get settlers
     CREATE OR REPLACE VIEW SettlementSettlers AS
