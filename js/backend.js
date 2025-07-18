@@ -1,3 +1,6 @@
+// Global variables
+let currentPlayerId = null;
+
 function formatNumberWithDots(number) {
     const roundedNumber = Math.floor(number); // Round the number down
     return roundedNumber.toLocaleString('en-US'); // Formatting for English
@@ -62,6 +65,122 @@ function fetchResources(settlementId) {
             }
         })
         .catch(error => console.error('Error fetching data in backend.js:', error));
+}
+
+function fetchPlayerInfo(settlementId) {
+    fetch(`../php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.playerInfo) {
+                document.getElementById('currentPlayer').textContent = data.playerInfo.playerName;
+                document.getElementById('playerGold').textContent = formatNumberWithDots(data.playerInfo.playerGold);
+                
+                // Set current player ID for ownership validation (both locally and globally)
+                currentPlayerId = data.playerInfo.playerId;
+                window.currentPlayerId = data.playerInfo.playerId;
+            }
+        })
+        .catch(error => console.error('Error fetching player info:', error));
+}
+
+function checkSettlementOwnership(settlementId) {
+    fetch(`../php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.playerInfo) {
+                const settlementOwnerId = data.playerInfo.playerId;
+                const isOwnSettlement = currentPlayerId === settlementOwnerId;
+                
+                // Update UI based on ownership
+                updateUIForOwnership(isOwnSettlement);
+            }
+        })
+        .catch(error => console.error('Error checking settlement ownership:', error));
+}
+
+function updateUIForOwnership(isOwner) {
+    // Get all upgrade buttons
+    const upgradeButtons = document.querySelectorAll('[id$="upgradeButton"]');
+    
+    if (!isOwner) {
+        // Disable upgrade buttons and add visual indicator
+        upgradeButtons.forEach(button => {
+            button.disabled = true;
+            button.textContent = button.textContent + ' (Not your settlement)';
+            button.style.opacity = '0.5';
+            button.style.cursor = 'not-allowed';
+        });
+        
+        // Add notification at the top
+        addOwnershipNotification(false);
+    } else {
+        // Enable upgrade buttons 
+        upgradeButtons.forEach(button => {
+            button.disabled = false;
+            button.style.opacity = '1';
+            button.style.cursor = 'pointer';
+            // Remove the notification text if it exists
+            button.textContent = button.textContent.replace(' (Not your settlement)', '');
+        });
+        
+        // Remove notification
+        addOwnershipNotification(true);
+    }
+}
+
+function addOwnershipNotification(isOwner) {
+    // Remove existing notification
+    const existingNotification = document.getElementById('ownershipNotification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    if (!isOwner) {
+        // Add notification that this is not the player's settlement
+        const notification = document.createElement('div');
+        notification.id = 'ownershipNotification';
+        notification.innerHTML = `
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; margin: 10px 0; border-radius: 4px;">
+                ⚠️ <strong>Viewing another player's settlement</strong> - You can only upgrade buildings and create trades in your own settlement.
+            </div>
+        `;
+        
+        // Insert after navigation
+        const navigation = document.querySelector('.navigation');
+        if (navigation && navigation.nextSibling) {
+            navigation.parentNode.insertBefore(notification, navigation.nextSibling);
+        }
+    }
+}
+
+function fetchAllPlayers() {
+    fetch(`../php/backend.php?getAllPlayers=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.players) {
+                const playerSwitcher = document.getElementById('playerSwitcher');
+                playerSwitcher.innerHTML = '';
+                
+                data.players.forEach(player => {
+                    const option = document.createElement('option');
+                    option.value = player.settlementId;
+                    option.textContent = `${player.playerName} - ${player.settlementName}`;
+                    if (player.settlementId == settlementId) {
+                        option.selected = true;
+                    }
+                    playerSwitcher.appendChild(option);
+                });
+                
+                // Add event listener for player switching
+                playerSwitcher.addEventListener('change', function() {
+                    if (this.value && this.value != settlementId) {
+                        const currentPage = window.location.pathname.split('/').pop();
+                        window.location.href = `${currentPage}?settlementId=${this.value}`;
+                    }
+                });
+            }
+        })
+        .catch(error => console.error('Error fetching players:', error));
 }
 
 function fetchResourcesForColorUpdate(settlementId) {
@@ -177,27 +296,48 @@ function fetchBuildingData(settlementId, buildingTypes) {
 }
 
 function upgradeBuilding(buildingType, settlementId) {
-    fetch('../php/backend.php?settlementId=' + settlementId, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ buildingType }),
-    })
+    // Get the owner of the settlement we're trying to upgrade
+    fetch(`../php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
         .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                //alert(data.message); // Shows success message
-                fetchBuildings(settlementId); // Update building data
-                fetchResources(settlementId);
-                fetchBuildingQueue(settlementId);
-            } else {
-                alert(data.message); // Shows error message
+        .then(ownerData => {
+            const settlementOwnerId = ownerData.playerInfo ? ownerData.playerInfo.playerId : null;
+            
+            // Check if current player owns this settlement
+            if (currentPlayerId !== null && settlementOwnerId !== null && currentPlayerId !== settlementOwnerId) {
+                alert('You can only upgrade buildings in your own settlement. Switch to your settlement first.');
+                return;
             }
+            
+            // Proceed with the upgrade
+            fetch('../php/backend.php?settlementId=' + settlementId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    buildingType, 
+                    currentPlayerId: currentPlayerId 
+                }),
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        //alert(data.message); // Shows success message
+                        fetchBuildings(settlementId); // Update building data
+                        fetchResources(settlementId);
+                        fetchBuildingQueue(settlementId);
+                    } else {
+                        alert(data.message); // Shows error message
+                    }
+                })
+                .catch(error => {
+                    console.error('Error upgrading building:', error);
+                    alert('An error occurred.');
+                });
         })
         .catch(error => {
-            console.error('Error upgrading building:', error);
-            alert('An error occurred.');
+            console.error('Error checking settlement ownership:', error);
+            alert('Unable to verify settlement ownership.');
         });
 }
 
@@ -266,9 +406,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update resources every second
     fetchResources(settlementId);
     setInterval(() => fetchResources(settlementId), 1000);
+    
+    // Fetch player info and update every 5 seconds
+    fetchPlayerInfo(settlementId);
+    setInterval(() => fetchPlayerInfo(settlementId), 5000);
+    
+    // Load all players for the switcher
+    fetchAllPlayers();
 
     // Update building data every 5 seconds
     fetchBuildings(settlementId);
     setInterval(() => fetchBuildings(settlementId), 5000); // 5000ms = 5 seconds
+    
+    // Check settlement ownership after a short delay to ensure currentPlayerId is set
+    setTimeout(() => checkSettlementOwnership(settlementId), 1000);
 });
 

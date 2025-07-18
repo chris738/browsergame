@@ -13,6 +13,9 @@ function checkMarketAccess() {
                 document.getElementById('marketAccess').style.display = 'none';
                 document.getElementById('marketInterface').style.display = 'block';
                 loadMarketData();
+                
+                // Check market ownership
+                checkMarketOwnership();
             } else {
                 marketLevel = 0;
                 document.getElementById('marketLevel').textContent = '0';
@@ -27,6 +30,86 @@ function checkMarketAccess() {
         });
 }
 
+function checkMarketOwnership() {
+    // Wait a bit to ensure currentPlayerId is available
+    setTimeout(() => {
+        if (!window.currentPlayerId) {
+            return;
+        }
+        
+        fetch(`php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.playerInfo) {
+                    const settlementOwnerId = data.playerInfo.playerId;
+                    const isOwnSettlement = window.currentPlayerId === settlementOwnerId;
+                    
+                    updateMarketUIForOwnership(isOwnSettlement);
+                }
+            })
+            .catch(error => console.error('Error checking market ownership:', error));
+    }, 500);
+}
+
+function updateMarketUIForOwnership(isOwner) {
+    const createOfferButton = document.querySelector('.create-offer-btn');
+    const tradeInputs = document.querySelectorAll('.trade-form-container input, .trade-form-container select');
+    
+    if (!isOwner) {
+        // Disable trade creation
+        if (createOfferButton) {
+            createOfferButton.disabled = true;
+            createOfferButton.textContent = 'Create Offer (Not your settlement)';
+            createOfferButton.style.opacity = '0.5';
+        }
+        
+        tradeInputs.forEach(input => {
+            input.disabled = true;
+            input.style.opacity = '0.5';
+        });
+        
+        // Add market notification
+        addMarketOwnershipNotification(false);
+    } else {
+        // Enable trade creation
+        if (createOfferButton) {
+            createOfferButton.disabled = false;
+            createOfferButton.textContent = 'Create Offer';
+            createOfferButton.style.opacity = '1';
+        }
+        
+        tradeInputs.forEach(input => {
+            input.disabled = false;
+            input.style.opacity = '1';
+        });
+        
+        // Remove market notification
+        addMarketOwnershipNotification(true);
+    }
+}
+
+function addMarketOwnershipNotification(isOwner) {
+    const existingNotification = document.getElementById('marketOwnershipNotification');
+    if (existingNotification) {
+        existingNotification.remove();
+    }
+    
+    if (!isOwner) {
+        const notification = document.createElement('div');
+        notification.id = 'marketOwnershipNotification';
+        notification.innerHTML = `
+            <div style="background-color: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 10px; margin: 10px 0; border-radius: 4px;">
+                ⚠️ <strong>Viewing another player's market</strong> - You can only create trade offers from your own settlement.
+            </div>
+        `;
+        
+        const marketInterface = document.getElementById('marketInterface');
+        if (marketInterface) {
+            marketInterface.insertBefore(notification, marketInterface.firstChild);
+        }
+    }
+}
+
 // Load all market data (offers, history, etc.)
 function loadMarketData() {
     refreshOffers();
@@ -36,6 +119,34 @@ function loadMarketData() {
 
 // Create a new trade offer
 function createTradeOffer() {
+    // Check if we have a current player ID (ownership validation)
+    if (!window.currentPlayerId) {
+        alert('Unable to determine current player. Please refresh the page.');
+        return;
+    }
+    
+    // Get the owner of the current settlement
+    fetch(`php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
+        .then(response => response.json())
+        .then(ownerData => {
+            const settlementOwnerId = ownerData.playerInfo ? ownerData.playerInfo.playerId : null;
+            
+            // Check if current player owns this settlement
+            if (window.currentPlayerId !== settlementOwnerId) {
+                alert('You can only create trade offers from your own settlement. Switch to your settlement first.');
+                return;
+            }
+            
+            // Proceed with creating the trade offer
+            proceedWithTradeOffer();
+        })
+        .catch(error => {
+            console.error('Error checking settlement ownership:', error);
+            alert('Unable to verify settlement ownership.');
+        });
+}
+
+function proceedWithTradeOffer() {
     const offerType = document.getElementById('offerType').value;
     const offerWood = parseFloat(document.getElementById('offerWood').value) || 0;
     const offerStone = parseFloat(document.getElementById('offerStone').value) || 0;
@@ -355,7 +466,16 @@ function handleTradeTypeChange() {
         document.querySelector('.request-column h4').textContent = 'Resources you buy:';
         
     } else {
-        // Resource trade: all inputs visible (default state)
+        // Resource trade: Hide gold inputs from both sections
+        const offerGoldLabel = Array.from(offerResourcesDiv.querySelectorAll('label')).find(label => 
+            label.querySelector('#offerGold'));
+        const requestGoldLabel = Array.from(requestResourcesDiv.querySelectorAll('label')).find(label => 
+            label.querySelector('#requestGold'));
+            
+        if (offerGoldLabel) offerGoldLabel.style.display = 'none';
+        if (requestGoldLabel) requestGoldLabel.style.display = 'none';
+        
+        // Update column headers
         document.querySelector('.offer-column h4').textContent = 'What you offer:';
         document.querySelector('.request-column h4').textContent = 'What you want in return:';
     }

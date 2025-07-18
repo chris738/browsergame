@@ -114,6 +114,34 @@ body {
     padding-right: 20px;
 }
 
+.player-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.player-switcher {
+    background-color: var(--nav-bg);
+    border: 2px solid var(--nav-text);
+    color: var(--nav-text);
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.player-switcher:hover {
+    border-color: var(--nav-active);
+    background-color: var(--nav-hover);
+}
+
+.player-switcher option {
+    background-color: var(--nav-bg);
+    color: var(--nav-text);
+}
+
 .user-display {
     color: var(--nav-text);
     font-size: 16px;
@@ -121,6 +149,7 @@ body {
     padding: 10px 15px;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
+    white-space: nowrap;
 }
 
 .theme-toggle {
