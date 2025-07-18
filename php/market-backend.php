@@ -375,6 +375,38 @@ try {
                             'currentTrades' => 1,
                             'maxTrades' => 2,
                             'createdAt' => date('Y-m-d H:i:s', strtotime('-1 hour'))
+                        ],
+                        [
+                            'offerId' => 3,
+                            'playerName' => 'Demo Player 3',
+                            'offerType' => 'resource_trade',
+                            'offerWood' => 200,
+                            'offerStone' => 0,
+                            'offerOre' => 0,
+                            'offerGold' => 0,
+                            'requestWood' => 0,
+                            'requestStone' => 0,
+                            'requestOre' => 100,
+                            'requestGold' => 0,
+                            'currentTrades' => 0,
+                            'maxTrades' => 5,
+                            'createdAt' => date('Y-m-d H:i:s', strtotime('-30 minutes'))
+                        ],
+                        [
+                            'offerId' => 4,
+                            'playerName' => 'Demo Player 4',
+                            'offerType' => 'resource_buy',
+                            'offerWood' => 0,
+                            'offerStone' => 0,
+                            'offerOre' => 0,
+                            'offerGold' => 100,
+                            'requestWood' => 150,
+                            'requestStone' => 0,
+                            'requestOre' => 0,
+                            'requestGold' => 0,
+                            'currentTrades' => 2,
+                            'maxTrades' => 4,
+                            'createdAt' => date('Y-m-d H:i:s', strtotime('-2 hours'))
                         ]
                     ]
                 ];
@@ -402,10 +434,64 @@ try {
                     'success' => true,
                     'history' => [
                         [
-                            'otherPlayerName' => 'Demo Trader',
+                            'otherPlayerName' => 'Demo Trader 1',
                             'yourGave' => ['wood' => 50, 'stone' => 0, 'ore' => 0, 'gold' => 0],
                             'youGot' => ['wood' => 0, 'stone' => 25, 'ore' => 0, 'gold' => 0],
                             'completedAt' => date('Y-m-d H:i:s', strtotime('-2 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 2',
+                            'yourGave' => ['wood' => 0, 'stone' => 30, 'ore' => 0, 'gold' => 0],
+                            'youGot' => ['wood' => 0, 'stone' => 0, 'ore' => 15, 'gold' => 0],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-4 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 3',
+                            'yourGave' => ['wood' => 100, 'stone' => 0, 'ore' => 0, 'gold' => 0],
+                            'youGot' => ['wood' => 0, 'stone' => 0, 'ore' => 0, 'gold' => 25],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-6 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 4',
+                            'yourGave' => ['wood' => 0, 'stone' => 0, 'ore' => 20, 'gold' => 0],
+                            'youGot' => ['wood' => 40, 'stone' => 0, 'ore' => 0, 'gold' => 0],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-8 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 5',
+                            'yourGave' => ['wood' => 0, 'stone' => 0, 'ore' => 0, 'gold' => 15],
+                            'youGot' => ['wood' => 75, 'stone' => 0, 'ore' => 0, 'gold' => 0],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-10 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 6',
+                            'yourGave' => ['wood' => 25, 'stone' => 25, 'ore' => 0, 'gold' => 0],
+                            'youGot' => ['wood' => 0, 'stone' => 0, 'ore' => 30, 'gold' => 0],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-12 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 7',
+                            'yourGave' => ['wood' => 0, 'stone' => 0, 'ore' => 10, 'gold' => 0],
+                            'youGot' => ['wood' => 0, 'stone' => 0, 'ore' => 0, 'gold' => 20],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-14 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 8',
+                            'yourGave' => ['wood' => 80, 'stone' => 0, 'ore' => 0, 'gold' => 0],
+                            'youGot' => ['wood' => 0, 'stone' => 40, 'ore' => 0, 'gold' => 0],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-16 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 9',
+                            'yourGave' => ['wood' => 0, 'stone' => 15, 'ore' => 15, 'gold' => 0],
+                            'youGot' => ['wood' => 60, 'stone' => 0, 'ore' => 0, 'gold' => 0],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-18 hours'))
+                        ],
+                        [
+                            'otherPlayerName' => 'Demo Trader 10',
+                            'yourGave' => ['wood' => 0, 'stone' => 0, 'ore' => 0, 'gold' => 30],
+                            'youGot' => ['wood' => 120, 'stone' => 0, 'ore' => 0, 'gold' => 0],
+                            'completedAt' => date('Y-m-d H:i:s', strtotime('-20 hours'))
                         ]
                     ]
                 ];
