@@ -1,5 +1,16 @@
 <?php
 session_start();
+
+// Add some debugging for new installations
+if (isset($_GET['debug']) && $_GET['debug'] === 'session') {
+    echo "<pre>";
+    echo "Session debug info:\n";
+    echo "Session ID: " . session_id() . "\n";
+    echo "Session save path: " . session_save_path() . "\n";
+    echo "Session data: " . print_r($_SESSION, true) . "\n";
+    echo "</pre>";
+}
+
 require_once 'php/database.php';
 
 // Simple admin authentication
@@ -16,8 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
     if ($username === $admin_username && $password === $admin_password) {
         $_SESSION['admin_logged_in'] = true;
         $isLoggedIn = true;
+        // Add a small delay to ensure session is written
+        usleep(100000); // 0.1 seconds
     } else {
-        $loginError = 'Invalid credentials';
+        $loginError = 'Ungültige Zugangsdaten. Verwende: admin / admin123';
     }
 }
 
@@ -49,13 +62,18 @@ if (!$isLoggedIn) {
         <form method="POST">
             <div class="form-group">
                 <label for="username">Username:</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" required placeholder="admin">
             </div>
             <div class="form-group">
                 <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
+                <input type="password" id="password" name="password" required placeholder="admin123">
             </div>
             <button type="submit" name="login">Login</button>
+            <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
+                Standard-Zugangsdaten:<br>
+                <strong>Username:</strong> admin<br>
+                <strong>Password:</strong> admin123
+            </div>
         </form>
     </div>
 </body>
