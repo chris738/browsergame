@@ -1,6 +1,6 @@
 function formatNumberWithDots(number) {
-    const roundedNumber = Math.floor(number); // Rundet die Zahl nach unten
-    return roundedNumber.toLocaleString('de-DE'); // Formatierung für Deutschland
+    const roundedNumber = Math.floor(number); // Round the number down
+    return roundedNumber.toLocaleString('en-US'); // Formatting for English
 }
 
 function updateCostColors(resources) {
@@ -42,7 +42,7 @@ function getRegen(settlementId) {
             document.getElementById('erzRegen').textContent = formatNumberWithDots(data.regen.regens.ore);
         }
     })
-    .catch(error => console.error('Fehler beim Abrufen der Regeneration in backend.js:', error));
+    .catch(error => console.error('Error fetching regeneration in backend.js:', error));
 }
 
 function fetchResources(settlementId) {
@@ -61,7 +61,7 @@ function fetchResources(settlementId) {
                 updateCostColors(data.resources.resources);
             }
         })
-        .catch(error => console.error('Fehler beim Abrufen der Daten in backend.js:', error));
+        .catch(error => console.error('Error fetching data in backend.js:', error));
 }
 
 function fetchResourcesForColorUpdate(settlementId) {
@@ -73,7 +73,7 @@ function fetchResourcesForColorUpdate(settlementId) {
                 updateCostColors(data.resources.resources);
             }
         })
-        .catch(error => console.error('Fehler beim Abrufen der Ressourcen für Farbupdate:', error));
+        .catch(error => console.error('Error fetching resources for color update:', error));
 }
 
 function fetchBuildings(settlementId) {
@@ -128,12 +128,12 @@ function fetchBuildingData(settlementId, buildingTypes) {
                         const buttonElement = document.getElementById(`${buildingId}upgradeButton`);
 
                         if (levelElement) levelElement.textContent = data.building.level;
-                        if (woodElement) woodElement.textContent = `${formatNumberWithDots(data.building.costWood)} Holz`;
-                        if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} Stein`;
-                        if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} Erz`;
-                        if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} Siedler`;
-                        if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s Bauzeit`;
-                        if (buttonElement) buttonElement.textContent = `Upgrade auf ${formatNumberWithDots(data.building.nextLevel)}`;
+                        if (woodElement) woodElement.textContent = `${formatNumberWithDots(data.building.costWood)} 🪵`;
+                        if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} 🪨`;
+                        if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} ⛏️`;
+                        if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} 👥`;
+                        if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s ⏱️`;
+                        if (buttonElement) buttonElement.textContent = `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
                     } else {
                         console.warn(`No building data returned for ${buildingType}, response:`, data);
                         // If building data is missing, ensure level shows 0 explicitly
@@ -153,7 +153,7 @@ function fetchBuildingData(settlementId, buildingTypes) {
                     }
                 })
                 .catch(error => {
-                    console.error(`Fehler beim Abrufen der Daten für ${buildingType}:`, error);
+                    console.error(`Error fetching data for ${buildingType}:`, error);
                     // On error, ensure the building level shows 0 instead of staying empty
                     const buildingId = buildingType.toLowerCase();
                     const levelElement = document.getElementById(`${buildingId}`);
@@ -183,17 +183,17 @@ function upgradeBuilding(buildingType, settlementId) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                //alert(data.message); // Zeigt Erfolgsnachricht an
-                fetchBuildings(settlementId); // Aktualisiere die Gebäudedaten
+                //alert(data.message); // Shows success message
+                fetchBuildings(settlementId); // Update building data
                 fetchResources(settlementId);
                 fetchBuildingQueue(settlementId);
             } else {
-                alert(data.message); // Zeigt Fehlermeldung an
+                alert(data.message); // Shows error message
             }
         })
         .catch(error => {
-            console.error('Fehler beim Upgrade des Gebäudes:', error);
-            alert('Es ist ein Fehler aufgetreten.');
+            console.error('Error upgrading building:', error);
+            alert('An error occurred.');
         });
 }
 
@@ -208,7 +208,7 @@ function getSettlementName(settlementId) {
                 }
             }
         })
-        .catch(error => console.error('Fehler beim Abrufen der Daten in backend.js:', error));
+        .catch(error => console.error('Error fetching data in backend.js:', error));
 }
 
 function fetchBuildingQueue(settlementId) {
@@ -220,7 +220,7 @@ function fetchBuildingQueue(settlementId) {
             
             buildingQueueBody.innerHTML = '';
 
-            // Überprüfe, ob data.info.queue vorhanden ist
+            // Check if data.info.queue exists
             if (data.info && data.info.queue && data.info.queue.length > 0) {
                 data.info.queue.forEach(item => {
                     const row = document.createElement('tr');
@@ -240,11 +240,11 @@ function fetchBuildingQueue(settlementId) {
                 });
             } else {
                 const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = '<td colspan="4">Keine Gebäude in der Warteschlange</td>';
+                emptyRow.innerHTML = '<td colspan="4">No buildings in queue</td>';
                 buildingQueueBody.appendChild(emptyRow);
             }
         })
-        .catch(error => console.error('Fehler beim Abrufen der BuildingQueue:', error));
+        .catch(error => console.error('Error fetching BuildingQueue:', error));
 }
 
 getSettlementName(settlementId);
@@ -254,12 +254,12 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchBuildingQueue(settlementId);
     setInterval(() => fetchBuildingQueue(settlementId), 1000);
 
-    // Ressourcen jede Sekunde aktualisieren
+    // Update resources every second
     fetchResources(settlementId);
     setInterval(() => fetchResources(settlementId), 1000);
 
-    // Gebäudedaten einmal pro Minute aktualisieren
+    // Update building data every 5 seconds
     fetchBuildings(settlementId);
-    setInterval(() => fetchBuildings(settlementId), 5000); // 60000ms = 1 Minute
+    setInterval(() => fetchBuildings(settlementId), 5000); // 5000ms = 5 seconds
 });
 
