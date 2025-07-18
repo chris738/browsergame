@@ -18,6 +18,7 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
         </a>
     </div>
     <div class="nav-user">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode">🌙 Dark</button>
         <span class="user-display">👤 <span id="currentPlayer">Player</span></span>
     </div>
 </nav>
