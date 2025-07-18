@@ -163,6 +163,7 @@ try {
     if ($method === 'GET') {
         // Handle building types request (doesn't require settlementId)
         if ($getBuildingTypes == True) {
+            header('Content-Type: application/json; charset=utf-8');
             $response = ['buildingTypes' => getBuildingTypes()];
             echo json_encode($response);
             exit;
