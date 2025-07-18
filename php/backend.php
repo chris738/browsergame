@@ -44,11 +44,25 @@ function fetchPlayerInfo($settlementId) {
     $database = new Database();
     $playerName = $database->getPlayerNameFromSettlement($settlementId);
     $playerGold = $database->getPlayerGold($settlementId);
+    $playerId = $database->getPlayerIdFromSettlement($settlementId);
     
     return [
         'playerName' => $playerName,
-        'playerGold' => $playerGold
+        'playerGold' => $playerGold,
+        'playerId' => $playerId
     ];
+}
+
+function validateSettlementOwnership($settlementId, $currentPlayerId = null) {
+    $database = new Database();
+    $settlementOwnerId = $database->getPlayerIdFromSettlement($settlementId);
+    
+    // If no current player specified, assume they can access any settlement (for backwards compatibility)
+    if ($currentPlayerId === null) {
+        return true;
+    }
+    
+    return $settlementOwnerId == $currentPlayerId;
 }
 
 function fetchAllPlayersWithSettlements() {
@@ -158,11 +172,20 @@ function fetchBuilding($settlementId, $buildingType) {
 
 function handleBuildingUpgrade($settlementId, $input) {
     $buildingType = $input['buildingType'] ?? null;
+    $currentPlayerId = $input['currentPlayerId'] ?? null;
 
     $database = new Database();
 
     if (!$settlementId) {
         return json_encode(['error' => 'Parameter settlementId oder buildingType fehlt.']);
+    }
+
+    // Validate settlement ownership
+    if ($currentPlayerId !== null) {
+        $isOwner = validateSettlementOwnership($settlementId, $currentPlayerId);
+        if (!$isOwner) {
+            return json_encode(['success' => false, 'message' => 'You can only upgrade buildings in your own settlement.']);
+        }
     }
 
     // Datenbankzugriff und Upgrade

@@ -1312,6 +1312,25 @@ class Database implements DatabaseInterface {
         }
     }
 
+    public function getPlayerIdFromSettlement($settlementId) {
+        if ($this->connectionFailed) {
+            // Return mock data based on settlement ID - same player IDs as settlement IDs for simplicity
+            return $settlementId;
+        }
+        
+        try {
+            $sql = "SELECT p.playerId FROM Spieler p 
+                    INNER JOIN Settlement s ON p.playerId = s.playerId 
+                    WHERE s.settlementId = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$settlementId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['playerId'] : null;
+        } catch (Exception $e) {
+            return null;
+        }
+    }
+
     public function getPlayerGold($settlementId) {
         if ($this->connectionFailed) {
             // Return different gold amounts for different players  
