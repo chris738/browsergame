@@ -72,7 +72,12 @@ class EmojiConfig {
         'sun' => '☀️',
         'arrow_right' => '→',
         'arrow_bidirectional' => '↔',
-        'market' => '⚖️'
+        'market' => '⚖️',
+        'settlement' => '🏘️',
+        'map' => '🗺️',
+        'status' => '🔍',
+        'trade' => '🤝',
+        'manage' => '⚙️'
     ];
     
     /**

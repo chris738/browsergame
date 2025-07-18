@@ -114,7 +114,13 @@ if (empty($mapData)) {
                         data-x="<?= $settlement['xCoordinate'] ?>"
                         data-y="<?= $settlement['yCoordinate'] ?>"
                         title="<?= htmlspecialchars($settlement['name']) ?> (<?= $settlement['xCoordinate'] ?>, <?= $settlement['yCoordinate'] ?>) - Player: <?= htmlspecialchars($settlement['playerName']) ?>"
-                        onclick="window.location.href='index.php?settlementId=<?= $settlement['settlementId'] ?>'">
+                        onclick="<?php 
+                            if ($settlement['settlementId'] == $currentSettlementId || $settlement['playerId'] == $currentPlayerId) {
+                                echo "window.location.href='index.php?settlementId={$settlement['settlementId']}'";
+                            } else {
+                                echo "window.location.href='settlement-info.php?settlementId={$settlement['settlementId']}&currentSettlementId={$currentSettlementId}'";
+                            }
+                        ?>">
                         <div class="settlement-base">🏘️</div>
                         <div class="status-indicator"></div>
                     </div>
