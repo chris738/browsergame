@@ -40,6 +40,7 @@ interface DatabaseInterface {
     public function getActiveTradesForAdmin();
     public function getTradeHistoryForAdmin($limit = 20);
     public function getTradeAnalytics();
+    public function getTradeHistoryBetweenPlayers($playerId1, $playerId2, $limit = 10);
 }
 
 class Database implements DatabaseInterface {
@@ -945,6 +946,7 @@ class Database implements DatabaseInterface {
                 s.wood,
                 s.stone,
                 s.ore,
+                s.playerId,
                 p.name as playerName,
                 m.xCoordinate,
                 m.yCoordinate
@@ -1512,6 +1514,38 @@ class Database implements DatabaseInterface {
                 'avgTradeValue' => 'Error',
                 'topTrader' => 'Error'
             ];
+        }
+    }
+
+    public function getTradeHistoryBetweenPlayers($playerId1, $playerId2, $limit = 10) {
+        if ($this->connectionFailed) {
+            return [];
+        }
+
+        try {
+            $sql = "SELECT 
+                        tt.transactionId,
+                        tt.tradedWood as wood,
+                        tt.tradedStone as stone,
+                        tt.tradedOre as ore,
+                        tt.tradedGold as gold,
+                        tt.completedAt,
+                        p1.name as fromPlayer,
+                        p2.name as toPlayer
+                    FROM TradeTransactions tt
+                    INNER JOIN Settlement s1 ON tt.fromSettlementId = s1.settlementId
+                    INNER JOIN Settlement s2 ON tt.toSettlementId = s2.settlementId
+                    INNER JOIN Spieler p1 ON s1.playerId = p1.playerId
+                    INNER JOIN Spieler p2 ON s2.playerId = p2.playerId
+                    WHERE (s1.playerId = ? AND s2.playerId = ?) OR (s1.playerId = ? AND s2.playerId = ?)
+                    ORDER BY tt.completedAt DESC
+                    LIMIT ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$playerId1, $playerId2, $playerId2, $playerId1, $limit]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting trade history between players: " . $e->getMessage());
+            return [];
         }
     }
 }
