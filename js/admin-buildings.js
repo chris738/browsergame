@@ -1,11 +1,73 @@
 // Admin Buildings JavaScript functionality
 document.addEventListener('DOMContentLoaded', function() {
-    // Load building configurations on page load
+    // Load building types and configurations on page load
+    loadBuildingTypes();
     loadBuildingConfigs();
     
     // Set up event listeners
     setupEventListeners();
 });
+
+async function loadBuildingTypes() {
+    try {
+        const response = await fetch('../php/admin-backend.php?action=buildingTypes');
+        const data = await response.json();
+        
+        if (data.buildingTypes) {
+            populateBuildingTypeDropdowns(data.buildingTypes);
+        } else {
+            console.warn('No building types returned, using defaults');
+            populateBuildingTypeDropdowns([
+                {buildingType: 'Rathaus'},
+                {buildingType: 'Holzfäller'},
+                {buildingType: 'Steinbruch'},
+                {buildingType: 'Erzbergwerk'},
+                {buildingType: 'Lager'},
+                {buildingType: 'Farm'}
+            ]);
+        }
+    } catch (error) {
+        console.error('Error loading building types:', error);
+        // Use fallback building types
+        populateBuildingTypeDropdowns([
+            {buildingType: 'Rathaus'},
+            {buildingType: 'Holzfäller'},
+            {buildingType: 'Steinbruch'},
+            {buildingType: 'Erzbergwerk'},
+            {buildingType: 'Lager'},
+            {buildingType: 'Farm'}
+        ]);
+    }
+}
+
+function populateBuildingTypeDropdowns(buildingTypes) {
+    // Get all dropdowns that need building types
+    const dropdowns = [
+        'buildingTypeFilter',
+        'genBuildingType', 
+        'createBuildingType'
+    ];
+    
+    dropdowns.forEach(dropdownId => {
+        const dropdown = document.getElementById(dropdownId);
+        if (dropdown) {
+            // Clear existing options except the first one (usually "All" or "Choose...")
+            const firstOption = dropdown.firstElementChild;
+            dropdown.innerHTML = '';
+            if (firstOption) {
+                dropdown.appendChild(firstOption);
+            }
+            
+            // Add building type options
+            buildingTypes.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type.buildingType;
+                option.textContent = type.buildingType;
+                dropdown.appendChild(option);
+            });
+        }
+    });
+}
 
 function setupEventListeners() {
     // Refresh button

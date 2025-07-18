@@ -29,6 +29,7 @@ interface DatabaseInterface {
     public function updateBuildingConfig($buildingType, $level, $costWood, $costStone, $costOre, $settlers, $productionRate, $buildTime);
     public function createBuildingConfig($buildingType, $level, $costWood, $costStone, $costOre, $settlers, $productionRate, $buildTime);
     public function deleteBuildingConfig($buildingType, $level);
+    public function getDistinctBuildingTypes();
 }
 
 class Database implements DatabaseInterface {
@@ -1233,6 +1234,38 @@ class Database implements DatabaseInterface {
         } catch (PDOException $e) {
             error_log("Failed to delete building config: " . $e->getMessage());
             return false;
+        }
+    }
+
+    public function getDistinctBuildingTypes() {
+        if ($this->connectionFailed) {
+            // Return default building types if database connection failed
+            return [
+                ['buildingType' => 'Rathaus'],
+                ['buildingType' => 'Holzfäller'],
+                ['buildingType' => 'Steinbruch'],
+                ['buildingType' => 'Erzbergwerk'],
+                ['buildingType' => 'Lager'],
+                ['buildingType' => 'Farm']
+            ];
+        }
+
+        try {
+            $sql = "SELECT DISTINCT buildingType FROM BuildingConfig ORDER BY buildingType";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Failed to fetch distinct building types: " . $e->getMessage());
+            // Return default building types as fallback
+            return [
+                ['buildingType' => 'Rathaus'],
+                ['buildingType' => 'Holzfäller'],
+                ['buildingType' => 'Steinbruch'],
+                ['buildingType' => 'Erzbergwerk'],
+                ['buildingType' => 'Lager'],
+                ['buildingType' => 'Farm']
+            ];
         }
     }
 }

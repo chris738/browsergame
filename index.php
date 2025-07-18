@@ -1,20 +1,17 @@
 <?php
-    // Liste der Gebäude mit ihren Eigenschaften
-    $buildings = [
-        ["name" => "Rathaus", "id" => "rathaus"],
-        ["name" => "Holzfäller", "id" => "holzfäller"],
-        ["name" => "Steinbruch", "id" => "steinbruch"],
-        ["name" => "Erzbergwerk", "id" => "erzbergwerk"],
-        ["name" => "Lager", "id" => "lager"],
-        ["name" => "Farm", "id" => "farm"],
-        //["name" => "Kirche", "id" => "kirche"],
-        //["name" => "Markt", "id" => "markt"],
-        //["name" => "Versteck", "id" => "versteck"],
-        //["name" => "Stadtmauer", "id" => "mauer"],
-        //["name" => "Stall", "id" => "stall"],
-        //["name" => "Kaserne", "id" => "kaserne"],
-        //["name" => "Universität", "id" => "uni"],
-    ];
+    require_once 'php/database.php';
+    
+    // Get building types from database instead of hardcoding
+    $database = new Database();
+    $buildingTypesData = $database->getDistinctBuildingTypes();
+    
+    // Transform the data to match the expected format
+    $buildings = array_map(function($type) {
+        return [
+            'name' => $type['buildingType'],
+            'id' => strtolower($type['buildingType'])
+        ];
+    }, $buildingTypesData);
 
     // Eingehende Anfrage verarbeiten
     $method = $_SERVER['REQUEST_METHOD'];

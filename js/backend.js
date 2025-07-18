@@ -84,7 +84,28 @@ function fetchResourcesForColorUpdate(settlementId) {
 }
 
 function fetchBuildings(settlementId) {
-    const buildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+    // First fetch the building types dynamically
+    fetch(`../php/backend.php?getBuildingTypes=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.buildingTypes && data.buildingTypes.buildingTypes) {
+                const buildingTypes = data.buildingTypes.buildingTypes.map(b => b.name);
+                fetchBuildingData(settlementId, buildingTypes);
+            } else {
+                // Fallback to default building types
+                const defaultBuildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+                fetchBuildingData(settlementId, defaultBuildingTypes);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching building types:', error);
+            // Fallback to default building types
+            const defaultBuildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+            fetchBuildingData(settlementId, defaultBuildingTypes);
+        });
+}
+
+function fetchBuildingData(settlementId, buildingTypes) {
     let completedRequests = 0;
 
     buildingTypes.forEach((buildingType, index) => {

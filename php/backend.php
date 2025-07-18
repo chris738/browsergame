@@ -112,6 +112,24 @@ function getSettlementName($settlementId) {
     ];
 }
 
+function getBuildingTypes() {
+    $database = new Database();
+    $buildingTypes = $database->getDistinctBuildingTypes();
+
+    if (!$buildingTypes) {
+        return ['error' => 'Gebäudetypen konnten nicht abgerufen werden.'];
+    }
+
+    return [
+        'buildingTypes' => array_map(function($type) {
+            return [
+                'name' => $type['buildingType'],
+                'id' => strtolower($type['buildingType'])
+            ];
+        }, $buildingTypes),
+    ];
+}
+
 function getMap() {
     $database = new Database();
     $map = $database->getMap();
@@ -139,9 +157,17 @@ $getRegen = $_GET['getRegen'] ?? null;
 $getSettlementName = $_GET['getSettlementName'] ?? null;
 $getBuildingQueue = $_GET['getBuildingQueue'] ?? null;
 $getMap = $_GET['getMap'] ?? null;
+$getBuildingTypes = $_GET['getBuildingTypes'] ?? null;
 
 try {
     if ($method === 'GET') {
+        // Handle building types request (doesn't require settlementId)
+        if ($getBuildingTypes == True) {
+            $response = ['buildingTypes' => getBuildingTypes()];
+            echo json_encode($response);
+            exit;
+        }
+        
         if (!$settlementId) {
             echo json_encode(['error' => 'Parameter settlementId fehlt.']);
             exit;
