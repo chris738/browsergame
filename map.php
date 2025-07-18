@@ -100,10 +100,12 @@ if (empty($mapData)) {
                         // Determine settlement type for CSS class and status
                         $settlementClass = 'settlement-icon';
                         $statusClass = '';
+                        $settlementPlayerId = $settlement['playerId'] ?? 0;
+                        $safeCurrentPlayerId = $currentPlayerId ?? 0;
                         
                         if ($settlement['settlementId'] == $currentSettlementId) {
                             $statusClass = 'status-white'; // Selected settlement - white dot
-                        } elseif ($settlement['playerId'] == $currentPlayerId) {
+                        } elseif ($settlementPlayerId == $safeCurrentPlayerId) {
                             $statusClass = 'status-black'; // Own settlements - black dot
                         } else {
                             $statusClass = 'status-red'; // Other settlements - red dot
@@ -113,8 +115,10 @@ if (empty($mapData)) {
                         class="<?= $settlementClass ?> <?= $statusClass ?>" 
                         data-x="<?= $settlement['xCoordinate'] ?>"
                         data-y="<?= $settlement['yCoordinate'] ?>"
+                        data-settlement-id="<?= $settlement['settlementId'] ?>"
+                        data-player-id="<?= $settlementPlayerId ?>"
                         title="<?= htmlspecialchars($settlement['name']) ?> (<?= $settlement['xCoordinate'] ?>, <?= $settlement['yCoordinate'] ?>) - Player: <?= htmlspecialchars($settlement['playerName']) ?>"
-                        onclick="window.location.href='index.php?settlementId=<?= $settlement['settlementId'] ?>'">
+                        onclick="handleSettlementClick(<?= $settlement['settlementId'] ?>, <?= $settlementPlayerId ?>, <?= $safeCurrentPlayerId ?>)">
                         <div class="settlement-base">🏘️</div>
                         <div class="status-indicator"></div>
                     </div>
@@ -250,6 +254,17 @@ if (empty($mapData)) {
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializeMap);
+        
+        // Handle settlement click with ownership check
+        function handleSettlementClick(settlementId, settlementPlayerId, currentPlayerId) {
+            if (settlementPlayerId === currentPlayerId) {
+                // Own settlement - redirect to settlement view
+                window.location.href = 'index.php?settlementId=' + settlementId;
+            } else {
+                // Foreign settlement - show settlement info page
+                window.location.href = 'settlement-info.php?settlementId=' + settlementId + '&currentSettlementId=<?= $currentSettlementId ?>';
+            }
+        }
     </script>
 </body>
 </html>

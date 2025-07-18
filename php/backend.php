@@ -53,6 +53,47 @@ function fetchPlayerInfo($settlementId) {
     ];
 }
 
+function fetchPublicSettlementInfo($settlementId) {
+    $database = new Database();
+    
+    // Get basic settlement information without sensitive data
+    $playerName = $database->getPlayerNameFromSettlement($settlementId);
+    $playerId = $database->getPlayerIdFromSettlement($settlementId);
+    $settlementName = $database->getSettlementName($settlementId);
+    
+    // Get all settlements to find coordinates for this settlement
+    $allSettlements = $database->getAllSettlements();
+    $coordinates = ['x' => 0, 'y' => 0];
+    foreach ($allSettlements as $settlement) {
+        if ($settlement['settlementId'] == $settlementId) {
+            $coordinates = [
+                'x' => $settlement['xCoordinate'] ?? 0,
+                'y' => $settlement['yCoordinate'] ?? 0
+            ];
+            break;
+        }
+    }
+    
+    // Get market building info to determine if trading is possible
+    $marketBuilding = $database->getBuilding($settlementId, 'Markt');
+    $hasMarket = $marketBuilding && $marketBuilding['currentLevel'] > 0;
+    $marketLevel = $marketBuilding ? $marketBuilding['currentLevel'] : 0;
+    
+    return [
+        'settlementId' => $settlementId,
+        'settlementName' => $settlementName['SettlementName'] ?? 'Unknown Settlement',
+        'playerName' => $playerName,
+        'playerId' => $playerId,
+        'xCoordinate' => $coordinates['x'],
+        'yCoordinate' => $coordinates['y'],
+        // Note: deliberately NOT including building levels, resources, or upgrade costs
+        'publicStats' => [
+            'hasMarket' => $hasMarket, // Check if trading is possible
+            'marketLevel' => $marketLevel, // Market level for trade capacity
+        ]
+    ];
+}
+
 function validateSettlementOwnership($settlementId, $currentPlayerId = null) {
     $database = new Database();
     $settlementOwnerId = $database->getPlayerIdFromSettlement($settlementId);
@@ -259,6 +300,7 @@ $getMap = $_GET['getMap'] ?? null;
 $getBuildingTypes = $_GET['getBuildingTypes'] ?? null;
 $getPlayerInfo = $_GET['getPlayerInfo'] ?? null;
 $getAllPlayers = $_GET['getAllPlayers'] ?? null;
+$getPublicSettlementInfo = $_GET['getPublicSettlementInfo'] ?? null;
 
 try {
     if ($method === 'GET') {
@@ -306,6 +348,11 @@ try {
         //Player Info (name and gold)
         if ($getPlayerInfo == True) {
             $response = ['playerInfo' => fetchPlayerInfo($settlementId)];
+        }
+        
+        //Public Settlement Info (for viewing foreign settlements)
+        if ($getPublicSettlementInfo == True) {
+            $response = ['settlementInfo' => fetchPublicSettlementInfo($settlementId)];
         }
 
         //fetchBuildingQueue

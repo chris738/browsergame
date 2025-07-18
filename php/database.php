@@ -945,6 +945,7 @@ class Database implements DatabaseInterface {
                 s.wood,
                 s.stone,
                 s.ore,
+                s.playerId,
                 p.name as playerName,
                 m.xCoordinate,
                 m.yCoordinate
