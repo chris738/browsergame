@@ -85,15 +85,19 @@ function fetchBuildings(settlementId) {
                 const buildingTypes = data.buildingTypes.buildingTypes.map(b => b.name);
                 fetchBuildingData(settlementId, buildingTypes);
             } else {
-                // Fallback to default building types
-                const defaultBuildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+                // Fallback to default building types from centralized configuration
+                const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
+                    window.getDefaultBuildingTypes().map(b => b.buildingType) :
+                    ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
                 fetchBuildingData(settlementId, defaultBuildingTypes);
             }
         })
         .catch(error => {
             console.error('Error fetching building types:', error);
-            // Fallback to default building types
-            const defaultBuildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+            // Fallback to default building types from centralized configuration
+            const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
+                window.getDefaultBuildingTypes().map(b => b.buildingType) :
+                ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
             fetchBuildingData(settlementId, defaultBuildingTypes);
         });
 }
@@ -224,9 +228,14 @@ function fetchBuildingQueue(settlementId) {
             if (data.info && data.info.queue && data.info.queue.length > 0) {
                 data.info.queue.forEach(item => {
                     const row = document.createElement('tr');
+                    
+                    // Translate building name from German to English
+                    const translatedBuildingName = window.translateBuildingName ? 
+                        window.translateBuildingName(item.buildingType) : 
+                        item.buildingType;
 
                     row.innerHTML = `
-                        <td>${item.buildingType}</td>
+                        <td>${translatedBuildingName}</td>
                         <td>${item.level}</td>
                         <td>
                             <div class="progress-container">

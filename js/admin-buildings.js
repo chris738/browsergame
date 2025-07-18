@@ -17,26 +17,33 @@ async function loadBuildingTypes() {
             populateBuildingTypeDropdowns(data.buildingTypes);
         } else {
             console.warn('No building types returned, using defaults');
-            populateBuildingTypeDropdowns([
+            // Use dynamic defaults from centralized configuration
+            const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
+                window.getDefaultBuildingTypes() :
+                [
+                    {buildingType: 'Rathaus'},
+                    {buildingType: 'Holzfäller'},
+                    {buildingType: 'Steinbruch'},
+                    {buildingType: 'Erzbergwerk'},
+                    {buildingType: 'Lager'},
+                    {buildingType: 'Farm'}
+                ];
+            populateBuildingTypeDropdowns(defaultBuildingTypes);
+        }
+    } catch (error) {
+        console.error('Error loading building types:', error);
+        // Use dynamic defaults from centralized configuration
+        const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
+            window.getDefaultBuildingTypes() :
+            [
                 {buildingType: 'Rathaus'},
                 {buildingType: 'Holzfäller'},
                 {buildingType: 'Steinbruch'},
                 {buildingType: 'Erzbergwerk'},
                 {buildingType: 'Lager'},
                 {buildingType: 'Farm'}
-            ]);
-        }
-    } catch (error) {
-        console.error('Error loading building types:', error);
-        // Use fallback building types
-        populateBuildingTypeDropdowns([
-            {buildingType: 'Rathaus'},
-            {buildingType: 'Holzfäller'},
-            {buildingType: 'Steinbruch'},
-            {buildingType: 'Erzbergwerk'},
-            {buildingType: 'Lager'},
-            {buildingType: 'Farm'}
-        ]);
+            ];
+        populateBuildingTypeDropdowns(defaultBuildingTypes);
     }
 }
 
@@ -58,11 +65,15 @@ function populateBuildingTypeDropdowns(buildingTypes) {
                 dropdown.appendChild(firstOption);
             }
             
-            // Add building type options
+            // Add building type options with translated names
             buildingTypes.forEach(type => {
                 const option = document.createElement('option');
                 option.value = type.buildingType;
-                option.textContent = type.buildingType;
+                // Show translated name in dropdown but keep original value for backend
+                const translatedName = window.translateBuildingName ? 
+                    window.translateBuildingName(type.buildingType) : 
+                    type.buildingType;
+                option.textContent = translatedName;
                 dropdown.appendChild(option);
             });
         }
@@ -136,26 +147,33 @@ function displayBuildingConfigs(configs) {
         return;
     }
     
-    tbody.innerHTML = configs.map(config => `
-        <tr data-building-type="${config.buildingType}" data-level="${config.level}">
-            <td>${config.buildingType}</td>
-            <td>${config.level}</td>
-            <td>${parseFloat(config.costWood).toFixed(2)}</td>
-            <td>${parseFloat(config.costStone).toFixed(2)}</td>
-            <td>${parseFloat(config.costOre).toFixed(2)}</td>
-            <td>${parseFloat(config.settlers).toFixed(2)}</td>
-            <td>${parseFloat(config.productionRate).toFixed(2)}</td>
-            <td>${config.buildTime}</td>
-            <td>
-                <button class="action-btn edit" onclick="editBuildingConfig('${config.buildingType}', ${config.level})">
-                    Bearbeiten
-                </button>
-                <button class="action-btn delete" onclick="deleteBuildingConfig('${config.buildingType}', ${config.level})">
-                    Löschen
-                </button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = configs.map(config => {
+        // Translate building name from German to English for display
+        const translatedBuildingName = window.translateBuildingName ? 
+            window.translateBuildingName(config.buildingType) : 
+            config.buildingType;
+            
+        return `
+            <tr data-building-type="${config.buildingType}" data-level="${config.level}">
+                <td>${translatedBuildingName}</td>
+                <td>${config.level}</td>
+                <td>${parseFloat(config.costWood).toFixed(2)}</td>
+                <td>${parseFloat(config.costStone).toFixed(2)}</td>
+                <td>${parseFloat(config.costOre).toFixed(2)}</td>
+                <td>${parseFloat(config.settlers).toFixed(2)}</td>
+                <td>${parseFloat(config.productionRate).toFixed(2)}</td>
+                <td>${config.buildTime}</td>
+                <td>
+                    <button class="action-btn edit" onclick="editBuildingConfig('${config.buildingType}', ${config.level})">
+                        Bearbeiten
+                    </button>
+                    <button class="action-btn delete" onclick="deleteBuildingConfig('${config.buildingType}', ${config.level})">
+                        Löschen
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
     
     // Apply current filters
     filterTable();
