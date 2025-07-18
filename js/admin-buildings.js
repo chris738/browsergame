@@ -143,7 +143,7 @@ function displayBuildingConfigs(configs) {
     const tbody = document.getElementById('buildingConfigsTableBody');
     
     if (configs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9">Keine Konfigurationen gefunden</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9">No configurations found</td></tr>';
         return;
     }
     
@@ -165,10 +165,10 @@ function displayBuildingConfigs(configs) {
                 <td>${config.buildTime}</td>
                 <td>
                     <button class="action-btn edit" onclick="editBuildingConfig('${config.buildingType}', ${config.level})">
-                        Bearbeiten
+                        Edit
                     </button>
                     <button class="action-btn delete" onclick="deleteBuildingConfig('${config.buildingType}', ${config.level})">
-                        Löschen
+                        Delete
                     </button>
                 </td>
             </tr>
@@ -242,7 +242,7 @@ async function editBuildingConfig(buildingType, level) {
 }
 
 async function deleteBuildingConfig(buildingType, level) {
-    if (!confirm(`Sind Sie sicher, dass Sie die Konfiguration für ${buildingType} Level ${level} löschen möchten?`)) {
+    if (!confirm(`Are you sure you want to delete the configuration for ${buildingType} Level ${level}?`)) {
         return;
     }
     
@@ -367,11 +367,11 @@ async function generateLevels() {
     const timeIncrease = parseInt(document.getElementById('genTimeIncrease').value);
     
     if (!buildingType || startLevel > endLevel) {
-        showError('Bitte überprüfen Sie die Eingaben');
+        showError('Please check your inputs');
         return;
     }
     
-    const confirmMsg = `Generiere Konfigurationen für ${buildingType} Level ${startLevel}-${endLevel}. Existierende Konfigurationen werden überschrieben. Fortfahren?`;
+    const confirmMsg = `Generate configurations for ${buildingType} Level ${startLevel}-${endLevel}. Existing configurations will be overwritten. Continue?`;
     if (!confirm(confirmMsg)) {
         return;
     }
@@ -428,12 +428,12 @@ async function generateLevels() {
     }
     
     if (successCount > 0) {
-        showSuccess(`${successCount} Konfigurationen erfolgreich generiert/aktualisiert`);
+        showSuccess(`${successCount} configurations successfully generated/updated`);
         loadBuildingConfigs();
     }
     
     if (errorCount > 0) {
-        showError(`${errorCount} Konfigurationen konnten nicht verarbeitet werden`);
+        showError(`${errorCount} configurations could not be processed`);
     }
 }
 
@@ -455,12 +455,12 @@ function exportConfigs() {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
                 
-                showSuccess('Konfigurationen exportiert');
+                showSuccess('Configurations exported');
             }
         })
         .catch(error => {
             console.error('Export error:', error);
-            showError('Export fehlgeschlagen');
+            showError('Export failed');
         });
 }
 
