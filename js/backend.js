@@ -105,14 +105,21 @@ function fetchBuildings(settlementId) {
                     
                     if (data.building) {
                         const buildingId = buildingType.toLowerCase();
-                        document.getElementById(`${buildingId}`).textContent = data.building.level;
+                        const levelElement = document.getElementById(`${buildingId}`);
+                        const woodElement = document.getElementById(`${buildingId}KostenHolz`);
+                        const stoneElement = document.getElementById(`${buildingId}KostenStein`);
+                        const oreElement = document.getElementById(`${buildingId}KostenErz`);
+                        const settlersElement = document.getElementById(`${buildingId}KostenSiedler`);
+                        const timeElement = document.getElementById(`${buildingId}Bauzeit`);
+                        const buttonElement = document.getElementById(`${buildingId}upgradeButton`);
 
-                        document.getElementById(`${buildingId}KostenHolz`).textContent = `${formatNumberWithDots(data.building.costWood)} Holz`;
-                        document.getElementById(`${buildingId}KostenStein`).textContent = `${formatNumberWithDots(data.building.costStone)} Stein`;
-                        document.getElementById(`${buildingId}KostenErz`).textContent = `${formatNumberWithDots(data.building.costOre)} Erz`;
-                        document.getElementById(`${buildingId}KostenSiedler`).textContent = `${formatNumberWithDots(data.building.costSettlers)} Siedler`;
-                        document.getElementById(`${buildingId}Bauzeit`).textContent = `${formatNumberWithDots(data.building.buildTime)}s Bauzeit`;
-                        document.getElementById(`${buildingId}upgradeButton`).textContent = `Upgrade auf ${formatNumberWithDots(data.building.nextLevel)}`;
+                        if (levelElement) levelElement.textContent = data.building.level;
+                        if (woodElement) woodElement.textContent = `${formatNumberWithDots(data.building.costWood)} Holz`;
+                        if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} Stein`;
+                        if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} Erz`;
+                        if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} Siedler`;
+                        if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s Bauzeit`;
+                        if (buttonElement) buttonElement.textContent = `Upgrade auf ${formatNumberWithDots(data.building.nextLevel)}`;
                     } else {
                         console.warn(`No building data returned for ${buildingType}, response:`, data);
                         // If building data is missing, ensure level shows 0 explicitly
@@ -181,7 +188,10 @@ function getSettlementName(settlementId) {
         .then(response => response.json())
         .then(data => {
             if (data.info) {
-                document.getElementById('Siedlungsname').textContent = data.info.SettlementName;
+                const nameElement = document.getElementById('Siedlungsname');
+                if (nameElement) {
+                    nameElement.textContent = data.info.SettlementName;
+                }
             }
         })
         .catch(error => console.error('Fehler beim Abrufen der Daten in backend.js:', error));
@@ -192,6 +202,8 @@ function fetchBuildingQueue(settlementId) {
         .then(response => response.json())
         .then(data => {
             const buildingQueueBody = document.getElementById('buildingQueueBody');
+            if (!buildingQueueBody) return; // Exit if element doesn't exist
+            
             buildingQueueBody.innerHTML = '';
 
             // Überprüfe, ob data.info.queue vorhanden ist

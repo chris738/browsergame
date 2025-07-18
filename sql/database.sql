@@ -571,44 +571,5 @@
 
 
 
--- Beispielaufrufe
-SHOW EVENTS;
-CALL CreatePlayerWithSettlement('Chris');
-CALL UpgradeBuilding(1, 'Holzfäller');
-SELECT * FROM OpenBuildingQueue WHERE settlementId = 1;
-SELECT * FROM SettlementSettlers;
-CALL ProcessBuildingQueue(5);
-
-
-DELETE FROM `BuildingQueue`;
-
-CALL `UpgradeBuilding`(1, 'Lager');
-
-SELECT * FROM `BuildingQueue`;
-
-DELETE FROM `BuildingQueue`;
-
-SELECT * FROM `Buildings`;
-
-UPDATE Buildings
-SET level = 1;
-
-
-SELECT COALESCE(MAX(endTime), NOW())
-FROM BuildingQueue
-
-SELECT `queueId`, `endTime`, `buildingType`, level
-FROM `BuildingQueue`
-WHERE settlementId = 1
-ORDER BY queueId DESC
-            
-SELECT * from `OpenBuildingQueue`;
-
-CREATE EVENT UpgradeBuildingEventNr_2
-ON SCHEDULE AT '2025-01-28 16:41:00'
-DO
-UPDATE Buildings
-SET level = level + 1
-WHERE settlementId = 1 AND buildingType = 'Farm';
-
-show EVENTS;
+-- Database initialization complete
+-- Note: Example calls and test statements have been removed to prevent initialization errors
