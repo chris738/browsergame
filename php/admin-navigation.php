@@ -2,6 +2,8 @@
 // Admin navigation component
 // This provides a consistent header with navigation links for the admin panel
 
+require_once __DIR__ . '/emoji-config.php';
+
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
 ?>
 
@@ -16,13 +18,16 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         <a href="admin-buildings.php" class="nav-link <?= ($current_page == 'admin-buildings') ? 'active' : '' ?>">
             Building Configuration
         </a>
+        <a href="admin-market.php" class="nav-link <?= ($current_page == 'admin-market') ? 'active' : '' ?>">
+            Market Trades
+        </a>
         <a href="admin-map.php" class="nav-link <?= ($current_page == 'admin-map') ? 'active' : '' ?>">
             Map
         </a>
     </div>
     <div class="nav-user">
-        <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode">🌙 Dark</button>
-        <span class="user-display">👤 admin</span>
+        <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode"><?= EmojiConfig::getUIEmoji('moon') ?> Dark</button>
+        <span class="user-display"><?= EmojiConfig::getUIEmoji('player') ?> admin</span>
         <a href="../admin.php?logout" class="logout-btn">Logout</a>
     </div>
 </nav>

@@ -1,5 +1,6 @@
 <?php
     require_once 'php/database.php';
+    require_once 'php/emoji-config.php';
     
     // Get building types from database instead of hardcoding
     $database = new Database();
@@ -38,6 +39,7 @@
     <title>Settlement Building</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/theme-switcher.js"></script>
+    <script src="js/emoji-config.js"></script>
     <script src="js/translations.js"></script>
     <script src="js/backend.js" defer></script>
 </head>
@@ -73,36 +75,25 @@
         </thead>
         <tbody>
             <?php 
-            // Building emoji mapping
-            $buildingEmojis = [
-                'rathaus' => ['emoji' => '🏛️', 'title' => 'Town Hall - Center of your settlement'],
-                'holzfäller' => ['emoji' => '🌲', 'title' => 'Lumberjack - Produces wood'],
-                'steinbruch' => ['emoji' => '🏔️', 'title' => 'Quarry - Produces stone'],
-                'erzbergwerk' => ['emoji' => '⛏️', 'title' => 'Mine - Produces ore'],
-                'lager' => ['emoji' => '🏪', 'title' => 'Storage - Increases storage capacity'],
-                'farm' => ['emoji' => '🚜', 'title' => 'Farm - Provides settlers for construction'],
-                'markt' => ['emoji' => '⚖️', 'title' => 'Market - Enables trading with other players']
-            ];
-            
             foreach ($buildings as $building): 
-                $emoji = $buildingEmojis[$building['id']] ?? ['emoji' => '🏗️', 'title' => 'Building'];
+                $buildingId = $building['id'];
+                $buildingName = $building['name'];
             ?>
                 <tr>
                     <td>
-                        <span class="building-emoji" title="<?= htmlspecialchars($emoji['title']) ?>"><?= $emoji['emoji'] ?></span>
-                        <?= htmlspecialchars($building['name']) ?>
+                        <?= EmojiConfig::formatBuildingWithEmoji($buildingId, $buildingName) ?>
                     </td>
-                    <td><span id="<?= htmlspecialchars($building['id']) ?>">0</span></td>
+                    <td><span id="<?= htmlspecialchars($buildingId) ?>">0</span></td>
                     <td>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenHolz">0 🪵</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 🧱</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 🪨</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenSiedler">0 👥</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Bauzeit">0s ⏱️</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($buildingId) ?>KostenHolz">0 <?= EmojiConfig::getResourceEmoji('wood') ?></span>
+                        <span class="cost-box" id="<?= htmlspecialchars($buildingId) ?>KostenStein">0 <?= EmojiConfig::getResourceEmoji('stone') ?></span>
+                        <span class="cost-box" id="<?= htmlspecialchars($buildingId) ?>KostenErz">0 <?= EmojiConfig::getResourceEmoji('ore') ?></span>
+                        <span class="cost-box" id="<?= htmlspecialchars($buildingId) ?>KostenSiedler">0 <?= EmojiConfig::getResourceEmoji('settlers') ?></span>
+                        <span class="cost-box" id="<?= htmlspecialchars($buildingId) ?>Bauzeit">0s <?= EmojiConfig::getUIEmoji('time') ?></span>
                     </td>
                     <td style="text-align: right;">
                         <!-- Button with a unique ID -->
-                        <button id="<?= htmlspecialchars($building['id']) ?>upgradeButton" 
+                        <button id="<?= htmlspecialchars($buildingId) ?>upgradeButton" 
                             onclick="upgradeBuilding('<?= htmlspecialchars($building['originalName']) ?>','<?= htmlspecialchars($settlementId) ?>')">>
                             Upgrade
                         </button>

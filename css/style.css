@@ -591,3 +591,217 @@ button {
     top: 0;
     right: 0;
 }
+
+/* Market Page Styles */
+.market-interface {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.create-offer, .available-offers, .my-offers, .trade-history {
+    background: var(--bg-secondary);
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease;
+}
+
+.offer-form {
+    display: grid;
+    gap: 20px;
+}
+
+.resource-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.resource-inputs label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+}
+
+.resource-inputs input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.resource-inputs input:focus {
+    outline: none;
+    border-color: var(--nav-active);
+    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.create-offer-btn {
+    background: var(--nav-active);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.create-offer-btn:hover {
+    background: var(--button-hover);
+}
+
+.offer-item {
+    background: var(--bg-primary);
+    border: 1px solid var(--card-border);
+    border-radius: 6px;
+    padding: 15px;
+    margin: 10px 0;
+    transition: all 0.3s ease;
+}
+
+.offer-item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.offer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.offer-type-badge {
+    background: var(--nav-active);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.offer-resources {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 20px;
+    align-items: center;
+    margin: 15px 0;
+}
+
+.resources-offered, .resources-wanted {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.resource-amount {
+    background: var(--resource-bg);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    border: 1px solid var(--card-border);
+    font-weight: 500;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.trade-arrow {
+    font-size: 24px;
+    color: var(--nav-active);
+    font-weight: bold;
+}
+
+.accept-offer-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.accept-offer-btn:hover {
+    background: #218838;
+}
+
+.cancel-offer-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.cancel-offer-btn:hover {
+    background: #c82333;
+}
+
+.offers-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.offers-filters select {
+    padding: 8px;
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.offers-filters button {
+    padding: 8px 16px;
+    background: var(--nav-active);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.offers-filters button:hover {
+    background: var(--button-hover);
+}
+
+.market-access {
+    text-align: center;
+    padding: 40px 20px;
+    background: var(--bg-secondary);
+    margin: 20px;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.access-info h3 {
+    color: var(--nav-active);
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.offers-list {
+    min-height: 100px;
+}
+
+.offers-list p {
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-style: italic;
+    padding: 20px;
+}

@@ -71,6 +71,66 @@ try {
                 echo json_encode(['buildingTypes' => $buildingTypes]);
                 break;
                 
+            // Market/Trade related actions
+            case 'getActiveTrades':
+                $activeTrades = $database->getActiveTradesForAdmin();
+                // Transform data for frontend
+                $formattedTrades = array_map(function($trade) {
+                    return [
+                        'id' => $trade['id'],
+                        'fromPlayer' => $trade['fromPlayer'],
+                        'type' => $trade['type'],
+                        'typeName' => [
+                            'resource_trade' => 'Resource Trade',
+                            'resource_sell' => 'Resource Sale', 
+                            'resource_buy' => 'Resource Purchase'
+                        ][$trade['type']] ?? 'Unknown',
+                        'offering' => [
+                            'wood' => $trade['offerWood'],
+                            'stone' => $trade['offerStone'],
+                            'ore' => $trade['offerOre'],
+                            'gold' => $trade['offerGold']
+                        ],
+                        'requesting' => [
+                            'wood' => $trade['requestWood'],
+                            'stone' => $trade['requestStone'],
+                            'ore' => $trade['requestOre'],
+                            'gold' => $trade['requestGold']
+                        ],
+                        'currentTrades' => $trade['currentTrades'],
+                        'maxTrades' => $trade['maxTrades'],
+                        'createdAt' => $trade['createdAt']
+                    ];
+                }, $activeTrades);
+                echo json_encode(['success' => true, 'trades' => $formattedTrades]);
+                break;
+                
+            case 'getTradeHistory':
+                $limit = $_GET['limit'] ?? 20;
+                $history = $database->getTradeHistoryForAdmin($limit);
+                // Transform data for frontend
+                $formattedHistory = array_map(function($trade) {
+                    return [
+                        'id' => $trade['id'],
+                        'fromPlayer' => $trade['fromPlayer'],
+                        'toPlayer' => $trade['toPlayer'],
+                        'resources' => [
+                            'wood' => $trade['wood'],
+                            'stone' => $trade['stone'],
+                            'ore' => $trade['ore'],
+                            'gold' => $trade['gold']
+                        ],
+                        'completedAt' => $trade['completedAt']
+                    ];
+                }, $history);
+                echo json_encode(['success' => true, 'history' => $formattedHistory]);
+                break;
+                
+            case 'getTradeAnalytics':
+                $analytics = $database->getTradeAnalytics();
+                echo json_encode(['success' => true, 'analytics' => $analytics]);
+                break;
+                
             default:
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid action']);
