@@ -180,16 +180,16 @@ function createOfferHTML(offer, isMyOffer) {
     };
 
     const offeredResources = [];
-    if (offer.offerWood > 0) offeredResources.push(`🪵 ${formatNumber(offer.offerWood)}`);
-    if (offer.offerStone > 0) offeredResources.push(`🧱 ${formatNumber(offer.offerStone)}`);
-    if (offer.offerOre > 0) offeredResources.push(`🪨 ${formatNumber(offer.offerOre)}`);
-    if (offer.offerGold > 0) offeredResources.push(`💰 ${formatNumber(offer.offerGold)}`);
+    if (offer.offerWood > 0) offeredResources.push(`${getResourceEmoji('wood')} ${formatNumber(offer.offerWood)}`);
+    if (offer.offerStone > 0) offeredResources.push(`${getResourceEmoji('stone')} ${formatNumber(offer.offerStone)}`);
+    if (offer.offerOre > 0) offeredResources.push(`${getResourceEmoji('ore')} ${formatNumber(offer.offerOre)}`);
+    if (offer.offerGold > 0) offeredResources.push(`${getResourceEmoji('gold')} ${formatNumber(offer.offerGold)}`);
 
     const requestedResources = [];
-    if (offer.requestWood > 0) requestedResources.push(`🪵 ${formatNumber(offer.requestWood)}`);
-    if (offer.requestStone > 0) requestedResources.push(`🧱 ${formatNumber(offer.requestStone)}`);
-    if (offer.requestOre > 0) requestedResources.push(`🪨 ${formatNumber(offer.requestOre)}`);
-    if (offer.requestGold > 0) requestedResources.push(`💰 ${formatNumber(offer.requestGold)}`);
+    if (offer.requestWood > 0) requestedResources.push(`${getResourceEmoji('wood')} ${formatNumber(offer.requestWood)}`);
+    if (offer.requestStone > 0) requestedResources.push(`${getResourceEmoji('stone')} ${formatNumber(offer.requestStone)}`);
+    if (offer.requestOre > 0) requestedResources.push(`${getResourceEmoji('ore')} ${formatNumber(offer.requestOre)}`);
+    if (offer.requestGold > 0) requestedResources.push(`${getResourceEmoji('gold')} ${formatNumber(offer.requestGold)}`);
 
     const remainingTrades = offer.maxTrades - offer.currentTrades;
     
@@ -211,7 +211,7 @@ function createOfferHTML(offer, isMyOffer) {
                     <strong>Offering:</strong>
                     ${offeredResources.map(r => `<span class="resource-amount">${r}</span>`).join('')}
                 </div>
-                <div class="trade-arrow">→</div>
+                <div class="trade-arrow">${getUIEmoji('arrow_right')}</div>
                 <div class="resources-wanted">
                     <strong>Wants:</strong>
                     ${requestedResources.map(r => `<span class="resource-amount">${r}</span>`).join('')}
@@ -235,18 +235,18 @@ function createHistoryHTML(trade) {
             <div class="offer-resources">
                 <div class="resources-offered">
                     <strong>You gave:</strong>
-                    <span class="resource-amount">🪵 ${formatNumber(trade.yourGave?.wood || 0)}</span>
-                    <span class="resource-amount">🧱 ${formatNumber(trade.yourGave?.stone || 0)}</span>
-                    <span class="resource-amount">🪨 ${formatNumber(trade.yourGave?.ore || 0)}</span>
-                    <span class="resource-amount">💰 ${formatNumber(trade.yourGave?.gold || 0)}</span>
+                    <span class="resource-amount">${getResourceEmoji('wood')} ${formatNumber(trade.yourGave?.wood || 0)}</span>
+                    <span class="resource-amount">${getResourceEmoji('stone')} ${formatNumber(trade.yourGave?.stone || 0)}</span>
+                    <span class="resource-amount">${getResourceEmoji('ore')} ${formatNumber(trade.yourGave?.ore || 0)}</span>
+                    <span class="resource-amount">${getResourceEmoji('gold')} ${formatNumber(trade.yourGave?.gold || 0)}</span>
                 </div>
-                <div class="trade-arrow">↔</div>
+                <div class="trade-arrow">${getUIEmoji('arrow_bidirectional')}</div>
                 <div class="resources-wanted">
                     <strong>You got:</strong>
-                    <span class="resource-amount">🪵 ${formatNumber(trade.youGot?.wood || 0)}</span>
-                    <span class="resource-amount">🧱 ${formatNumber(trade.youGot?.stone || 0)}</span>
-                    <span class="resource-amount">🪨 ${formatNumber(trade.youGot?.ore || 0)}</span>
-                    <span class="resource-amount">💰 ${formatNumber(trade.youGot?.gold || 0)}</span>
+                    <span class="resource-amount">${getResourceEmoji('wood')} ${formatNumber(trade.youGot?.wood || 0)}</span>
+                    <span class="resource-amount">${getResourceEmoji('stone')} ${formatNumber(trade.youGot?.stone || 0)}</span>
+                    <span class="resource-amount">${getResourceEmoji('ore')} ${formatNumber(trade.youGot?.ore || 0)}</span>
+                    <span class="resource-amount">${getResourceEmoji('gold')} ${formatNumber(trade.youGot?.gold || 0)}</span>
                 </div>
             </div>
         </div>
