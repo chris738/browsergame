@@ -44,6 +44,7 @@ try {
     <title>Admin Overview - Settlement Building Game</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
+    <script src="../js/theme-switcher.js"></script>
     <script src="../js/admin.js" defer></script>
 </head>
 <body>

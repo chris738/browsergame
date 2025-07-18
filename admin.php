@@ -52,8 +52,12 @@ if (!$isLoggedIn) {
     <title>Admin Login - Settlement Building Game</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
+    <script src="js/theme-switcher.js"></script>
 </head>
 <body>
+    <div style="position: absolute; top: 20px; right: 20px;">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode">🌙 Dark</button>
+    </div>
     <div class="admin-login">
         <h2>Admin Login</h2>
         <?php if (isset($loginError)): ?>

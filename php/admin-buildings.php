@@ -39,6 +39,7 @@ try {
     <title>Building Configuration - Admin</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
+    <script src="../js/theme-switcher.js"></script>
     <script src="../js/translations.js"></script>
     <script src="../js/admin-buildings.js" defer></script>
 </head>
