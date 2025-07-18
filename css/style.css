@@ -600,17 +600,108 @@ button {
 }
 
 .create-offer, .available-offers, .my-offers, .trade-history {
-    background: var(--bg-secondary);
+    background: var(--card-bg);
     margin: 20px 0;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: background-color 0.3s ease;
+    border: 2px solid var(--card-border);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Distinct colors for different market sections */
+.create-offer {
+    border-left: 5px solid #3498db;
+    background: linear-gradient(to right, rgba(52, 152, 219, 0.05), var(--card-bg));
+}
+
+.available-offers {
+    border-left: 5px solid #2ecc71;
+    background: linear-gradient(to right, rgba(46, 204, 113, 0.05), var(--card-bg));
+}
+
+.my-offers {
+    border-left: 5px solid #f39c12;
+    background: linear-gradient(to right, rgba(243, 156, 18, 0.05), var(--card-bg));
+}
+
+.trade-history {
+    border-left: 5px solid #9b59b6;
+    background: linear-gradient(to right, rgba(155, 89, 182, 0.05), var(--card-bg));
 }
 
 .offer-form {
     display: grid;
     gap: 20px;
+}
+
+.offer-type {
+    background: rgba(52, 152, 219, 0.1);
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid rgba(52, 152, 219, 0.3);
+}
+
+.offer-type label {
+    font-weight: bold;
+    color: #2980b9;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.offer-type select {
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #3498db;
+    border-radius: 4px;
+    background: var(--card-bg);
+    color: var(--text-color);
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.offer-type select:focus {
+    outline: none;
+    border-color: #2980b9;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.offer-resources, .request-resources {
+    background: rgba(255, 255, 255, 0.5);
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--card-border);
+}
+
+.offer-resources h4, .request-resources h4 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 18px;
+    border-bottom: 2px solid #ecf0f1;
+    padding-bottom: 8px;
+}
+
+.offer-resources {
+    border-left: 4px solid #e74c3c;
+}
+
+.request-resources {
+    border-left: 4px solid #27ae60;
+}
+
+.offer-settings {
+    background: rgba(241, 196, 15, 0.1);
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid rgba(241, 196, 15, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.offer-settings label {
+    font-weight: bold;
+    color: #f39c12;
 }
 
 .resource-inputs {
@@ -624,26 +715,39 @@ button {
     align-items: center;
     gap: 10px;
     font-weight: 500;
+    background: var(--resource-bg);
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--card-border);
+    transition: all 0.3s ease;
+}
+
+.resource-inputs label:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
 .resource-inputs input {
     flex: 1;
-    padding: 8px;
-    border: 1px solid var(--border-color);
+    padding: 8px 12px;
+    border: 2px solid var(--card-border);
     border-radius: 4px;
-    background: var(--bg-primary);
+    background: var(--card-bg);
     color: var(--text-color);
+    font-size: 16px;
+    font-weight: bold;
     transition: all 0.3s ease;
 }
 
 .resource-inputs input:focus {
     outline: none;
     border-color: var(--nav-active);
-    box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    background: rgba(52, 152, 219, 0.05);
 }
 
 .create-offer-btn {
-    background: var(--nav-active);
+    background: linear-gradient(135deg, #3498db, #2980b9);
     color: white;
     border: none;
     padding: 12px 24px;
@@ -651,41 +755,62 @@ button {
     cursor: pointer;
     font-size: 16px;
     font-weight: bold;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(52, 152, 219, 0.3);
 }
 
 .create-offer-btn:hover {
-    background: var(--button-hover);
+    background: linear-gradient(135deg, #2980b9, #1f5f8b);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(52, 152, 219, 0.4);
 }
 
 .offer-item {
-    background: var(--bg-primary);
-    border: 1px solid var(--card-border);
-    border-radius: 6px;
-    padding: 15px;
-    margin: 10px 0;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 8px;
+    padding: 18px;
+    margin: 15px 0;
     transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.offer-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
 }
 
 .offer-item:hover {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+    border-color: var(--nav-active);
 }
 
 .offer-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--card-border);
 }
 
 .offer-type-badge {
-    background: var(--nav-active);
+    background: linear-gradient(135deg, var(--nav-active), #2980b9);
     color: white;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 12px;
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
 }
 
 .offer-resources {
@@ -694,6 +819,10 @@ button {
     gap: 20px;
     align-items: center;
     margin: 15px 0;
+    background: rgba(236, 240, 241, 0.5);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
 }
 
 .resources-offered, .resources-wanted {
@@ -704,94 +833,137 @@ button {
 
 .resource-amount {
     background: var(--resource-bg);
-    padding: 6px 10px;
-    border-radius: 4px;
+    padding: 8px 12px;
+    border-radius: 6px;
     font-size: 14px;
-    border: 1px solid var(--card-border);
-    font-weight: 500;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    border: 2px solid var(--card-border);
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.resource-amount:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.resources-offered .resource-amount {
+    border-left: 4px solid #e74c3c;
+}
+
+.resources-wanted .resource-amount {
+    border-left: 4px solid #27ae60;
 }
 
 .trade-arrow {
-    font-size: 24px;
+    font-size: 28px;
     color: var(--nav-active);
     font-weight: bold;
+    text-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+    background: var(--card-bg);
+    padding: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--nav-active);
 }
 
 .accept-offer-btn {
-    background: #28a745;
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 10px 18px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.3s;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(39, 174, 96, 0.3);
 }
 
 .accept-offer-btn:hover {
-    background: #218838;
+    background: linear-gradient(135deg, #229954, #27ae60);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(39, 174, 96, 0.4);
 }
 
 .cancel-offer-btn {
-    background: #dc3545;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
     color: white;
     border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+    padding: 10px 18px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.3s;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(231, 76, 60, 0.3);
 }
 
 .cancel-offer-btn:hover {
-    background: #c82333;
+    background: linear-gradient(135deg, #c0392b, #a93226);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(231, 76, 60, 0.4);
 }
 
 .offers-filters {
     display: flex;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 20px;
     align-items: center;
+    background: var(--resource-bg);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--card-border);
 }
 
 .offers-filters select {
-    padding: 8px;
-    border: 1px solid var(--card-border);
-    border-radius: 4px;
-    background: var(--bg-primary);
+    padding: 10px 15px;
+    border: 2px solid var(--card-border);
+    border-radius: 6px;
+    background: var(--card-bg);
     color: var(--text-color);
+    font-size: 16px;
+    font-weight: 500;
     transition: all 0.3s ease;
 }
 
+.offers-filters select:focus {
+    outline: none;
+    border-color: var(--nav-active);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
 .offers-filters button {
-    padding: 8px 16px;
-    background: var(--nav-active);
+    padding: 10px 18px;
+    background: linear-gradient(135deg, var(--nav-active), #2980b9);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.3s;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(52, 152, 219, 0.3);
 }
 
 .offers-filters button:hover {
-    background: var(--button-hover);
+    background: linear-gradient(135deg, #2980b9, #1f5f8b);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(52, 152, 219, 0.4);
 }
 
 .market-access {
     text-align: center;
     padding: 40px 20px;
-    background: var(--bg-secondary);
+    background: linear-gradient(135deg, var(--card-bg), rgba(52, 152, 219, 0.1));
     margin: 20px;
-    border-radius: 8px;
-    transition: background-color 0.3s ease;
+    border-radius: 12px;
+    border: 2px solid var(--nav-active);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2);
 }
 
 .access-info h3 {
     color: var(--nav-active);
     margin-bottom: 15px;
-    font-size: 24px;
+    font-size: 28px;
+    text-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
 }
 
 .offers-list {
@@ -804,4 +976,41 @@ button {
     opacity: 0.7;
     font-style: italic;
     padding: 20px;
+    background: rgba(236, 240, 241, 0.5);
+    border-radius: 8px;
+    border: 1px dashed var(--card-border);
+}
+
+/* Section headings styling */
+.create-offer h3,
+.available-offers h3,
+.my-offers h3,
+.trade-history h3 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+.create-offer h3 {
+    color: #3498db;
+    border-bottom: 3px solid #3498db;
+}
+
+.available-offers h3 {
+    color: #2ecc71;
+    border-bottom: 3px solid #2ecc71;
+}
+
+.my-offers h3 {
+    color: #f39c12;
+    border-bottom: 3px solid #f39c12;
+}
+
+.trade-history h3 {
+    color: #9b59b6;
+    border-bottom: 3px solid #9b59b6;
 }
