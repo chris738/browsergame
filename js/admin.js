@@ -123,7 +123,7 @@ function updateSettlementsTable(settlements) {
                 <button class="action-btn edit" onclick="editResources(${settlement.settlementId}, ${settlement.wood}, ${settlement.stone}, ${settlement.ore})">
                     Edit Resources
                 </button>
-                <a href="index.php?settlementId=${settlement.settlementId}" target="_blank" class="action-btn">
+                <a href="../index.php?settlementId=${settlement.settlementId}" target="_blank" class="action-btn">
                     View Game
                 </a>
             </td>
