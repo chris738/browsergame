@@ -17,6 +17,8 @@
     --button-hover: #1d2529;
     --cost-box-bg: #f9f9f9;
     --cost-box-border: #ccc;
+    --progress-bg: #e0e0e0;
+    --progress-bar: #4457ff69;
 }
 
 [data-theme="dark"] {
@@ -38,6 +40,8 @@
     --button-hover: #374151;
     --cost-box-bg: #3d3d3d;
     --cost-box-border: #555;
+    --progress-bg: #4a5568;
+    --progress-bar: #63b3ed;
 }
 
 body {
@@ -316,18 +320,19 @@ button {
 
 .progress-container {
     width: 100%;
-    background-color: #e0e0e0;
+    background-color: var(--progress-bg);
     border-radius: 10px;
     overflow: hidden;
     height: 20px;
+    transition: background-color 0.3s ease;
 }
 
 .progress-bar {
     height: 100%;
-    background-color: #4457ff69; /* Neues Orange */
+    background-color: var(--progress-bar);
     width: 0%;
     border-radius: 10px;
-    transition: width 1s linear;
+    transition: width 1s linear, background-color 0.3s ease;
 }
 
 .grid {

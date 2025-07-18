@@ -92,6 +92,7 @@ if (empty($mapData)) {
     <title>Admin Map View - Settlement Building Game</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
+    <script src="../js/theme-switcher.js"></script>
     <script src="../js/backend.js" defer></script>
 </head>
 <body>
