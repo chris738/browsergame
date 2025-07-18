@@ -34,6 +34,9 @@ cd browsergame
 
 # Mit Docker starten
 docker compose up -d
+
+# ODER: Fresh Start für komplett saubere Umgebung
+./fresh-start.sh
 ```
 
 Das war's! Das Spiel läuft unter **http://localhost:8080** mit vollständig aktivierter automatischer Ressourcengenerierung.
@@ -67,10 +70,35 @@ docker compose logs -f
 docker compose ps
 
 # Komplett zurücksetzen (ALLE DATEN GEHEN VERLOREN!)
-docker compose down -v
-docker volume prune -f
-docker compose up -d
+./fresh-start.sh --force
+
+# Interaktiver Reset mit Bestätigung
+./fresh-start.sh
 ```
+
+## 🔄 Fresh Start Script - Neue Funktion!
+
+Für eine garantiert saubere Entwicklungsumgebung nutze das neue **Fresh Start Script**:
+
+```bash
+# Komplett frische Umgebung (löscht ALLES!)
+./fresh-start.sh
+
+# Automatisch ohne Bestätigung
+./fresh-start.sh --force
+
+# Mit Entfernung aller Docker Images
+./fresh-start.sh --force --remove-images
+```
+
+**Was macht das Fresh Start Script:**
+- ✅ Löscht ALLE bestehenden Docker-Container, Volumes und Netzwerke
+- ✅ Entfernt temporäre Dateien und Logs
+- ✅ Erstellt komplett frische Umgebung von Grund auf
+- ✅ Garantiert keine Altlasten oder Bug-verursachende Reste
+- ✅ Ideal für saubere Entwicklungsumgebung
+
+📖 **Detaillierte Dokumentation**: [docs/FRESH-START.md](docs/FRESH-START.md)
 
 ## 🎯 Spielfeatures
 
