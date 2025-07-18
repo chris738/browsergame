@@ -1,18 +1,63 @@
+:root {
+    /* Light theme colors */
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --nav-bg: #2c3e50;
+    --nav-border: #34495e;
+    --nav-text: #ecf0f1;
+    --nav-hover: #34495e;
+    --nav-active: #3498db;
+    --card-bg: #ffffff;
+    --card-border: #ddd;
+    --resource-bg: #f9f9f9;
+    --table-header-bg: #35424a;
+    --table-stripe: #f9f9f9;
+    --table-hover: #f1f1f1;
+    --button-bg: #35424a;
+    --button-hover: #1d2529;
+    --cost-box-bg: #f9f9f9;
+    --cost-box-border: #ccc;
+}
+
+[data-theme="dark"] {
+    /* Dark theme colors */
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --nav-bg: #0f1419;
+    --nav-border: #2d2d2d;
+    --nav-text: #e0e0e0;
+    --nav-hover: #2d2d2d;
+    --nav-active: #4a9eff;
+    --card-bg: #2d2d2d;
+    --card-border: #404040;
+    --resource-bg: #3d3d3d;
+    --table-header-bg: #1f2937;
+    --table-stripe: #3d3d3d;
+    --table-hover: #404040;
+    --button-bg: #1f2937;
+    --button-hover: #374151;
+    --cost-box-bg: #3d3d3d;
+    --cost-box-border: #555;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .navigation {
-    background-color: #2c3e50;
+    background-color: var(--nav-bg);
     padding: 0;
     margin: 0;
-    border-bottom: 2px solid #34495e;
+    border-bottom: 2px solid var(--nav-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .nav-links {
@@ -26,17 +71,17 @@ body {
 }
 
 .settlement-name {
-    color: #ecf0f1;
+    color: var(--nav-text);
     font-size: 18px;
     font-weight: bold;
     padding: 15px 25px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    border-right: 2px solid #34495e;
+    border-right: 2px solid var(--nav-border);
 }
 
 .nav-link {
-    color: #ecf0f1;
+    color: var(--nav-text);
     text-decoration: none;
     padding: 15px 25px;
     display: block;
@@ -48,14 +93,14 @@ body {
 }
 
 .nav-link:hover {
-    background-color: #34495e;
-    color: #3498db;
+    background-color: var(--nav-hover);
+    color: var(--nav-active);
 }
 
 .nav-link.active {
-    background-color: #34495e;
-    color: #3498db;
-    border-bottom-color: #3498db;
+    background-color: var(--nav-hover);
+    color: var(--nav-active);
+    border-bottom-color: var(--nav-active);
 }
 
 .nav-user {
@@ -66,12 +111,32 @@ body {
 }
 
 .user-display {
-    color: #ecf0f1;
+    color: var(--nav-text);
     font-size: 16px;
     font-weight: 500;
     padding: 10px 15px;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
+}
+
+.theme-toggle {
+    background: none;
+    border: 2px solid var(--nav-text);
+    color: var(--nav-text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.theme-toggle:hover {
+    background-color: var(--nav-hover);
+    border-color: var(--nav-active);
+    color: var(--nav-active);
 }
 
 .logout-btn {
@@ -93,28 +158,29 @@ body {
 .resources {
     display: flex;
     justify-content: space-around; /* Gleichmäßiger Abstand zwischen den Kästen */
-    background-color: #ffffff;
+    background-color: var(--card-bg);
     padding: 15px 0;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid var(--card-border);
     gap: 15px; /* Abstand zwischen den Kästen */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .resource {
-    background-color: #f9f9f9; /* Hintergrundfarbe des Kastens */
+    background-color: var(--resource-bg); /* Hintergrundfarbe des Kastens */
     padding: 10px 20px; /* Innenabstand */
-    border: 1px solid #ccc; /* Rahmen */
+    border: 1px solid var(--cost-box-border); /* Rahmen */
     border-radius: 8px; /* Abgerundete Ecken */
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Schatten für besseren Effekt */
     text-align: center; /* Zentrierter Text */
     flex: 1; /* Optional: gleiche Breite für alle Kästen */
     max-width: 200px; /* Optionale Maximalbreite */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
-
 
 .resource p {
     margin: 0;
     font-size: 18px;
-    color: #333;
+    color: var(--text-color);
 }
 
 .resource-emoji {
@@ -154,30 +220,32 @@ div.resource p .regen {
 .buildings table, .buildingsQueue table{
     width: 100%;
     border-collapse: collapse;
-    background-color: #ffffff;
+    background-color: var(--card-bg);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     border-radius: 8px;
     overflow: hidden;
+    transition: background-color 0.3s ease;
 }
 
 .buildings th, .buildings td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--card-border);
     padding: 15px;
     text-align: left;
     vertical-align: middle;
     line-height: 1.2;  /* Verringert die Zeilenhöhe */
+    transition: border-color 0.3s ease;
 }
 
 .buildings th {
-    background-color: #35424a;
-    color: #ffffff;
+    background-color: var(--table-header-bg);
+    color: var(--nav-text);
     text-transform: uppercase;
     font-size: 14px;
 }
 
 .buildings td {
     font-size: 16px;
-    color: #333;
+    color: var(--text-color);
 }
 
 .buildings td:nth-child(1) {
@@ -201,28 +269,29 @@ div.resource p .regen {
 }
 
 .buildings tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background-color: var(--table-stripe);
 }
 
 .buildings tr:hover {
-    background-color: #f1f1f1;
+    background-color: var(--table-hover);
 }
 
 .cost-box {
     display: inline-block;
-    background-color: #f9f9f9; /* Hintergrundfarbe */
+    background-color: var(--cost-box-bg); /* Hintergrundfarbe */
     padding: 5px 10px; /* Innenabstand */
-    border: 1px solid #ccc; /* Rahmen */
+    border: 1px solid var(--cost-box-border); /* Rahmen */
     border-radius: 8px; /* Abgerundete Ecken */
     font-size: 14px; /* Schriftgröße */
-    color: #333; /* Schriftfarbe */
+    color: var(--text-color); /* Schriftfarbe */
     text-align: center; /* Zentrierter Text */
     margin-right: 5px; /* Abstand zwischen den Kästen */
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 button {
-    background-color: #35424a;
-    color: #ffffff;
+    background-color: var(--button-bg);
+    color: var(--nav-text);
     border: none;
     padding: 10px 15px;
     border-radius: 5px;
@@ -232,7 +301,7 @@ button {
 }
 
 button:hover {
-    background-color: #1d2529;
+    background-color: var(--button-hover);
 }
 
 button {
@@ -331,14 +400,15 @@ button {
 }
 
 .main-content h2 {
-    color: #2c3e50;
+    color: var(--text-color);
     text-align: center;
     margin-bottom: 10px;
 }
 
 .main-content p {
     text-align: center;
-    color: #666;
+    color: var(--text-color);
+    opacity: 0.8;
     margin-bottom: 20px;
 }
 
@@ -372,13 +442,14 @@ button {
     gap: 15px;
     margin-bottom: 20px;
     padding: 15px;
-    background-color: #f8f9fa;
+    background-color: var(--resource-bg);
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--card-border);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .map-btn {
-    background-color: #3498db;
+    background-color: var(--nav-active);
     color: white;
     border: none;
     padding: 8px 16px;
@@ -389,12 +460,12 @@ button {
 }
 
 .map-btn:hover {
-    background-color: #2980b9;
+    background-color: var(--button-hover);
 }
 
 .zoom-indicator {
     font-weight: 500;
-    color: #2c3e50;
+    color: var(--text-color);
 }
 
 .map-container-fullscreen {
@@ -471,15 +542,16 @@ button {
 
 .map-legend {
     margin-top: 20px;
-    background-color: #f8f9fa;
+    background-color: var(--resource-bg);
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--card-border);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .map-legend h3 {
     margin: 0 0 15px 0;
-    color: #2c3e50;
+    color: var(--text-color);
     text-align: center;
 }
 
