@@ -32,11 +32,11 @@ try {
 ?>
 
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gebäude-Konfiguration - Admin</title>
+    <title>Building Configuration - Admin</title>
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
     <script src="../js/translations.js"></script>
@@ -52,27 +52,27 @@ try {
     <div class="admin-container">
         <!-- Building Configuration Management -->
         <section class="admin-section">
-            <h2>Gebäude-Konfiguration</h2>
-            <p>Hier können Sie die Werte für Gebäude und deren Aufstufungen verwalten.</p>
+            <h2>Building Configuration</h2>
+            <p>Here you can manage the values for buildings and their upgrades.</p>
             
             <div class="admin-controls">
-                <button id="refreshBuildings" class="admin-btn">Aktualisieren</button>
-                <button id="createBuildingConfig" class="admin-btn">Neue Konfiguration</button>
-                <button id="exportConfigs" class="admin-btn">Exportieren</button>
+                <button id="refreshBuildings" class="admin-btn">Refresh</button>
+                <button id="createBuildingConfig" class="admin-btn">New Configuration</button>
+                <button id="exportConfigs" class="admin-btn">Export</button>
             </div>
 
             <!-- Filter Controls -->
             <div class="filter-controls">
                 <div class="form-group">
-                    <label for="buildingTypeFilter">Gebäudetyp:</label>
+                    <label for="buildingTypeFilter">Building Type:</label>
                     <select id="buildingTypeFilter">
-                        <option value="">Alle</option>
+                        <option value="">All</option>
                         <!-- Options will be populated dynamically by JavaScript -->
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="levelFilter">Level:</label>
-                    <input type="number" id="levelFilter" min="1" max="50" placeholder="Alle">
+                    <input type="number" id="levelFilter" min="1" max="50" placeholder="All">
                 </div>
             </div>
 
@@ -80,22 +80,22 @@ try {
                 <table id="buildingConfigsTable">
                     <thead>
                         <tr>
-                            <th>Gebäudetyp</th>
+                            <th>Building Type</th>
                             <th>Level</th>
-                            <th>Holz-Kosten</th>
-                            <th>Stein-Kosten</th>
-                            <th>Erz-Kosten</th>
-                            <th>Siedler</th>
-                            <th>Produktionsrate</th>
-                            <th>Bauzeit (s)</th>
-                            <th>Aktionen</th>
+                            <th>Wood Cost</th>
+                            <th>Stone Cost</th>
+                            <th>Ore Cost</th>
+                            <th>Settlers</th>
+                            <th>Production Rate</th>
+                            <th>Build Time (s)</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="buildingConfigsTableBody">
                         <?php if (empty($buildingConfigs) && !$databaseError): ?>
                             <tr><td colspan="9">Loading...</td></tr>
                         <?php elseif ($databaseError): ?>
-                            <tr><td colspan="9">Daten können nicht geladen werden</td></tr>
+                            <tr><td colspan="9">Data cannot be loaded</td></tr>
                         <?php else: ?>
                             <?php foreach ($buildingConfigs as $config): ?>
                                 <tr data-building-type="<?= htmlspecialchars($config['buildingType']) ?>" 
@@ -111,11 +111,11 @@ try {
                                     <td>
                                         <button class="action-btn edit" 
                                                 onclick="editBuildingConfig('<?= htmlspecialchars($config['buildingType']) ?>', <?= $config['level'] ?>)">
-                                            Bearbeiten
+                                            Edit
                                         </button>
                                         <button class="action-btn delete" 
                                                 onclick="deleteBuildingConfig('<?= htmlspecialchars($config['buildingType']) ?>', <?= $config['level'] ?>)">
-                                            Löschen
+                                            Delete
                                         </button>
                                     </td>
                                 </tr>
@@ -128,15 +128,15 @@ try {
 
         <!-- Quick Level Generator -->
         <section class="admin-section">
-            <h2>Level-Generator</h2>
-            <p>Generiere automatisch Konfigurationen für mehrere Level eines Gebäudetyps.</p>
+            <h2>Level Generator</h2>
+            <p>Automatically generate configurations for multiple levels of a building type.</p>
             
             <div class="generator-form">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="genBuildingType">Gebäudetyp:</label>
+                        <label for="genBuildingType">Building Type:</label>
                         <select id="genBuildingType" required>
-                            <option value="">Wählen...</option>
+                            <option value="">Choose...</option>
                             <!-- Options will be populated dynamically by JavaScript -->
                         </select>
                     </div>
@@ -151,43 +151,43 @@ try {
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="genBaseCostWood">Basis Holz-Kosten:</label>
+                        <label for="genBaseCostWood">Base Wood Cost:</label>
                         <input type="number" id="genBaseCostWood" step="0.01" value="100" required>
                     </div>
                     <div class="form-group">
-                        <label for="genBaseCostStone">Basis Stein-Kosten:</label>
+                        <label for="genBaseCostStone">Base Stone Cost:</label>
                         <input type="number" id="genBaseCostStone" step="0.01" value="100" required>
                     </div>
                     <div class="form-group">
-                        <label for="genBaseCostOre">Basis Erz-Kosten:</label>
+                        <label for="genBaseCostOre">Base Ore Cost:</label>
                         <input type="number" id="genBaseCostOre" step="0.01" value="100" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="genBaseSettlers">Basis Siedler:</label>
+                        <label for="genBaseSettlers">Base Settlers:</label>
                         <input type="number" id="genBaseSettlers" step="0.01" value="1" required>
                     </div>
                     <div class="form-group">
-                        <label for="genBaseProduction">Basis Produktionsrate:</label>
+                        <label for="genBaseProduction">Base Production Rate:</label>
                         <input type="number" id="genBaseProduction" step="0.01" value="3600" required>
                     </div>
                     <div class="form-group">
-                        <label for="genBaseBuildTime">Basis Bauzeit (s):</label>
+                        <label for="genBaseBuildTime">Base Build Time (s):</label>
                         <input type="number" id="genBaseBuildTime" value="30" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="genMultiplier">Multiplikator pro Level:</label>
+                        <label for="genMultiplier">Multiplier per Level:</label>
                         <input type="number" id="genMultiplier" step="0.01" value="1.1" required>
                     </div>
                     <div class="form-group">
-                        <label for="genTimeIncrease">Bauzeit-Erhöhung pro Level (s):</label>
+                        <label for="genTimeIncrease">Build Time Increase per Level (s):</label>
                         <input type="number" id="genTimeIncrease" value="10" required>
                     </div>
                 </div>
-                <button id="generateLevels" class="admin-btn">Level Generieren</button>
+                <button id="generateLevels" class="admin-btn">Generate Levels</button>
             </div>
         </section>
     </div>
@@ -196,13 +196,13 @@ try {
     <div id="editBuildingConfigModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h3>Gebäude-Konfiguration bearbeiten</h3>
+            <h3>Edit Building Configuration</h3>
             <form id="editBuildingConfigForm">
                 <input type="hidden" id="editBuildingType" name="buildingType">
                 <input type="hidden" id="editLevel" name="level">
                 
                 <div class="form-group">
-                    <label>Gebäudetyp:</label>
+                    <label>Building Type:</label>
                     <span id="editBuildingTypeDisplay"></span>
                 </div>
                 <div class="form-group">
@@ -212,36 +212,36 @@ try {
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="editCostWood">Holz-Kosten:</label>
+                        <label for="editCostWood">Wood Cost:</label>
                         <input type="number" id="editCostWood" name="costWood" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="editCostStone">Stein-Kosten:</label>
+                        <label for="editCostStone">Stone Cost:</label>
                         <input type="number" id="editCostStone" name="costStone" step="0.01" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="editCostOre">Erz-Kosten:</label>
+                        <label for="editCostOre">Ore Cost:</label>
                         <input type="number" id="editCostOre" name="costOre" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="editSettlers">Siedler:</label>
+                        <label for="editSettlers">Settlers:</label>
                         <input type="number" id="editSettlers" name="settlers" step="0.01" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="editProductionRate">Produktionsrate:</label>
+                        <label for="editProductionRate">Production Rate:</label>
                         <input type="number" id="editProductionRate" name="productionRate" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="editBuildTime">Bauzeit (s):</label>
+                        <label for="editBuildTime">Build Time (s):</label>
                         <input type="number" id="editBuildTime" name="buildTime" required>
                     </div>
                 </div>
                 
-                <button type="submit">Speichern</button>
+                <button type="submit">Save</button>
             </form>
         </div>
     </div>
@@ -250,13 +250,13 @@ try {
     <div id="createBuildingConfigModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h3>Neue Gebäude-Konfiguration erstellen</h3>
+            <h3>Create New Building Configuration</h3>
             <form id="createBuildingConfigForm">
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="createBuildingType">Gebäudetyp:</label>
+                        <label for="createBuildingType">Building Type:</label>
                         <select id="createBuildingType" name="buildingType" required>
-                            <option value="">Wählen...</option>
+                            <option value="">Choose...</option>
                             <!-- Options will be populated dynamically by JavaScript -->
                         </select>
                     </div>
@@ -268,36 +268,36 @@ try {
                 
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="createCostWood">Holz-Kosten:</label>
+                        <label for="createCostWood">Wood Cost:</label>
                         <input type="number" id="createCostWood" name="costWood" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="createCostStone">Stein-Kosten:</label>
+                        <label for="createCostStone">Stone Cost:</label>
                         <input type="number" id="createCostStone" name="costStone" step="0.01" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="createCostOre">Erz-Kosten:</label>
+                        <label for="createCostOre">Ore Cost:</label>
                         <input type="number" id="createCostOre" name="costOre" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="createSettlers">Siedler:</label>
+                        <label for="createSettlers">Settlers:</label>
                         <input type="number" id="createSettlers" name="settlers" step="0.01" required>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="createProductionRate">Produktionsrate:</label>
+                        <label for="createProductionRate">Production Rate:</label>
                         <input type="number" id="createProductionRate" name="productionRate" step="0.01" required>
                     </div>
                     <div class="form-group">
-                        <label for="createBuildTime">Bauzeit (s):</label>
+                        <label for="createBuildTime">Build Time (s):</label>
                         <input type="number" id="createBuildTime" name="buildTime" required>
                     </div>
                 </div>
                 
-                <button type="submit">Erstellen</button>
+                <button type="submit">Create</button>
             </form>
         </div>
     </div>
