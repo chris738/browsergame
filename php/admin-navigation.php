@@ -2,6 +2,8 @@
 // Admin navigation component
 // This provides a consistent header with navigation links for the admin panel
 
+require_once __DIR__ . '/emojis.php';
+
 $current_page = basename($_SERVER['PHP_SELF'], '.php');
 ?>
 
@@ -21,7 +23,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         </a>
     </div>
     <div class="nav-user">
-        <span class="user-display">👤 admin</span>
+        <span class="user-display"><?= Emojis::USER ?> admin</span>
         <a href="../admin.php?logout" class="logout-btn">Logout</a>
     </div>
 </nav>

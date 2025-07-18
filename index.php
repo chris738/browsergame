@@ -1,5 +1,6 @@
 <?php
     require_once 'php/database.php';
+    require_once 'php/emojis.php';
     
     // Get building types from database instead of hardcoding
     $database = new Database();
@@ -27,6 +28,10 @@
     // Eingehende Anfrage verarbeiten
     $method = $_SERVER['REQUEST_METHOD'];
     $settlementId = $_GET['settlementId'] ?? null;
+    
+    // Get emoji configurations
+    $resourceEmojis = Emojis::getResourceEmojis();
+    $buildingEmojis = Emojis::getBuildingEmojis();
 ?>
 
 <!DOCTYPE html>
@@ -72,18 +77,10 @@
         </thead>
         <tbody>
             <?php 
-            // Building emoji mapping
-            $buildingEmojis = [
-                'rathaus' => ['emoji' => '🏛️', 'title' => 'Town Hall - Center of your settlement'],
-                'holzfäller' => ['emoji' => '🌲', 'title' => 'Lumberjack - Produces wood'],
-                'steinbruch' => ['emoji' => '🏔️', 'title' => 'Quarry - Produces stone'],
-                'erzbergwerk' => ['emoji' => '⛏️', 'title' => 'Mine - Produces ore'],
-                'lager' => ['emoji' => '🏪', 'title' => 'Storage - Increases storage capacity'],
-                'farm' => ['emoji' => '🚜', 'title' => 'Farm - Provides settlers for construction']
-            ];
+            // Building emoji mapping - now using centralized emojis
             
             foreach ($buildings as $building): 
-                $emoji = $buildingEmojis[$building['id']] ?? ['emoji' => '🏗️', 'title' => 'Building'];
+                $emoji = $buildingEmojis[$building['id']] ?? ['emoji' => Emojis::DEFAULT_BUILDING, 'title' => 'Building'];
             ?>
                 <tr>
                     <td>
@@ -92,11 +89,11 @@
                     </td>
                     <td><span id="<?= htmlspecialchars($building['id']) ?>">0</span></td>
                     <td>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenHolz">0 🪵</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 🧱</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 🪨</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenSiedler">0 👥</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Bauzeit">0s ⏱️</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenHolz">0 <?= $resourceEmojis['wood'] ?></span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 <?= $resourceEmojis['stone'] ?></span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 <?= $resourceEmojis['ore'] ?></span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenSiedler">0 <?= $resourceEmojis['settlers'] ?></span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Bauzeit">0s <?= $resourceEmojis['time'] ?></span>
                     </td>
                     <td style="text-align: right;">
                         <!-- Button with a unique ID -->
@@ -111,4 +108,14 @@
         </table>
     </section>
 </body>
+
+<script>
+    // Make settlement ID available globally for JavaScript
+    const settlementId = <?= $settlementId ?>;
+    
+    // Make all emojis available globally for JavaScript
+    const emojis = <?= Emojis::getAllEmojisAsJS() ?>;
+    // Keep backward compatibility
+    const resourceEmojis = <?= Emojis::getResourceEmojisAsJS() ?>;
+</script>
 </html>

@@ -18,11 +18,15 @@
     function updateToggleButton(theme) {
         const toggleButton = document.getElementById('theme-toggle');
         if (toggleButton) {
+            // Use centralized emojis if available, fallback to hardcoded ones
+            const darkEmoji = (typeof emojis !== 'undefined' && emojis.theme_dark) ? emojis.theme_dark : '🌙';
+            const lightEmoji = (typeof emojis !== 'undefined' && emojis.theme_light) ? emojis.theme_light : '☀️';
+            
             if (theme === 'dark') {
-                toggleButton.innerHTML = '☀️ Light';
+                toggleButton.innerHTML = `${lightEmoji} Light`;
                 toggleButton.setAttribute('aria-label', 'Switch to light mode');
             } else {
-                toggleButton.innerHTML = '🌙 Dark';
+                toggleButton.innerHTML = `${darkEmoji} Dark`;
                 toggleButton.setAttribute('aria-label', 'Switch to dark mode');
             }
         }

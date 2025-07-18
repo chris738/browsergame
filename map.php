@@ -1,5 +1,6 @@
 <?php
 require_once 'php/database.php';
+require_once 'php/emojis.php';
 
 // Get the current settlement ID from URL parameter
 $currentSettlementId = $_GET['settlementId'] ?? 1;
@@ -250,6 +251,13 @@ if (empty($mapData)) {
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializeMap);
+    </script>
+    
+    <script>
+        // Make all emojis available globally for JavaScript
+        const emojis = <?= Emojis::getAllEmojisAsJS() ?>;
+        // Keep backward compatibility
+        const resourceEmojis = <?= Emojis::getResourceEmojisAsJS() ?>;
     </script>
 </body>
 </html>

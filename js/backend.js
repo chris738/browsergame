@@ -132,11 +132,11 @@ function fetchBuildingData(settlementId, buildingTypes) {
                         const buttonElement = document.getElementById(`${buildingId}upgradeButton`);
 
                         if (levelElement) levelElement.textContent = data.building.level;
-                        if (woodElement) woodElement.textContent = `${formatNumberWithDots(data.building.costWood)} 🪵`;
-                        if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} 🧱`;
-                        if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} 🪨`;
-                        if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} 👥`;
-                        if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s ⏱️`;
+                        if (woodElement) woodElement.textContent = `${formatNumberWithDots(data.building.costWood)} ${resourceEmojis.wood}`;
+                        if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} ${resourceEmojis.stone}`;
+                        if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} ${resourceEmojis.ore}`;
+                        if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} ${resourceEmojis.settlers}`;
+                        if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s ${resourceEmojis.time}`;
                         if (buttonElement) buttonElement.textContent = `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
                     } else {
                         console.warn(`No building data returned for ${buildingType}, response:`, data);
