@@ -77,6 +77,12 @@ if (empty($mapData)) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Map - Settlement Building</title>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        // Make all emojis available globally for JavaScript
+        const emojis = <?= Emojis::getAllEmojisAsJS() ?>;
+        // Keep backward compatibility
+        const resourceEmojis = <?= Emojis::getResourceEmojisAsJS() ?>;
+    </script>
     <script src="js/theme-switcher.js"></script>
     <script src="js/backend.js" defer></script>
 </head>
@@ -251,13 +257,6 @@ if (empty($mapData)) {
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializeMap);
-    </script>
-    
-    <script>
-        // Make all emojis available globally for JavaScript
-        const emojis = <?= Emojis::getAllEmojisAsJS() ?>;
-        // Keep backward compatibility
-        const resourceEmojis = <?= Emojis::getResourceEmojisAsJS() ?>;
     </script>
 </body>
 </html>
