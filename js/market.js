@@ -316,12 +316,63 @@ function formatNumber(num) {
     return Math.floor(num).toLocaleString();
 }
 
+// Handle trade type changes to show/hide relevant resource inputs
+function handleTradeTypeChange() {
+    const tradeType = document.getElementById('offerType').value;
+    const offerResourcesDiv = document.querySelector('.offer-column .resource-inputs');
+    const requestResourcesDiv = document.querySelector('.request-column .resource-inputs');
+    
+    // Reset all inputs to be visible first
+    const allInputs = document.querySelectorAll('.resource-inputs label');
+    allInputs.forEach(input => input.style.display = 'flex');
+    
+    if (tradeType === 'resource_sell') {
+        // Selling resources for gold: Hide gold in offer section, hide resources in request section
+        const offerGoldLabel = Array.from(offerResourcesDiv.querySelectorAll('label')).find(label => 
+            label.querySelector('#offerGold'));
+        const requestResourceLabels = Array.from(requestResourcesDiv.querySelectorAll('label')).filter(label => 
+            label.querySelector('#requestWood') || label.querySelector('#requestStone') || label.querySelector('#requestOre'));
+        
+        if (offerGoldLabel) offerGoldLabel.style.display = 'none';
+        requestResourceLabels.forEach(label => label.style.display = 'none');
+        
+        // Update column headers
+        document.querySelector('.offer-column h4').textContent = 'Resources you sell:';
+        document.querySelector('.request-column h4').textContent = 'Gold you want:';
+        
+    } else if (tradeType === 'resource_buy') {
+        // Buying resources with gold: Hide resources in offer section, hide gold in request section
+        const offerResourceLabels = Array.from(offerResourcesDiv.querySelectorAll('label')).filter(label => 
+            label.querySelector('#offerWood') || label.querySelector('#offerStone') || label.querySelector('#offerOre'));
+        const requestGoldLabel = Array.from(requestResourcesDiv.querySelectorAll('label')).find(label => 
+            label.querySelector('#requestGold'));
+        
+        offerResourceLabels.forEach(label => label.style.display = 'none');
+        if (requestGoldLabel) requestGoldLabel.style.display = 'none';
+        
+        // Update column headers
+        document.querySelector('.offer-column h4').textContent = 'Gold you offer:';
+        document.querySelector('.request-column h4').textContent = 'Resources you buy:';
+        
+    } else {
+        // Resource trade: all inputs visible (default state)
+        document.querySelector('.offer-column h4').textContent = 'What you offer:';
+        document.querySelector('.request-column h4').textContent = 'What you want in return:';
+    }
+}
+
 // Initialize market when page loads
 document.addEventListener('DOMContentLoaded', () => {
     checkMarketAccess();
     
     // Set up filter change handler
     document.getElementById('offerFilter').addEventListener('change', refreshOffers);
+    
+    // Set up trade type change handler
+    document.getElementById('offerType').addEventListener('change', handleTradeTypeChange);
+    
+    // Initialize trade type interface
+    handleTradeTypeChange();
     
     // Auto-refresh offers every 30 seconds
     setInterval(() => {

@@ -35,49 +35,58 @@
     <div id="marketInterface" class="market-interface" style="display: none;">
         
         <!-- Create Trade Offer Section -->
-        <section class="create-offer">
-            <h3>Create Trade Offer</h3>
-            <div class="offer-form">
-                <div class="offer-type">
-                    <label>Trade Type:</label>
-                    <select id="offerType">
-                        <option value="resource_trade">Resource Trade</option>
-                        <option value="resource_sell">Sell Resources for Gold</option>
-                        <option value="resource_buy">Buy Resources with Gold</option>
-                    </select>
-                </div>
-                
-                <div class="offer-resources">
-                    <h4>What you offer:</h4>
-                    <div class="resource-inputs">
-                        <label><?= EmojiConfig::getResourceEmoji('wood') ?> Wood: <input type="number" id="offerWood" min="0" value="0"></label>
-                        <label><?= EmojiConfig::getResourceEmoji('stone') ?> Stone: <input type="number" id="offerStone" min="0" value="0"></label>
-                        <label><?= EmojiConfig::getResourceEmoji('ore') ?> Ore: <input type="number" id="offerOre" min="0" value="0"></label>
-                        <label><?= EmojiConfig::getResourceEmoji('gold') ?> Gold: <input type="number" id="offerGold" min="0" value="0"></label>
+        <section class="create-offer-section">
+            <h3><?= EmojiConfig::getUIEmoji('market') ?> Create Trade Offer</h3>
+            
+            <div class="trade-type-selector">
+                <label for="offerType">Trade Type:</label>
+                <select id="offerType">
+                    <option value="resource_trade">Resource Trade</option>
+                    <option value="resource_sell">Sell Resources for Gold</option>
+                    <option value="resource_buy">Buy Resources with Gold</option>
+                </select>
+            </div>
+            
+            <div class="trade-form-container">
+                <div class="trade-form-row">
+                    <div class="trade-column offer-column">
+                        <h4>What you offer:</h4>
+                        <div class="resource-inputs">
+                            <label><?= EmojiConfig::getResourceEmoji('wood') ?> Wood: <input type="number" id="offerWood" min="0" value="0"></label>
+                            <label><?= EmojiConfig::getResourceEmoji('stone') ?> Stone: <input type="number" id="offerStone" min="0" value="0"></label>
+                            <label><?= EmojiConfig::getResourceEmoji('ore') ?> Ore: <input type="number" id="offerOre" min="0" value="0"></label>
+                            <label><?= EmojiConfig::getResourceEmoji('gold') ?> Gold: <input type="number" id="offerGold" min="0" value="0"></label>
+                        </div>
+                    </div>
+                    
+                    <div class="trade-arrow-container">
+                        <div class="trade-arrow"><?= EmojiConfig::getUIEmoji('arrow_right') ?></div>
+                    </div>
+                    
+                    <div class="trade-column request-column">
+                        <h4>What you want in return:</h4>
+                        <div class="resource-inputs">
+                            <label><?= EmojiConfig::getResourceEmoji('wood') ?> Wood: <input type="number" id="requestWood" min="0" value="0"></label>
+                            <label><?= EmojiConfig::getResourceEmoji('stone') ?> Stone: <input type="number" id="requestStone" min="0" value="0"></label>
+                            <label><?= EmojiConfig::getResourceEmoji('ore') ?> Ore: <input type="number" id="requestOre" min="0" value="0"></label>
+                            <label><?= EmojiConfig::getResourceEmoji('gold') ?> Gold: <input type="number" id="requestGold" min="0" value="0"></label>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="request-resources">
-                    <h4>What you want in return:</h4>
-                    <div class="resource-inputs">
-                        <label><?= EmojiConfig::getResourceEmoji('wood') ?> Wood: <input type="number" id="requestWood" min="0" value="0"></label>
-                        <label><?= EmojiConfig::getResourceEmoji('stone') ?> Stone: <input type="number" id="requestStone" min="0" value="0"></label>
-                        <label><?= EmojiConfig::getResourceEmoji('ore') ?> Ore: <input type="number" id="requestOre" min="0" value="0"></label>
-                        <label><?= EmojiConfig::getResourceEmoji('gold') ?> Gold: <input type="number" id="requestGold" min="0" value="0"></label>
+                <div class="trade-settings">
+                    <div class="settings-row">
+                        <label>Max Trades: <input type="number" id="maxTrades" min="1" value="1" max="10"></label>
+                        <button onclick="createTradeOffer()" class="create-offer-btn">Create Offer</button>
                     </div>
-                </div>
-                
-                <div class="offer-settings">
-                    <label>Max Trades: <input type="number" id="maxTrades" min="1" value="1" max="10"></label>
-                    <button onclick="createTradeOffer()" class="create-offer-btn">Create Offer</button>
                 </div>
             </div>
         </section>
 
         <!-- Available Trade Offers -->
-        <section class="available-offers">
-            <h3>Available Trade Offers</h3>
-            <div class="offers-filters">
+        <section class="market-section">
+            <h3><?= EmojiConfig::getUIEmoji('refresh') ?> Available Trade Offers</h3>
+            <div class="section-controls">
                 <select id="offerFilter">
                     <option value="all">All Offers</option>
                     <option value="resource_trade">Resource Trades</option>
@@ -86,23 +95,23 @@
                 </select>
                 <button onclick="refreshOffers()"><?= EmojiConfig::getUIEmoji('refresh') ?> Refresh</button>
             </div>
-            <div id="offersList" class="offers-list">
+            <div id="offersList" class="offers-table">
                 <!-- Trade offers will be loaded here -->
             </div>
         </section>
 
         <!-- My Active Offers -->
-        <section class="my-offers">
-            <h3>My Active Offers</h3>
-            <div id="myOffersList" class="offers-list">
+        <section class="market-section">
+            <h3><?= EmojiConfig::getUIEmoji('settings') ?> My Active Offers</h3>
+            <div id="myOffersList" class="offers-table">
                 <!-- My offers will be loaded here -->
             </div>
         </section>
 
         <!-- Trade History -->
-        <section class="trade-history">
-            <h3>Recent Trade History</h3>
-            <div id="tradeHistory" class="trade-history-list">
+        <section class="market-section">
+            <h3><?= EmojiConfig::getUIEmoji('history') ?> Recent Trade History</h3>
+            <div id="tradeHistory" class="offers-table">
                 <!-- Trade history will be loaded here -->
             </div>
         </section>
