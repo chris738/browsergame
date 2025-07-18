@@ -66,6 +66,11 @@ try {
                 }
                 break;
                 
+            case 'buildingTypes':
+                $buildingTypes = $database->getDistinctBuildingTypes();
+                echo json_encode(['buildingTypes' => $buildingTypes]);
+                break;
+                
             default:
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid action']);

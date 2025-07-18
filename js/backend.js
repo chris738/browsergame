@@ -4,35 +4,28 @@ function formatNumberWithDots(number) {
 }
 
 function updateCostColors(resources) {
-    const costElements = [
-        { type: 'rathaus', wood: 'rathausKostenHolz', stone: 'rathausKostenStein', ore: 'rathausKostenErz', settlers: 'rathausKostenSiedler'},
-        { type: 'holzfäller', wood: 'holzfällerKostenHolz', stone: 'holzfällerKostenStein', ore: 'holzfällerKostenErz', settlers: 'holzfällerKostenSiedler'},
-        { type: 'steinbruch', wood: 'steinbruchKostenHolz', stone: 'steinbruchKostenStein', ore: 'steinbruchKostenErz', settlers: 'steinbruchKostenSiedler' },
-        { type: 'erzbergwerk', wood: 'erzbergwerkKostenHolz', stone: 'erzbergwerkKostenStein', ore: 'erzbergwerkKostenErz', settlers: 'erzbergwerkKostenSiedler' },
-        { type: 'lager', wood: 'lagerKostenHolz', stone: 'lagerKostenStein', ore: 'lagerKostenErz', settlers: 'lagerKostenSiedler' },
-        { type: 'farm', wood: 'farmKostenHolz', stone: 'farmKostenStein', ore: 'farmKostenErz', settlers: 'farmKostenSiedler' }
-    ];
-
-    costElements.forEach(element => {
-        ['wood', 'stone', 'ore', 'settlers'].forEach(resourceType => {
-            const elementId = element[resourceType];
-            const elementNode = document.getElementById(elementId);
-
-            if (elementNode) {
-                // Extrahiere den Textinhalt des Elements
-                const rawText = elementNode.textContent.trim();
-
-                // Entferne nicht-numerische Zeichen und ersetze Komma durch Punkt
+    // Dynamically find all cost elements instead of hardcoding them
+    const resourceTypes = ['wood', 'stone', 'ore', 'settlers'];
+    
+    resourceTypes.forEach(resourceType => {
+        // Find all elements that match the pattern [buildingType]Kosten[ResourceType]
+        const pattern = new RegExp(`Kosten${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)}$`);
+        const allElements = document.querySelectorAll('[id]');
+        
+        allElements.forEach(element => {
+            if (pattern.test(element.id)) {
+                // Extract the cost value from the element
+                const rawText = element.textContent.trim();
                 const costValue = parseFloat(rawText.replace(',', '.').replace(/[^\d.]/g, '')) || 0;
-
-                // Verfügbare Ressourcen
+                
+                // Get available resources
                 const available = resourceType === 'settlers' ? resources.freeSettlers : resources[resourceType];
-
-                // Überprüfe, ob die Ressourcen ausreichen
+                
+                // Update color based on availability
                 if (available < costValue) {
-                    elementNode.classList.add('insufficient');
+                    element.classList.add('insufficient');
                 } else {
-                    elementNode.classList.remove('insufficient');
+                    element.classList.remove('insufficient');
                 }
             }
         });
@@ -84,7 +77,28 @@ function fetchResourcesForColorUpdate(settlementId) {
 }
 
 function fetchBuildings(settlementId) {
-    const buildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+    // First fetch the building types dynamically
+    fetch(`../php/backend.php?getBuildingTypes=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.buildingTypes && data.buildingTypes.buildingTypes) {
+                const buildingTypes = data.buildingTypes.buildingTypes.map(b => b.name);
+                fetchBuildingData(settlementId, buildingTypes);
+            } else {
+                // Fallback to default building types
+                const defaultBuildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+                fetchBuildingData(settlementId, defaultBuildingTypes);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching building types:', error);
+            // Fallback to default building types
+            const defaultBuildingTypes = ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+            fetchBuildingData(settlementId, defaultBuildingTypes);
+        });
+}
+
+function fetchBuildingData(settlementId, buildingTypes) {
     let completedRequests = 0;
 
     buildingTypes.forEach((buildingType, index) => {

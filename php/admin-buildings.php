@@ -66,11 +66,7 @@ try {
                     <label for="buildingTypeFilter">Gebäudetyp:</label>
                     <select id="buildingTypeFilter">
                         <option value="">Alle</option>
-                        <option value="Holzfäller">Holzfäller</option>
-                        <option value="Steinbruch">Steinbruch</option>
-                        <option value="Erzbergwerk">Erzbergwerk</option>
-                        <option value="Lager">Lager</option>
-                        <option value="Farm">Farm</option>
+                        <!-- Options will be populated dynamically by JavaScript -->
                     </select>
                 </div>
                 <div class="form-group">
@@ -140,11 +136,7 @@ try {
                         <label for="genBuildingType">Gebäudetyp:</label>
                         <select id="genBuildingType" required>
                             <option value="">Wählen...</option>
-                            <option value="Holzfäller">Holzfäller</option>
-                            <option value="Steinbruch">Steinbruch</option>
-                            <option value="Erzbergwerk">Erzbergwerk</option>
-                            <option value="Lager">Lager</option>
-                            <option value="Farm">Farm</option>
+                            <!-- Options will be populated dynamically by JavaScript -->
                         </select>
                     </div>
                     <div class="form-group">
@@ -264,11 +256,7 @@ try {
                         <label for="createBuildingType">Gebäudetyp:</label>
                         <select id="createBuildingType" name="buildingType" required>
                             <option value="">Wählen...</option>
-                            <option value="Holzfäller">Holzfäller</option>
-                            <option value="Steinbruch">Steinbruch</option>
-                            <option value="Erzbergwerk">Erzbergwerk</option>
-                            <option value="Lager">Lager</option>
-                            <option value="Farm">Farm</option>
+                            <!-- Options will be populated dynamically by JavaScript -->
                         </select>
                     </div>
                     <div class="form-group">
