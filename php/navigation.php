@@ -29,11 +29,11 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
         <span class="regen">(+<span id="holzRegen">0</span>/h)</span></p>
     </div>
     <div class="resource">
-        <p><span class="resource-emoji" title="Stone - Used for advanced buildings">🪨</span> <span id="stein">0</span>
+        <p><span class="resource-emoji" title="Stone - Used for advanced buildings">🧱</span> <span id="stein">0</span>
         <span class="regen">(+<span id="steinRegen">0</span>/h)</span></p>
     </div>
     <div class="resource">
-        <p><span class="resource-emoji" title="Ore - Used for high-level buildings">⛏️</span> <span id="erz">0</span>
+        <p><span class="resource-emoji" title="Ore - Used for high-level buildings">🪨</span> <span id="erz">0</span>
         <span class="regen">(+<span id="erzRegen">0</span>/h)</span></p>
     </div>
     <div class="resource">

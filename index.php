@@ -93,8 +93,8 @@
                     <td><span id="<?= htmlspecialchars($building['id']) ?>">0</span></td>
                     <td>
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenHolz">0 🪵</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 🪨</span>
-                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 ⛏️</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenStein">0 🧱</span>
+                        <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenErz">0 🪨</span>
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>KostenSiedler">0 👥</span>
                         <span class="cost-box" id="<?= htmlspecialchars($building['id']) ?>Bauzeit">0s ⏱️</span>
                     </td>

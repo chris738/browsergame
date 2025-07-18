@@ -133,8 +133,8 @@ function fetchBuildingData(settlementId, buildingTypes) {
 
                         if (levelElement) levelElement.textContent = data.building.level;
                         if (woodElement) woodElement.textContent = `${formatNumberWithDots(data.building.costWood)} 🪵`;
-                        if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} 🪨`;
-                        if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} ⛏️`;
+                        if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} 🧱`;
+                        if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} 🪨`;
                         if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} 👥`;
                         if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s ⏱️`;
                         if (buttonElement) buttonElement.textContent = `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
