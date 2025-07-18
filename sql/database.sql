@@ -229,6 +229,11 @@
                 nextLevel
             );
 
+            -- If we're upgrading the Town Hall, recalculate all existing queue times
+            IF inBuildingType = 'Rathaus' THEN
+                CALL UpdateQueueTimesAfterTownHallUpgrade(inSettlementId, nextLevel);
+            END IF;
+
             -- Note: Building completion is now handled by the ProcessBuildingQueue event
             -- which runs every 5 seconds and processes all completed building upgrades
 
@@ -237,6 +242,75 @@
             SET MESSAGE_TEXT = 'Nicht genügend Ressourcen für das Upgrade';
         END IF;
     END //
+    DELIMITER ;
+
+-- Prozedur: Update queue times after Town Hall upgrade
+    DROP PROCEDURE IF EXISTS UpdateQueueTimesAfterTownHallUpgrade;
+    
+    DELIMITER //
+    CREATE PROCEDURE UpdateQueueTimesAfterTownHallUpgrade(
+        IN inSettlementId INT,
+        IN newTownHallLevel INT
+    )
+    BEGIN
+        DECLARE done INT DEFAULT FALSE;
+        DECLARE currentQueueId INT;
+        DECLARE currentBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus');
+        DECLARE currentLevel INT;
+        DECLARE originalBuildTime INT;
+        DECLARE newBuildTime INT;
+        DECLARE newBuildTimeReduction FLOAT;
+        DECLARE currentStartTime DATETIME;
+        DECLARE previousEndTime DATETIME;
+        
+        -- Cursor to iterate through all existing queue items for this settlement
+        DECLARE queue_cursor CURSOR FOR 
+            SELECT queueId, buildingType, level, startTime
+            FROM BuildingQueue 
+            WHERE settlementId = inSettlementId
+            ORDER BY endTime ASC;
+        
+        DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+        
+        -- Calculate new build time reduction based on new Town Hall level
+        SET newBuildTimeReduction = 1.0 - (newTownHallLevel * 0.05);
+        IF newBuildTimeReduction < 0.1 THEN
+            SET newBuildTimeReduction = 0.1; -- Minimum 10% of original build time
+        END IF;
+        
+        -- Initialize previous end time to current time for the first item
+        SET previousEndTime = NOW();
+        
+        OPEN queue_cursor;
+        
+        queue_loop: LOOP
+            FETCH queue_cursor INTO currentQueueId, currentBuildingType, currentLevel, currentStartTime;
+            IF done THEN
+                LEAVE queue_loop;
+            END IF;
+            
+            -- Get original build time from config
+            SELECT buildTime INTO originalBuildTime
+            FROM BuildingConfig 
+            WHERE buildingType = currentBuildingType AND level = currentLevel;
+            
+            -- Calculate new reduced build time
+            SET newBuildTime = ROUND(originalBuildTime * newBuildTimeReduction);
+            
+            -- Update this queue item with new times
+            UPDATE BuildingQueue 
+            SET startTime = previousEndTime,
+                endTime = DATE_ADD(previousEndTime, INTERVAL newBuildTime SECOND)
+            WHERE queueId = currentQueueId;
+            
+            -- Set previous end time for next iteration
+            SET previousEndTime = DATE_ADD(previousEndTime, INTERVAL newBuildTime SECOND);
+            
+        END LOOP;
+        
+        CLOSE queue_cursor;
+    END //
+    
     DELIMITER ;
 
 -- Prozedur: PopulateBuildingConfig
