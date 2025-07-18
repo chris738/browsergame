@@ -12,7 +12,8 @@
         'Steinbruch' => 'Quarry',
         'Erzbergwerk' => 'Mine',
         'Lager' => 'Storage',
-        'Farm' => 'Farm'
+        'Farm' => 'Farm',
+        'Markt' => 'Market'
     ];
     
     $buildings = array_map(function($type) use ($buildingTranslations) {
@@ -79,7 +80,8 @@
                 'steinbruch' => ['emoji' => '🏔️', 'title' => 'Quarry - Produces stone'],
                 'erzbergwerk' => ['emoji' => '⛏️', 'title' => 'Mine - Produces ore'],
                 'lager' => ['emoji' => '🏪', 'title' => 'Storage - Increases storage capacity'],
-                'farm' => ['emoji' => '🚜', 'title' => 'Farm - Provides settlers for construction']
+                'farm' => ['emoji' => '🚜', 'title' => 'Farm - Provides settlers for construction'],
+                'markt' => ['emoji' => '⚖️', 'title' => 'Market - Enables trading with other players']
             ];
             
             foreach ($buildings as $building): 

@@ -183,7 +183,7 @@ class Database implements DatabaseInterface {
             // Create procedure with proper delimiter handling
             $procedureSQL = "CREATE PROCEDURE UpgradeBuilding(
                     IN inSettlementId INT,
-                    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus')
+                    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt')
                 )
                 BEGIN
                     DECLARE currentBuildingLevel INT DEFAULT 1;
@@ -325,7 +325,7 @@ class Database implements DatabaseInterface {
                 BEGIN
                     DECLARE done INT DEFAULT FALSE;
                     DECLARE currentQueueId INT;
-                    DECLARE currentBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus');
+                    DECLARE currentBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt');
                     DECLARE currentLevel INT;
                     DECLARE originalBuildTime INT;
                     DECLARE newBuildTime INT;
@@ -415,7 +415,7 @@ class Database implements DatabaseInterface {
                 FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
             )",
             "CREATE TABLE IF NOT EXISTS BuildingConfig (
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
                 level INT NOT NULL,
                 costWood FLOAT NOT NULL,
                 costStone FLOAT NOT NULL,
@@ -428,7 +428,7 @@ class Database implements DatabaseInterface {
             "CREATE TABLE IF NOT EXISTS BuildingQueue (
                 queueId INT AUTO_INCREMENT PRIMARY KEY,
                 settlementId INT NOT NULL,
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
                 startTime DATETIME NOT NULL,
                 endTime DATETIME NOT NULL,
                 isActive BOOLEAN NOT NULL DEFAULT FALSE,
@@ -437,7 +437,7 @@ class Database implements DatabaseInterface {
             )",
             "CREATE TABLE IF NOT EXISTS Buildings (
                 settlementId INT NOT NULL,
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
                 level INT NOT NULL DEFAULT 1,
                 visable boolean NOT NULL DEFAULT false,
                 FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
@@ -467,7 +467,9 @@ class Database implements DatabaseInterface {
                 ('Farm', 1, 100, 100, 100, 1, 100, 30),
                 ('Farm', 2, 110, 110, 110, 1.1, 110, 40),
                 ('Rathaus', 1, 200, 200, 200, 2, 0, 60),
-                ('Rathaus', 2, 220, 220, 220, 2.2, 0, 80)");
+                ('Rathaus', 2, 220, 220, 220, 2.2, 0, 80),
+                ('Markt', 1, 150, 100, 50, 2, 0, 45),
+                ('Markt', 2, 165, 110, 55, 2.2, 0, 60)");
         } catch (PDOException $e) {
             error_log("Failed to insert basic building config: " . $e->getMessage());
         }
@@ -1045,7 +1047,7 @@ class Database implements DatabaseInterface {
             $settlementId = $this->conn->lastInsertId();
             
             // Create buildings
-            $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus'];
+            $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt'];
             foreach ($buildingTypes as $buildingType) {
                 try {
                     $sql = "INSERT INTO Buildings (settlementId, buildingType) VALUES (:settlementId, :buildingType)";
@@ -1246,7 +1248,8 @@ class Database implements DatabaseInterface {
                 ['buildingType' => 'Steinbruch'],
                 ['buildingType' => 'Erzbergwerk'],
                 ['buildingType' => 'Lager'],
-                ['buildingType' => 'Farm']
+                ['buildingType' => 'Farm'],
+                ['buildingType' => 'Markt']
             ];
         }
 
@@ -1264,8 +1267,42 @@ class Database implements DatabaseInterface {
                 ['buildingType' => 'Steinbruch'],
                 ['buildingType' => 'Erzbergwerk'],
                 ['buildingType' => 'Lager'],
-                ['buildingType' => 'Farm']
+                ['buildingType' => 'Farm'],
+                ['buildingType' => 'Markt']
             ];
+        }
+    }
+
+    // Trading helper methods
+    public function getConnection() {
+        return $this->conn;
+    }
+
+    public function getPlayerNameFromSettlement($settlementId) {
+        try {
+            $sql = "SELECT p.name FROM Spieler p 
+                    INNER JOIN Settlement s ON p.playerId = s.playerId 
+                    WHERE s.settlementId = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$settlementId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['name'] : 'Unknown Player';
+        } catch (Exception $e) {
+            return 'Unknown Player';
+        }
+    }
+
+    public function getPlayerGold($settlementId) {
+        try {
+            $sql = "SELECT p.gold FROM Spieler p 
+                    INNER JOIN Settlement s ON p.playerId = s.playerId 
+                    WHERE s.settlementId = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$settlementId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result ? $result['gold'] : 0;
+        } catch (Exception $e) {
+            return 0;
         }
     }
 }

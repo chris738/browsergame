@@ -56,7 +56,7 @@
 
 -- Tabelle: BuildingConfig
     CREATE TABLE BuildingConfig (
-        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
         level INT NOT NULL,
         costWood FLOAT NOT NULL,
         costStone FLOAT NOT NULL,
@@ -71,7 +71,7 @@
     CREATE TABLE BuildingQueue (
         queueId INT AUTO_INCREMENT PRIMARY KEY,
         settlementId INT NOT NULL,
-        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
         startTime DATETIME NOT NULL,
         endTime DATETIME NOT NULL,
         isActive BOOLEAN NOT NULL DEFAULT FALSE,
@@ -83,12 +83,58 @@
 -- Tabelle: Buildings
     CREATE TABLE Buildings (
         settlementId INT NOT NULL,
-        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus') NOT NULL,
+        buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
         level INT NOT NULL DEFAULT 1,
         visable boolean NOT NULL DEFAULT false,
         FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
         FOREIGN KEY (buildingType, level) REFERENCES BuildingConfig(buildingType, level) ON DELETE CASCADE,
         PRIMARY KEY (settlementId, buildingType)
+    );
+
+-- Tabelle: TradeOffers - for player-to-player trading
+    CREATE TABLE TradeOffers (
+        offerId INT AUTO_INCREMENT PRIMARY KEY,
+        fromSettlementId INT NOT NULL,
+        offerType ENUM('resource_trade', 'resource_sell', 'resource_buy') NOT NULL,
+        -- What the offering player gives
+        offerWood FLOAT NOT NULL DEFAULT 0,
+        offerStone FLOAT NOT NULL DEFAULT 0,
+        offerOre FLOAT NOT NULL DEFAULT 0,
+        offerGold INT NOT NULL DEFAULT 0,
+        -- What the offering player wants in return
+        requestWood FLOAT NOT NULL DEFAULT 0,
+        requestStone FLOAT NOT NULL DEFAULT 0,
+        requestOre FLOAT NOT NULL DEFAULT 0,
+        requestGold INT NOT NULL DEFAULT 0,
+        -- Offer details
+        maxTrades INT NOT NULL DEFAULT 1, -- How many times this offer can be accepted
+        currentTrades INT NOT NULL DEFAULT 0, -- How many times it has been accepted
+        createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        expiresAt DATETIME NULL, -- Optional expiration
+        isActive BOOLEAN NOT NULL DEFAULT TRUE,
+        FOREIGN KEY (fromSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
+    );
+
+-- Tabelle: TradeTransactions - log of completed trades
+    CREATE TABLE TradeTransactions (
+        transactionId INT AUTO_INCREMENT PRIMARY KEY,
+        offerId INT NOT NULL,
+        fromSettlementId INT NOT NULL,
+        toSettlementId INT NOT NULL,
+        -- Resources traded from offering player
+        tradedWood FLOAT NOT NULL DEFAULT 0,
+        tradedStone FLOAT NOT NULL DEFAULT 0,
+        tradedOre FLOAT NOT NULL DEFAULT 0,
+        tradedGold INT NOT NULL DEFAULT 0,
+        -- Resources received by offering player
+        receivedWood FLOAT NOT NULL DEFAULT 0,
+        receivedStone FLOAT NOT NULL DEFAULT 0,
+        receivedOre FLOAT NOT NULL DEFAULT 0,
+        receivedGold INT NOT NULL DEFAULT 0,
+        completedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (offerId) REFERENCES TradeOffers(offerId) ON DELETE CASCADE,
+        FOREIGN KEY (fromSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+        FOREIGN KEY (toSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
     );
 
 -- Prozedur: Spieler erstellen und initialisieren
@@ -127,7 +173,8 @@
             ('Erzbergwerk', 1),
             ('Lager', 1),
             ('Farm', 1),
-            ('Rathaus', 1);
+            ('Rathaus', 1),
+            ('Markt', 1);
 
         -- Gebäude erstellen
         INSERT INTO Buildings (settlementId, buildingType) VALUES
@@ -136,7 +183,8 @@
             (newSettlementId, 'Erzbergwerk'),
             (newSettlementId, 'Lager'),
             (newSettlementId, 'Farm'),
-            (newSettlementId, 'Rathaus');
+            (newSettlementId, 'Rathaus'),
+            (newSettlementId, 'Markt');
     END //
 
     DELIMITER ;
@@ -147,7 +195,7 @@
     DELIMITER //
     CREATE DEFINER=`root`@`localhost` PROCEDURE `UpgradeBuilding`(
             IN inSettlementId INT,
-            IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus')
+            IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt')
         )
     BEGIN
         DECLARE currentBuildingLevel INT;
@@ -257,7 +305,7 @@
     BEGIN
         DECLARE done INT DEFAULT FALSE;
         DECLARE currentQueueId INT;
-        DECLARE currentBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus');
+        DECLARE currentBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt');
         DECLARE currentLevel INT;
         DECLARE originalBuildTime INT;
         DECLARE newBuildTime INT;
@@ -345,11 +393,11 @@
 
         CREATE TEMPORARY TABLE TempBuildings (
             id INT AUTO_INCREMENT PRIMARY KEY,
-            name ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus')
+            name ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt')
         );
 
         INSERT INTO TempBuildings (name) VALUES
-            ('Holzfäller'), ('Steinbruch'), ('Erzbergwerk'), ('Lager'), ('Farm'), ('Rathaus');
+            ('Holzfäller'), ('Steinbruch'), ('Erzbergwerk'), ('Lager'), ('Farm'), ('Rathaus'), ('Markt');
 
         -- Debugging: Check TempBuildings
         SELECT * FROM TempBuildings;
@@ -378,6 +426,8 @@
                 SET baseProduction = 100.0;
             ELSEIF buildingType = 'Rathaus' THEN
                 SET baseProduction = 0.0; -- Town Hall doesn't produce resources, it provides build time reduction
+            ELSEIF buildingType = 'Markt' THEN
+                SET baseProduction = 0.0; -- Market doesn't produce resources, it enables trading
             ELSE
                 SET baseProduction = 3600.0;
             END IF;

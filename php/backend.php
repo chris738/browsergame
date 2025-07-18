@@ -10,7 +10,8 @@ function getBuildingTranslations() {
         'Steinbruch' => 'Quarry',
         'Erzbergwerk' => 'Mine',
         'Lager' => 'Storage',
-        'Farm' => 'Farm'
+        'Farm' => 'Farm',
+        'Markt' => 'Market'
     ];
 }
 
