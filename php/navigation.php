@@ -17,6 +17,9 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
             Map
         </a>
     </div>
+    <div class="nav-user">
+        <span class="user-display">👤 <span id="currentPlayer">Player</span></span>
+    </div>
 </nav>
 
 <section class="resources">
