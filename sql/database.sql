@@ -155,6 +155,7 @@
         DECLARE nextLevelWoodCost FLOAT;
         DECLARE nextLevelStoneCost FLOAT;
         DECLARE nextLevelOreCost FLOAT;
+        DECLARE nextLevelSettlerCost FLOAT;
         DECLARE nextBuildTime INT;
         DECLARE lastEndTime DATETIME;
         DECLARE nextEndTime DATETIME;
@@ -182,8 +183,8 @@
         END IF;
 
         
-        SELECT costWood, costStone, costOre, buildTime INTO 
-            nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost, nextBuildTime
+        SELECT costWood, costStone, costOre, settlers, buildTime INTO 
+            nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost, nextLevelSettlerCost, nextBuildTime
         FROM BuildingConfig
         WHERE buildingType = inBuildingType AND level = nextLevel;
 
@@ -204,7 +205,8 @@
         
         IF (SELECT wood FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelWoodCost AND
         (SELECT stone FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelStoneCost AND
-        (SELECT ore FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelOreCost THEN
+        (SELECT ore FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelOreCost AND
+        (SELECT COALESCE(freeSettlers, 0) FROM SettlementSettlers WHERE settlementId = inSettlementId) >= nextLevelSettlerCost THEN
 
             
             UPDATE Settlement
