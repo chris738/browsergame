@@ -1,45 +1,45 @@
-# Browsergame - Siedlungsaufbau Spiel
+# Browser Game - Settlement Building Game
 
-Ein webbasiertes Strategiespiel zum Aufbau und zur Verwaltung von Siedlungen. Baue Gebäude, sammle Ressourcen und erweitere deine Siedlung in diesem browserbasierten Aufbauspiel.
+A web-based strategy game for building and managing settlements. Build structures, collect resources, and expand your settlement in this browser-based building game.
 
 ## 🎮 Screenshots
 
-### Hauptspiel - Siedlungsansicht
-![Hauptspiel Interface](https://github.com/user-attachments/assets/3a747612-0332-4ff7-a4aa-cfb3661197f7)
+### Main Game - Settlement View
+![Main Game Interface](https://github.com/user-attachments/assets/8eb0dacd-41ab-4e82-b0f6-a85cf847512b)
 
-Die Hauptansicht zeigt deine Siedlung mit allen Gebäuden, Ressourcen und Upgrade-Möglichkeiten.
+The main view shows your settlement with all buildings, resources, and upgrade options featuring beautiful emoji icons.
 
-### Kartenansicht
-![Kartenansicht](https://github.com/user-attachments/assets/4b3d1e6c-7736-49d4-84ef-7943da853e58)
+### Map View
+![Map View](https://github.com/user-attachments/assets/4b3d1e6c-7736-49d4-84ef-7943da853e58)
 
-Auf der Karte siehst du deine Siedlung und andere Spieler in der Umgebung.
+On the map you can see your settlement and other players in the area.
 
-### Admin-Panel
+### Admin Panel
 ![Admin Login](https://github.com/user-attachments/assets/0c5a52d9-94ee-4cbb-b494-847c6d431d20)
 
-Das Admin-Panel ermöglicht die Verwaltung von Spielern und Siedlungen.
+The admin panel allows management of players and settlements.
 
-## 🚀 Installation mit Docker
+## 🚀 Installation with Docker
 
-### Voraussetzungen
+### Prerequisites
 - Docker 20.10+
 - Docker Compose 2.0+
 
-### Schnellstart
+### Quick Start
 
 ```bash
-# Repository klonen
+# Clone repository
 git clone https://github.com/chris738/browsergame.git
 cd browsergame
 
-# Mit Docker starten
+# Start with Docker
 docker compose up -d
 
-# ODER: Fresh Start für komplett saubere Umgebung
+# OR: Fresh Start for completely clean environment
 ./fresh-start.sh
 ```
 
-Das war's! Das Spiel läuft unter **http://localhost:8080** mit vollständig aktivierter automatischer Ressourcengenerierung.
+That's it! The game runs at **http://localhost:8080** with fully activated automatic resource generation.
 
 ### Was passiert automatisch:
 - ✅ Startet alle Docker Container (Web + Datenbank)

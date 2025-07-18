@@ -8,13 +8,13 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
 <nav class="admin-navigation">
     <div class="admin-nav-links">
         <div class="admin-title">
-            <h1>Admin Panel - Browsergame</h1>
+            <h1>Admin Panel - Settlement Building Game</h1>
         </div>
         <a href="admin-overview.php" class="admin-nav-link <?= ($current_page == 'admin-overview') ? 'active' : '' ?>">
-            Übersicht
+            Overview
         </a>
         <a href="admin-buildings.php" class="admin-nav-link <?= ($current_page == 'admin-buildings') ? 'active' : '' ?>">
-            Gebäude-Konfiguration
+            Building Configuration
         </a>
     </div>
     <div class="admin-nav-actions">

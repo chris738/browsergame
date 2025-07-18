@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
         // Add a small delay to ensure session is written
         usleep(100000); // 0.1 seconds
     } else {
-        $loginError = 'Ungültige Zugangsdaten. Verwende: admin / admin123';
+        $loginError = 'Invalid credentials. Use: admin / admin123';
     }
 }
 
@@ -45,11 +45,11 @@ if (isset($_GET['logout'])) {
 if (!$isLoggedIn) {
 ?>
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login - Browsergame</title>
+    <title>Admin Login - Settlement Building Game</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/admin.css">
 </head>
@@ -70,7 +70,7 @@ if (!$isLoggedIn) {
             </div>
             <button type="submit" name="login">Login</button>
             <div style="margin-top: 15px; font-size: 0.9em; color: #666;">
-                Standard-Zugangsdaten:<br>
+                Default credentials:<br>
                 <strong>Username:</strong> admin<br>
                 <strong>Password:</strong> admin123
             </div>
