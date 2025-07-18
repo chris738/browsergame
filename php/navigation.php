@@ -24,7 +24,15 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
     </div>
     <div class="nav-user">
         <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode"><?= EmojiConfig::getUIEmoji('moon') ?> Dark</button>
-        <span class="user-display"><?= EmojiConfig::getUIEmoji('player') ?> <span id="currentPlayer">Player</span></span>
+        <div class="player-controls">
+            <select id="playerSwitcher" class="player-switcher">
+                <option value="">Loading players...</option>
+            </select>
+            <span class="user-display">
+                <?= EmojiConfig::getUIEmoji('player') ?> <span id="currentPlayer">Player</span>
+                | <?= EmojiConfig::getResourceEmoji('gold') ?> <span id="playerGold">0</span>
+            </span>
+        </div>
     </div>
 </nav>
 

@@ -40,6 +40,64 @@ function fetchResources($settlementId) {
     ];
 }
 
+function fetchPlayerInfo($settlementId) {
+    $database = new Database();
+    $playerName = $database->getPlayerNameFromSettlement($settlementId);
+    $playerGold = $database->getPlayerGold($settlementId);
+    
+    return [
+        'playerName' => $playerName,
+        'playerGold' => $playerGold
+    ];
+}
+
+function fetchAllPlayersWithSettlements() {
+    $database = new Database();
+    
+    // Return mock data if database connection failed
+    if (!$database->isConnected()) {
+        return [
+            [
+                'settlementId' => 1,
+                'settlementName' => 'TestPlayer_Settlement',
+                'playerName' => 'TestPlayer',
+                'playerId' => 1
+            ],
+            [
+                'settlementId' => 2,
+                'settlementName' => 'Player2_Settlement',
+                'playerName' => 'Player2',
+                'playerId' => 2
+            ],
+            [
+                'settlementId' => 3,
+                'settlementName' => 'Player3_Settlement',
+                'playerName' => 'Player3',
+                'playerId' => 3
+            ]
+        ];
+    }
+    
+    $sql = "
+        SELECT 
+            s.settlementId,
+            s.name as settlementName,
+            p.name as playerName,
+            p.playerId
+        FROM Settlement s
+        INNER JOIN Spieler p ON s.playerId = p.playerId
+        ORDER BY p.name, s.name
+    ";
+    
+    try {
+        $stmt = $database->getConnection()->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        return [];
+    }
+}
+
 function fetchRegen($settlementId) {
     $database = new Database();
     $regen = $database->getRegen($settlementId);
@@ -176,6 +234,8 @@ $getSettlementName = $_GET['getSettlementName'] ?? null;
 $getBuildingQueue = $_GET['getBuildingQueue'] ?? null;
 $getMap = $_GET['getMap'] ?? null;
 $getBuildingTypes = $_GET['getBuildingTypes'] ?? null;
+$getPlayerInfo = $_GET['getPlayerInfo'] ?? null;
+$getAllPlayers = $_GET['getAllPlayers'] ?? null;
 
 try {
     if ($method === 'GET') {
@@ -183,6 +243,14 @@ try {
         if ($getBuildingTypes == True) {
             header('Content-Type: application/json; charset=utf-8');
             $response = ['buildingTypes' => getBuildingTypes()];
+            echo json_encode($response);
+            exit;
+        }
+        
+        // Handle all players request (doesn't require settlementId)
+        if ($getAllPlayers == True) {
+            header('Content-Type: application/json; charset=utf-8');
+            $response = ['players' => fetchAllPlayersWithSettlements()];
             echo json_encode($response);
             exit;
         }
@@ -210,6 +278,11 @@ try {
         //Settlement Name
         if ($getSettlementName == True) {
             $response = ['info' => getSettlementName($settlementId)];
+        }
+        
+        //Player Info (name and gold)
+        if ($getPlayerInfo == True) {
+            $response = ['playerInfo' => fetchPlayerInfo($settlementId)];
         }
 
         //fetchBuildingQueue

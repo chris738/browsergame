@@ -64,6 +64,48 @@ function fetchResources(settlementId) {
         .catch(error => console.error('Error fetching data in backend.js:', error));
 }
 
+function fetchPlayerInfo(settlementId) {
+    fetch(`../php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.playerInfo) {
+                document.getElementById('currentPlayer').textContent = data.playerInfo.playerName;
+                document.getElementById('playerGold').textContent = formatNumberWithDots(data.playerInfo.playerGold);
+            }
+        })
+        .catch(error => console.error('Error fetching player info:', error));
+}
+
+function fetchAllPlayers() {
+    fetch(`../php/backend.php?getAllPlayers=true`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.players) {
+                const playerSwitcher = document.getElementById('playerSwitcher');
+                playerSwitcher.innerHTML = '';
+                
+                data.players.forEach(player => {
+                    const option = document.createElement('option');
+                    option.value = player.settlementId;
+                    option.textContent = `${player.playerName} - ${player.settlementName}`;
+                    if (player.settlementId == settlementId) {
+                        option.selected = true;
+                    }
+                    playerSwitcher.appendChild(option);
+                });
+                
+                // Add event listener for player switching
+                playerSwitcher.addEventListener('change', function() {
+                    if (this.value && this.value != settlementId) {
+                        const currentPage = window.location.pathname.split('/').pop();
+                        window.location.href = `${currentPage}?settlementId=${this.value}`;
+                    }
+                });
+            }
+        })
+        .catch(error => console.error('Error fetching players:', error));
+}
+
 function fetchResourcesForColorUpdate(settlementId) {
     fetch(`../php/backend.php?settlementId=${settlementId}`)
         .then(response => response.json())
@@ -266,6 +308,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update resources every second
     fetchResources(settlementId);
     setInterval(() => fetchResources(settlementId), 1000);
+    
+    // Fetch player info and update every 5 seconds
+    fetchPlayerInfo(settlementId);
+    setInterval(() => fetchPlayerInfo(settlementId), 5000);
+    
+    // Load all players for the switcher
+    fetchAllPlayers();
 
     // Update building data every 5 seconds
     fetchBuildings(settlementId);

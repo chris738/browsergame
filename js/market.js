@@ -355,7 +355,16 @@ function handleTradeTypeChange() {
         document.querySelector('.request-column h4').textContent = 'Resources you buy:';
         
     } else {
-        // Resource trade: all inputs visible (default state)
+        // Resource trade: Hide gold inputs from both sections
+        const offerGoldLabel = Array.from(offerResourcesDiv.querySelectorAll('label')).find(label => 
+            label.querySelector('#offerGold'));
+        const requestGoldLabel = Array.from(requestResourcesDiv.querySelectorAll('label')).find(label => 
+            label.querySelector('#requestGold'));
+            
+        if (offerGoldLabel) offerGoldLabel.style.display = 'none';
+        if (requestGoldLabel) requestGoldLabel.style.display = 'none';
+        
+        // Update column headers
         document.querySelector('.offer-column h4').textContent = 'What you offer:';
         document.querySelector('.request-column h4').textContent = 'What you want in return:';
     }
