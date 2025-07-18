@@ -113,14 +113,14 @@ if (empty($mapData)) {
                         class="<?= $settlementClass ?> <?= $statusClass ?>" 
                         data-x="<?= $settlement['xCoordinate'] ?>"
                         data-y="<?= $settlement['yCoordinate'] ?>"
+                        data-settlement-id="<?= $settlement['settlementId'] ?>"
+                        data-settlement-name="<?= htmlspecialchars($settlement['name']) ?>"
+                        data-player-name="<?= htmlspecialchars($settlement['playerName']) ?>"
+                        data-player-id="<?= $settlement['playerId'] ?>"
+                        data-is-own="<?= ($settlement['playerId'] == $currentPlayerId) ? 'true' : 'false' ?>"
+                        data-is-current="<?= ($settlement['settlementId'] == $currentSettlementId) ? 'true' : 'false' ?>"
                         title="<?= htmlspecialchars($settlement['name']) ?> (<?= $settlement['xCoordinate'] ?>, <?= $settlement['yCoordinate'] ?>) - Player: <?= htmlspecialchars($settlement['playerName']) ?>"
-                        onclick="<?php 
-                            if ($settlement['settlementId'] == $currentSettlementId || $settlement['playerId'] == $currentPlayerId) {
-                                echo "window.location.href='index.php?settlementId={$settlement['settlementId']}'";
-                            } else {
-                                echo "window.location.href='settlement-info.php?settlementId={$settlement['settlementId']}&currentSettlementId={$currentSettlementId}'";
-                            }
-                        ?>">
+                        onclick="showSettlementInfo(this)">
                         <div class="settlement-base">🏘️</div>
                         <div class="status-indicator"></div>
                     </div>
@@ -159,6 +159,18 @@ if (empty($mapData)) {
             </div>
         </div>
     </main>
+
+    <!-- Settlement Info Panel -->
+    <div class="settlement-info-panel-overlay" id="settlementInfoOverlay" onclick="closeSettlementInfo()"></div>
+    <div class="settlement-info-panel" id="settlementInfoPanel">
+        <div class="settlement-info-panel-header">
+            <h3 id="settlementInfoTitle">Settlement Information</h3>
+            <button class="settlement-info-panel-close" onclick="closeSettlementInfo()">&times;</button>
+        </div>
+        <div class="settlement-info-panel-content" id="settlementInfoContent">
+            <!-- Content will be populated by JavaScript -->
+        </div>
+    </div>
 
     <script>
         // Map interaction functionality
@@ -256,6 +268,99 @@ if (empty($mapData)) {
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializeMap);
+        
+        // Settlement info panel functions
+        function showSettlementInfo(settlementElement) {
+            const settlementId = settlementElement.dataset.settlementId;
+            const settlementName = settlementElement.dataset.settlementName;
+            const playerName = settlementElement.dataset.playerName;
+            const playerId = settlementElement.dataset.playerId;
+            const isOwn = settlementElement.dataset.isOwn === 'true';
+            const isCurrent = settlementElement.dataset.isCurrent === 'true';
+            const xCoord = settlementElement.dataset.x;
+            const yCoord = settlementElement.dataset.y;
+            
+            const title = document.getElementById('settlementInfoTitle');
+            const content = document.getElementById('settlementInfoContent');
+            const panel = document.getElementById('settlementInfoPanel');
+            const overlay = document.getElementById('settlementInfoOverlay');
+            
+            title.textContent = `${settlementName} - Settlement Information`;
+            
+            let statusText, statusClass;
+            if (isCurrent) {
+                statusText = 'Selected Settlement';
+                statusClass = 'own-settlement';
+            } else if (isOwn) {
+                statusText = 'Your Settlement';
+                statusClass = 'own-settlement';
+            } else {
+                statusText = 'Foreign Settlement';
+                statusClass = 'foreign-settlement';
+            }
+            
+            let actionsHtml = '';
+            if (isOwn) {
+                actionsHtml = `
+                    <div class="actions">
+                        <a href="index.php?settlementId=${settlementId}" class="action-button manage">
+                            🏛️ Manage Buildings
+                        </a>
+                        <a href="market.php?settlementId=${settlementId}" class="action-button">
+                            ⚖️ Visit Market
+                        </a>
+                    </div>
+                `;
+            } else {
+                actionsHtml = `
+                    <div class="actions">
+                        <a href="market.php?settlementId=<?= $currentSettlementId ?>" class="action-button">
+                            ⚖️ Visit Market
+                        </a>
+                    </div>
+                `;
+            }
+            
+            content.innerHTML = `
+                <div class="settlement-basic-info">
+                    <h4>${settlementName}</h4>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">👤 Owner:</span>
+                            <span class="info-value">${playerName}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">🗺️ Location:</span>
+                            <span class="info-value">(${xCoord}, ${yCoord})</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">ℹ️ Status:</span>
+                            <span class="info-value ${statusClass}">${statusText}</span>
+                        </div>
+                    </div>
+                </div>
+                ${actionsHtml}
+            `;
+            
+            // Show the panel
+            panel.classList.add('show');
+            overlay.classList.add('show');
+        }
+        
+        function closeSettlementInfo() {
+            const panel = document.getElementById('settlementInfoPanel');
+            const overlay = document.getElementById('settlementInfoOverlay');
+            
+            panel.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+        
+        // Close panel with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeSettlementInfo();
+            }
+        });
     </script>
 </body>
 </html>
