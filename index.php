@@ -14,7 +14,8 @@
         'Erzbergwerk' => 'Mine',
         'Lager' => 'Storage',
         'Farm' => 'Farm',
-        'Markt' => 'Market'
+        'Markt' => 'Market',
+        'Kaserne' => 'Barracks'
     ];
     
     $buildings = array_map(function($type) use ($buildingTranslations) {
