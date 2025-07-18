@@ -1,5 +1,5 @@
 <?php
-require_once 'database.php';
+require_once 'php/database.php';
 
 // Get the current settlement ID from URL parameter
 $currentSettlementId = $_GET['settlementId'] ?? 1;
@@ -75,11 +75,11 @@ if (empty($mapData)) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Karte - Siedlungsaufbau</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="backend.js" defer></script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/backend.js" defer></script>
 </head>
 <body>
-    <?php include 'navigation.php'; ?>
+    <?php include 'php/navigation.php'; ?>
     
     <main class="main-content">
         <h2>Kartenansicht</h2>

@@ -94,12 +94,12 @@ EOF
     
     # Import database schema
     log_info "Importiere Datenbankschema / Importing database schema..."
-    docker-compose exec -T db mysql -u browsergame -psicheresPasswort browsergame < database.sql
+    docker-compose exec -T db mysql -u browsergame -psicheresPasswort browsergame < ../sql/database.sql
     
     # Run initialization script if it exists
-    if [ -f "docker/init-player.sql" ]; then
+    if [ -f "../sql/init-player.sql" ]; then
         log_info "Erstelle initialen Spieler / Creating initial player..."
-        docker-compose exec -T db mysql -u browsergame -psicheresPasswort browsergame < docker/init-player.sql
+        docker-compose exec -T db mysql -u browsergame -psicheresPasswort browsergame < ../sql/init-player.sql
     fi
     
     log_success "Docker-Datenbank zurückgesetzt / Docker database reset complete"
@@ -132,7 +132,7 @@ EOF
     
     # Import database schema
     log_info "Importiere Datenbankschema / Importing database schema..."
-    mysql -u root -p$DB_ROOT_PASSWORD browsergame < database.sql
+    mysql -u root -p$DB_ROOT_PASSWORD browsergame < ../sql/database.sql
     
     # Create initial player
     log_info "Erstelle initialen Spieler / Creating initial player..."

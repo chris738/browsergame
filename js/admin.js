@@ -50,7 +50,7 @@ async function apiRequest(url, options = {}) {
 // Data fetching functions
 async function fetchPlayers() {
     try {
-        const data = await apiRequest('admin-backend.php?action=players');
+        const data = await apiRequest('../php/admin-backend.php?action=players');
         updatePlayersTable(data.players);
     } catch (error) {
         console.error('Error fetching players:', error);
@@ -59,7 +59,7 @@ async function fetchPlayers() {
 
 async function fetchSettlements() {
     try {
-        const data = await apiRequest('admin-backend.php?action=settlements');
+        const data = await apiRequest('../php/admin-backend.php?action=settlements');
         updateSettlementsTable(data.settlements);
     } catch (error) {
         console.error('Error fetching settlements:', error);
@@ -68,7 +68,7 @@ async function fetchSettlements() {
 
 async function fetchQueues() {
     try {
-        const data = await apiRequest('admin-backend.php?action=queues');
+        const data = await apiRequest('../php/admin-backend.php?action=queues');
         updateQueuesTable(data.queues);
     } catch (error) {
         console.error('Error fetching queues:', error);
@@ -188,7 +188,7 @@ async function submitCreatePlayer(event) {
     };
     
     try {
-        await apiRequest('admin-backend.php', {
+        await apiRequest('../php/admin-backend.php', {
             method: 'POST',
             body: JSON.stringify(playerData)
         });
@@ -220,7 +220,7 @@ async function updatePlayerStats(playerId, points, gold) {
     };
     
     try {
-        await apiRequest('admin-backend.php', {
+        await apiRequest('../php/admin-backend.php', {
             method: 'POST',
             body: JSON.stringify(playerData)
         });
@@ -243,7 +243,7 @@ async function deletePlayer(playerId, name) {
     };
     
     try {
-        await apiRequest('admin-backend.php', {
+        await apiRequest('../php/admin-backend.php', {
             method: 'DELETE',
             body: JSON.stringify(playerData)
         });
@@ -280,7 +280,7 @@ async function submitEditResources(event) {
     };
     
     try {
-        await apiRequest('admin-backend.php', {
+        await apiRequest('../php/admin-backend.php', {
             method: 'POST',
             body: JSON.stringify(resourceData)
         });
@@ -305,7 +305,7 @@ async function deleteQueue(queueId) {
     };
     
     try {
-        await apiRequest('admin-backend.php', {
+        await apiRequest('../php/admin-backend.php', {
             method: 'DELETE',
             body: JSON.stringify(queueData)
         });
@@ -327,7 +327,7 @@ async function clearAllQueues() {
     };
     
     try {
-        await apiRequest('admin-backend.php', {
+        await apiRequest('../php/admin-backend.php', {
             method: 'POST',
             body: JSON.stringify(queueData)
         });

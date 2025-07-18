@@ -52,7 +52,7 @@ function setupModalControls() {
 
 async function loadBuildingConfigs() {
     try {
-        const response = await fetch('admin-backend.php?action=buildingConfigs');
+        const response = await fetch('../php/admin-backend.php?action=buildingConfigs');
         const data = await response.json();
         
         if (data.buildingConfigs) {
@@ -132,7 +132,7 @@ function openCreateModal() {
 
 async function editBuildingConfig(buildingType, level) {
     try {
-        const response = await fetch(`admin-backend.php?action=buildingConfig&buildingType=${encodeURIComponent(buildingType)}&level=${level}`);
+        const response = await fetch(`../php/admin-backend.php?action=buildingConfig&buildingType=${encodeURIComponent(buildingType)}&level=${level}`);
         const data = await response.json();
         
         if (data.buildingConfig) {
@@ -167,7 +167,7 @@ async function deleteBuildingConfig(buildingType, level) {
     }
     
     try {
-        const response = await fetch('admin-backend.php', {
+        const response = await fetch('../php/admin-backend.php', {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -210,7 +210,7 @@ async function handleEditSubmit(e) {
     };
     
     try {
-        const response = await fetch('admin-backend.php', {
+        const response = await fetch('../php/admin-backend.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -250,7 +250,7 @@ async function handleCreateSubmit(e) {
     };
     
     try {
-        const response = await fetch('admin-backend.php', {
+        const response = await fetch('../php/admin-backend.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -316,7 +316,7 @@ async function generateLevels() {
         
         try {
             // Try to create, if it fails try to update
-            let response = await fetch('admin-backend.php', {
+            let response = await fetch('../php/admin-backend.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -327,7 +327,7 @@ async function generateLevels() {
             if (!result.success) {
                 // Try updating instead
                 data.action = 'updateBuildingConfig';
-                response = await fetch('admin-backend.php', {
+                response = await fetch('../php/admin-backend.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
@@ -359,7 +359,7 @@ async function generateLevels() {
 
 function exportConfigs() {
     // Simple export as JSON
-    fetch('admin-backend.php?action=buildingConfigs')
+    fetch('../php/admin-backend.php?action=buildingConfigs')
         .then(response => response.json())
         .then(data => {
             if (data.buildingConfigs) {

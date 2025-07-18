@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once 'database.php';
+require_once 'php/database.php';
 
 // Simple admin authentication
 $admin_username = 'admin';
@@ -37,8 +37,8 @@ if (!$isLoggedIn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - Browsergame</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
     <div class="admin-login">
@@ -65,6 +65,6 @@ exit;
 }
 
 // Admin dashboard - redirect to overview
-header('Location: admin-overview.php');
+header('Location: php/admin-overview.php');
 exit;
 ?>

@@ -117,12 +117,12 @@ FLUSH PRIVILEGES;
 EOF
     
     # Import database schema
-    if [ -f "database.sql" ]; then
+    if [ -f "../sql/database.sql" ]; then
         log_info "Importiere Datenbankschema / Importing database schema..."
-        mysql -u root -p$DB_ROOT_PASSWORD browsergame < database.sql
+        mysql -u root -p$DB_ROOT_PASSWORD browsergame < ../sql/database.sql
         log_success "Datenbankschema importiert / Database schema imported"
     else
-        log_error "database.sql nicht gefunden! / database.sql not found!"
+        log_error "../sql/database.sql nicht gefunden! / ../sql/database.sql not found!"
         exit 1
     fi
     

@@ -97,28 +97,28 @@ header('Content-Type: text/html; charset=utf-8');
     <?php
     // Check if game can be accessed with a test settlement ID
     $gameUrl = "index.php?settlementId=1";
-    if (file_exists('index.php')) {
-        echo "<div class='check success'>✅ Hauptspiel: <a href='$gameUrl' target='_blank'>Spiel öffnen (Settlement ID: 1)</a></div>";
+    if (file_exists('../index.php')) {
+        echo "<div class='check success'>✅ Hauptspiel: <a href='../index.php?settlementId=1' target='_blank'>Spiel öffnen (Settlement ID: 1)</a></div>";
     } else {
         echo "<div class='check error'>❌ Hauptspiel: index.php nicht gefunden</div>";
     }
 
     // Admin Panel Check
-    if (file_exists('admin.php')) {
-        echo "<div class='check success'>✅ Admin Panel: <a href='admin.php' target='_blank'>Admin Panel öffnen</a></div>";
+    if (file_exists('../admin.php')) {
+        echo "<div class='check success'>✅ Admin Panel: <a href='../admin.php' target='_blank'>Admin Panel öffnen</a></div>";
         echo "<div class='check info'>💡 Standard-Zugangsdaten: admin / admin123</div>";
     } else {
         echo "<div class='check error'>❌ Admin Panel: admin.php nicht gefunden</div>";
     }
 
     // JavaScript and CSS Files
-    if (file_exists('backend.js')) {
+    if (file_exists('../js/backend.js')) {
         echo "<div class='check success'>✅ Frontend JavaScript: backend.js vorhanden</div>";
     } else {
         echo "<div class='check error'>❌ Frontend JavaScript: backend.js fehlt</div>";
     }
 
-    if (file_exists('style.css')) {
+    if (file_exists('../css/style.css')) {
         echo "<div class='check success'>✅ Stylesheet: style.css vorhanden</div>";
     } else {
         echo "<div class='check error'>❌ Stylesheet: style.css fehlt</div>";
@@ -129,8 +129,8 @@ header('Content-Type: text/html; charset=utf-8');
     
     <div class='check info'>
         <strong>Falls alle Checks erfolgreich sind:</strong><br>
-        1. Öffne das <a href="index.php?settlementId=1">Hauptspiel</a><br>
-        2. Logge dich ins <a href="admin.php">Admin Panel</a> ein<br>
+        1. Öffne das <a href="../index.php?settlementId=1">Hauptspiel</a><br>
+        2. Logge dich ins <a href="../admin.php">Admin Panel</a> ein<br>
         3. Erstelle neue Spieler über das Admin Panel oder mit: <code>CALL CreatePlayerWithSettlement('DeinName');</code>
     </div>
     
