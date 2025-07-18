@@ -685,7 +685,7 @@ button {
 
 .trade-column h4 {
     margin: 0 0 15px 0;
-    color: #2c3e50;
+    color: var(--text-color);
     font-size: 16px;
     border-bottom: 1px solid var(--card-border);
     padding-bottom: 8px;
