@@ -294,7 +294,7 @@ function loadMyOffers() {
 
 // Load trade history
 function loadTradeHistory() {
-    fetch(`php/market-backend.php?settlementId=${settlementId}&getHistory=true`)
+    fetch(`php/market-backend.php?settlementId=${settlementId}&getHistory=true&limit=10`)
         .then(response => response.json())
         .then(data => {
             const historyList = document.getElementById('tradeHistory');

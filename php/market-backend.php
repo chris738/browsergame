@@ -426,7 +426,8 @@ try {
             
             echo json_encode($result);
         } elseif (isset($_GET['getHistory'])) {
-            $result = getTradeHistory($database, $settlementId);
+            $limit = intval($_GET['limit'] ?? 10);
+            $result = getTradeHistory($database, $settlementId, $limit);
             
             // Provide fallback data if database failed
             if (!$result['success']) {
