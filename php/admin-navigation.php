@@ -23,6 +23,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         </a>
     </div>
     <div class="nav-user">
+        <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode"><?= Emojis::THEME_DARK ?> Dark</button>
         <span class="user-display"><?= Emojis::USER ?> admin</span>
         <a href="../admin.php?logout" class="logout-btn">Logout</a>
     </div>
