@@ -319,11 +319,19 @@ function fetchBuildingData(settlementId, buildingTypes) {
                         if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s ⏱️`;
                         
                         // Update button text based on current level (Build vs Upgrade)
+                        // Hide button if building is at max level (10)
                         if (buttonElement) {
                             const isFirstBuild = data.building.level === 0;
-                            buttonElement.textContent = isFirstBuild 
-                                ? `Build ${formatNumberWithDots(data.building.nextLevel)}` 
-                                : `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
+                            const isMaxLevel = data.building.level >= 10;
+                            
+                            if (isMaxLevel) {
+                                buttonElement.style.display = 'none';
+                            } else {
+                                buttonElement.style.display = '';
+                                buttonElement.textContent = isFirstBuild 
+                                    ? 'Build' 
+                                    : `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
+                            }
                         }
                         
                         // Store building data for later cost checking
