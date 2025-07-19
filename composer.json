@@ -1,0 +1,25 @@
+{
+    "name": "chris738/browsergame",
+    "description": "Browser-based strategy game",
+    "type": "project",
+    "require": {
+        "php": ">=8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BrowserGame\\": "php/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BrowserGame\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test-coverage": "phpunit --coverage-html coverage"
+    }
+}
