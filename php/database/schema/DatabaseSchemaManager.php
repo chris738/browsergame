@@ -97,35 +97,14 @@ class DatabaseSchemaManager {
 
     /**
      * Apply all critical fixes to prevent bugs like level 5 reset
+     * Note: All fixes have been integrated into the main SQL files
      */
     public function applyAllFixes() {
         try {
-            // List of critical fix files that must always be applied
-            $fixFiles = [
-                'fix.sql',  // Comprehensive fix including level 5 bug fix
-                'fix-process-building-queue.sql',  // Critical ProcessBuildingQueue fix
-                'fix-upgrade-building.sql',  // UpgradeBuilding procedure fix
-                'fix-building-unlock-bug.sql',  // Building unlock fix
-                'fix-starting-buildings.sql',  // Starting buildings fix
-            ];
-            
-            $sqlDir = dirname(__DIR__, 2) . '/sql/';
-            
-            foreach ($fixFiles as $fixFile) {
-                $fixPath = $sqlDir . $fixFile;
-                
-                if (file_exists($fixPath)) {
-                    error_log("Applying fix file: $fixFile");
-                    $this->loadSqlFile($fixPath);
-                } else {
-                    error_log("Fix file not found: $fixFile (this may be expected for some fixes)");
-                }
-            }
-            
-            error_log("All available fix files have been applied");
+            error_log("All critical fixes have been integrated into the main database schema");
             return true;
         } catch (Exception $e) {
-            error_log("Error applying fixes: " . $e->getMessage());
+            error_log("Error in applyAllFixes: " . $e->getMessage());
             return false;
         }
     }

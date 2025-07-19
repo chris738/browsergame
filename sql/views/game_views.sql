@@ -87,8 +87,8 @@ SELECT
             ), 0
         )
     ) AS usedSettlers,
-    -- Max settlers based on Farm level
-    COALESCE(
+    -- Max settlers: base 100 + Farm level bonus
+    (100 + COALESCE(
         (
             SELECT bc.productionRate
             FROM Buildings b
@@ -96,11 +96,11 @@ SELECT
             ON b.buildingType = bc.buildingType AND b.level = bc.level
             WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
             LIMIT 1
-        ), 100
-    ) AS maxSettlers,
+        ), 0
+    )) AS maxSettlers,
     -- Free settlers (maxSettlers - usedSettlers)
     GREATEST(
-        COALESCE(
+        (100 + COALESCE(
             (
                 SELECT bc.productionRate
                 FROM Buildings b
@@ -108,8 +108,8 @@ SELECT
                 ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
                 LIMIT 1
-            ), 100
-        ) - (
+            ), 0
+        )) - (
             COALESCE(
                 (
                     SELECT SUM(totalSettlers) 

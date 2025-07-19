@@ -127,6 +127,7 @@ CREATE TABLE MilitaryUnitConfig (
     costStone FLOAT NOT NULL,
     costOre FLOAT NOT NULL,
     costGold INT NOT NULL DEFAULT 0,
+    costSettlers INT NOT NULL DEFAULT 1,
     trainingTime INT NOT NULL, -- in seconds
     defensePower INT NOT NULL DEFAULT 1,
     attackPower INT NOT NULL DEFAULT 1,
@@ -142,6 +143,14 @@ CREATE TABLE MilitaryTrainingQueue (
     startTime DATETIME NOT NULL,
     endTime DATETIME NOT NULL,
     isActive BOOLEAN NOT NULL DEFAULT FALSE,
+    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
+);
+
+-- Military settler costs tracking table
+CREATE TABLE MilitarySettlerCosts (
+    settlementId INT NOT NULL,
+    totalSettlerCost INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (settlementId),
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
 );
 

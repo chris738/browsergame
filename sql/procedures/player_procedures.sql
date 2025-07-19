@@ -11,44 +11,40 @@ BEGIN
     DECLARE xCoord INT;
     DECLARE yCoord INT;
 
-    -- Zufällige Koordinaten generieren
+    -- Generate random coordinates
     SET xCoord = FLOOR(RAND() * 21) - 10;
     SET yCoord = FLOOR(RAND() * 21) - 10;
 
-    -- Spieler erstellen
+    -- Create player
     INSERT INTO Spieler (name, punkte) VALUES (playerName, 0);
     SET newPlayerId = LAST_INSERT_ID();
 
-    -- Siedlung erstellen
+    -- Create settlement
     INSERT INTO Settlement (name, wood, stone, ore, playerId)
     VALUES (CONCAT(playerName, '_Settlement'), 10000, 10000, 10000, newPlayerId);
     SET newSettlementId = LAST_INSERT_ID();
 
-    -- Siedlung auf Karte platzieren
+    -- Place settlement on map
     INSERT INTO Map (settlementId, xCoordinate, yCoordinate)
     VALUES (newSettlementId, xCoord, yCoord);
 
-    -- Insert necessary building types and levels into BuildingConfig
-    INSERT IGNORE INTO BuildingConfig (buildingType, level) VALUES
-        ('Holzfäller', 1),
-        ('Steinbruch', 1),
-        ('Erzbergwerk', 1),
-        ('Lager', 1),
-        ('Farm', 1),
-        ('Rathaus', 1),
-        ('Markt', 1),
-        ('Kaserne', 1);
-
-    -- Gebäude erstellen - nur Startsiedlung mit Rathaus, Ressourcengebäuden und Lager
+    -- Create initial buildings - Rathaus, resource buildings and storage at level 1
     INSERT INTO Buildings (settlementId, buildingType, level, visable) VALUES
-        (newSettlementId, 'Rathaus', 1, true),
-        (newSettlementId, 'Holzfäller', 1, true),
-        (newSettlementId, 'Steinbruch', 1, true),
-        (newSettlementId, 'Erzbergwerk', 1, true),
-        (newSettlementId, 'Lager', 1, true),
-        (newSettlementId, 'Farm', 1, true),
-        (newSettlementId, 'Markt', 1, true),
-        (newSettlementId, 'Kaserne', 1, true);
+        (newSettlementId, 'Rathaus', 1, true),        -- Town Hall
+        (newSettlementId, 'Holzfäller', 1, true),     -- Lumberjack for wood production
+        (newSettlementId, 'Steinbruch', 1, true),     -- Quarry for stone production
+        (newSettlementId, 'Erzbergwerk', 1, true),    -- Mine for ore production
+        (newSettlementId, 'Lager', 1, true);          -- Storage for resources
+    
+    -- Other buildings (Farm, Market, Kaserne) are NOT created initially
+    -- They will be created when first built by the player
+    -- Market requires Storage Level 5 (will be created when requirements are met)
+    -- Kaserne requires Farm Level 5 (will be created when requirements are met)
+    
+    -- Initialize MilitarySettlerCosts for the new settlement
+    INSERT INTO MilitarySettlerCosts (settlementId, totalSettlerCost) 
+    VALUES (newSettlementId, 0);
+    
 END //
 
 DELIMITER ;
