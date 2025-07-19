@@ -45,3 +45,16 @@ test_*.php
 # Database rebuild temporary files
 rebuild_*.log
 rebuild_*.tmp
+
+# Composer
+/vendor/
+composer.lock
+
+# Testing artifacts
+/tests/results/
+/coverage/
+phpunit.phar
+.phpunit.result.cache
+
+# Environment files for testing
+.env.test
