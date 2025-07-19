@@ -41,6 +41,9 @@ class DatabaseSchemaManager {
 
             // Ensure event scheduler is enabled for automatic resource generation
             $this->ensureEventSchedulerEnabled();
+            
+            // Apply all critical fixes to prevent bugs like level 5 reset
+            $this->applyAllFixes();
 
             $this->schemaInitialized = true;
         } catch (PDOException $e) {
@@ -88,6 +91,82 @@ class DatabaseSchemaManager {
             }
         } catch (PDOException $e) {
             error_log("Error checking event scheduler status: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Apply all critical fixes to prevent bugs like level 5 reset
+     */
+    public function applyAllFixes() {
+        try {
+            // List of critical fix files that must always be applied
+            $fixFiles = [
+                'fix.sql',  // Comprehensive fix including level 5 bug fix
+                'fix-process-building-queue.sql',  // Critical ProcessBuildingQueue fix
+                'fix-upgrade-building.sql',  // UpgradeBuilding procedure fix
+                'fix-building-unlock-bug.sql',  // Building unlock fix
+                'fix-starting-buildings.sql',  // Starting buildings fix
+            ];
+            
+            $sqlDir = dirname(__DIR__, 2) . '/sql/';
+            
+            foreach ($fixFiles as $fixFile) {
+                $fixPath = $sqlDir . $fixFile;
+                
+                if (file_exists($fixPath)) {
+                    error_log("Applying fix file: $fixFile");
+                    $this->loadSqlFile($fixPath);
+                } else {
+                    error_log("Fix file not found: $fixFile (this may be expected for some fixes)");
+                }
+            }
+            
+            error_log("All available fix files have been applied");
+            return true;
+        } catch (Exception $e) {
+            error_log("Error applying fixes: " . $e->getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Load and execute a SQL file
+     */
+    private function loadSqlFile($sqlFilePath) {
+        try {
+            $sql = file_get_contents($sqlFilePath);
+            if ($sql === false) {
+                error_log("Could not read SQL file: $sqlFilePath");
+                return false;
+            }
+            
+            // Filter and split SQL statements
+            $sql = $this->filterSchemaSQL($sql);
+            $statements = $this->splitSqlStatements($sql);
+            
+            foreach ($statements as $statement) {
+                $statement = trim($statement);
+                if (empty($statement)) {
+                    continue;
+                }
+                
+                try {
+                    $stmt = $this->conn->prepare($statement);
+                    if ($stmt) {
+                        $stmt->execute();
+                        $stmt->closeCursor();
+                        $stmt = null;
+                    }
+                } catch (PDOException $e) {
+                    // Log but continue - some statements might fail due to existing objects
+                    error_log("SQL statement failed in $sqlFilePath (continuing): " . $e->getMessage());
+                }
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error loading SQL file $sqlFilePath: " . $e->getMessage());
             return false;
         }
     }
