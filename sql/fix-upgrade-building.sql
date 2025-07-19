@@ -96,12 +96,6 @@ BEGIN
             CALL UpdateQueueTimesAfterTownHallUpgrade(inSettlementId, nextLevel);
         END IF;
 
-        -- If this is the first time building this building (level 1), create the Buildings entry
-        IF currentBuildingLevel = 0 AND nextLevel = 1 THEN
-            INSERT INTO Buildings (settlementId, buildingType, level, visable) 
-            VALUES (inSettlementId, inBuildingType, 0, FALSE);
-        END IF;
-
         -- Note: Building completion is now handled by the ProcessBuildingQueue event
         -- which runs every 5 seconds and processes all completed building upgrades
 

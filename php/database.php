@@ -671,7 +671,7 @@ class Database implements DatabaseInterface {
                     s.wood, 
                     s.stone, 
                     s.ore, 
-                    COALESCE(
+                    GREATEST(10000, COALESCE(
                         (
                             SELECT SUM(bc.productionRate)
                             FROM Buildings b
@@ -680,7 +680,7 @@ class Database implements DatabaseInterface {
                             WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
                         ), 
                         0
-                    ) AS storageCapacity,
+                    )) AS storageCapacity,
                     ss.maxSettlers,
                     ss.freeSettlers
                 FROM 
