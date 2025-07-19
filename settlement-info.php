@@ -20,21 +20,52 @@ $targetPlayerId = null;
 
 try {
     if ($database->isConnected()) {
-        // Get all settlements to find the current player and target settlement info
+        // Get all settlements to find settlement info and coordinates
         $allSettlements = $database->getAllSettlements();
         
         foreach ($allSettlements as $settlement) {
-            if ($settlement['settlementId'] == $currentSettlementId) {
-                $currentPlayerId = $settlement['playerId'] ?? null;
-            }
             if ($settlement['settlementId'] == $settlementId) {
                 $settlementInfo = $settlement;
                 $targetPlayerId = $settlement['playerId'] ?? null;
+                break;
+            }
+        }
+        
+        if ($settlementInfo) {
+            // Fix Issue #92 part 2: Improve ownership detection  
+            // For single-player scenarios or when currentSettlementId is not provided,
+            // assume we're viewing our own settlement if it belongs to the main player (ID 1)
+            $currentPlayerId = 1; // Default to main player in demo mode
+            
+            if ($currentSettlementId) {
+                // If currentSettlementId is explicitly provided, try to get that player's ID
+                foreach ($allSettlements as $settlement) {
+                    if ($settlement['settlementId'] == $currentSettlementId) {
+                        $currentPlayerId = $settlement['playerId'] ?? 1;
+                        break;
+                    }
+                }
+            }
+            
+            // Fix Issue #92 part 3: Get coordinates from Map table
+            $mapData = $database->getMap();
+            $coordinatesFound = false;
+            foreach ($mapData as $mapEntry) {
+                if ($mapEntry['settlementId'] == $settlementId) {
+                    $settlementInfo['xCoordinate'] = $mapEntry['xCoordinate'];
+                    $settlementInfo['yCoordinate'] = $mapEntry['yCoordinate'];
+                    $coordinatesFound = true;
+                    break;
+                }
+            }
+            if (!$coordinatesFound) {
+                $settlementInfo['xCoordinate'] = '';
+                $settlementInfo['yCoordinate'] = '';
             }
         }
         
         // Get trade history between the current player and target player
-        if ($currentPlayerId && $targetPlayerId) {
+        if ($currentPlayerId && $targetPlayerId && $currentPlayerId != $targetPlayerId) {
             $tradeHistory = $database->getTradeHistoryBetweenPlayers($currentPlayerId, $targetPlayerId);
         }
     }
@@ -60,6 +91,9 @@ $isOwnSettlement = ($currentPlayerId && $targetPlayerId && $currentPlayerId == $
     <title>Settlement Info - <?= htmlspecialchars($settlementInfo['name']) ?></title>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/theme-switcher.js"></script>
+    <script src="js/emoji-config.js"></script>
+    <script src="js/translations.js"></script>
+    <script src="js/backend.js" defer></script>
 </head>
 <body>
     <?php include 'php/navigation.php'; ?>
@@ -154,5 +188,23 @@ $isOwnSettlement = ($currentPlayerId && $targetPlayerId && $currentPlayerId == $
             </div>
         </div>
     </main>
+
+    <script>
+        // Initialize data loading for settlement-info page
+        const currentSettlementId = <?= json_encode($settlementId) ?>;
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load initial data
+            fetchResources(currentSettlementId);
+            fetchPlayerInfo(currentSettlementId);
+            getRegen(currentSettlementId);
+            getSettlementName(currentSettlementId);
+            
+            // Set up periodic updates for resources
+            setInterval(() => {
+                fetchResources(currentSettlementId);
+                getRegen(currentSettlementId);
+            }, 1000);
+        });
+    </script>
 </body>
 </html>
