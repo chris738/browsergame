@@ -212,13 +212,12 @@ class AdminRepository {
         }
         
         try {
-            $sql = "SELECT p.name FROM Spieler p 
-                    INNER JOIN Settlement s ON p.playerId = s.playerId 
-                    WHERE s.settlementId = ?";
+            // Use SettlementResources view for simplified access
+            $sql = "SELECT playerName FROM SettlementResources WHERE settlementId = ?";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$settlementId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result ? $result['name'] : 'Unknown Player';
+            return $result ? $result['playerName'] : 'Unknown Player';
         } catch (Exception $e) {
             return 'Unknown Player';
         }
@@ -231,9 +230,8 @@ class AdminRepository {
         }
         
         try {
-            $sql = "SELECT p.playerId FROM Spieler p 
-                    INNER JOIN Settlement s ON p.playerId = s.playerId 
-                    WHERE s.settlementId = ?";
+            // Use SettlementResources view for simplified access
+            $sql = "SELECT playerId FROM SettlementResources WHERE settlementId = ?";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$settlementId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -255,13 +253,12 @@ class AdminRepository {
         }
         
         try {
-            $sql = "SELECT p.gold FROM Spieler p 
-                    INNER JOIN Settlement s ON p.playerId = s.playerId 
-                    WHERE s.settlementId = ?";
+            // Use SettlementResources view for simplified access
+            $sql = "SELECT playerGold FROM SettlementResources WHERE settlementId = ?";
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$settlementId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $result ? $result['gold'] : 0;
+            return $result ? $result['playerGold'] : 0;
         } catch (Exception $e) {
             return 0;
         }

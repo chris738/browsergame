@@ -33,31 +33,23 @@ class ResourceRepository {
         }
 
         try {
+            // Use the enhanced SettlementResources view for simplified access
             $sql = "
                 SELECT 
-                    s.wood, 
-                    s.stone, 
-                    s.ore, 
-                    GREATEST(10000, COALESCE(
-                        (
-                            SELECT SUM(bc.productionRate)
-                            FROM Buildings b
-                            INNER JOIN BuildingConfig bc 
-                            ON b.buildingType = bc.buildingType AND b.level = bc.level
-                            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
-                        ), 
-                        0
-                    )) AS storageCapacity,
+                    sr.wood, 
+                    sr.stone, 
+                    sr.ore, 
+                    sr.storageCapacity,
                     ss.maxSettlers,
                     ss.freeSettlers
                 FROM 
-                    Settlement s
+                    SettlementResources sr
                 LEFT JOIN 
                     SettlementSettlers ss
                 ON 
-                    s.settlementId = ss.settlementId
+                    sr.settlementId = ss.settlementId
                 WHERE 
-                    s.settlementId = :settlementId";
+                    sr.settlementId = :settlementId";
             
             $stmt = $this->conn->prepare($sql);
             $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
@@ -94,36 +86,14 @@ class ResourceRepository {
             ];
         }
 
+        // Use the enhanced SettlementResources view that includes production rates
         $sql = "
-        SELECT 
-            -- Get the total production rate for Holzfäller (Wood)
-            (
-                SELECT SUM(bc.productionRate)
-                FROM Buildings b
-                INNER JOIN BuildingConfig bc 
-                ON b.buildingType = bc.buildingType AND b.level = bc.level
-                WHERE b.settlementId = :settlementId AND b.buildingType = 'Holzfäller'
-            ) AS woodProductionRate,
-
-            -- Get the total production rate for Steinbruch (Stone)
-            (
-                SELECT SUM(bc.productionRate)
-                FROM Buildings b
-                INNER JOIN BuildingConfig bc 
-                ON b.buildingType = bc.buildingType AND b.level = bc.level
-                WHERE b.settlementId = :settlementId AND b.buildingType = 'Steinbruch'
-            ) AS stoneProductionRate,
-
-            -- Get the total production rate for Erzbergwerk (Ore)
-            (
-                SELECT SUM(bc.productionRate)
-                FROM Buildings b
-                INNER JOIN BuildingConfig bc 
-                ON b.buildingType = bc.buildingType AND b.level = bc.level
-                WHERE b.settlementId = :settlementId AND b.buildingType = 'Erzbergwerk'
-            ) AS oreProductionRate
-        FROM Settlement s
-        WHERE s.settlementId = :settlementId";
+            SELECT 
+                woodProduction AS woodProductionRate,
+                stoneProduction AS stoneProductionRate,
+                oreProduction AS oreProductionRate
+            FROM SettlementResources
+            WHERE settlementId = :settlementId";
         
         $stmt = $this->conn->prepare($sql);
         $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
