@@ -671,7 +671,7 @@ class Database implements DatabaseInterface {
                     s.wood, 
                     s.stone, 
                     s.ore, 
-                    COALESCE(
+                    GREATEST(10000, COALESCE(
                         (
                             SELECT SUM(bc.productionRate)
                             FROM Buildings b
@@ -680,7 +680,7 @@ class Database implements DatabaseInterface {
                             WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
                         ), 
                         0
-                    ) AS storageCapacity,
+                    )) AS storageCapacity,
                     ss.maxSettlers,
                     ss.freeSettlers
                 FROM 
@@ -741,6 +741,7 @@ class Database implements DatabaseInterface {
         }
 
         try {
+            // First check if the building exists in the Buildings table
             $sql = "
                 SELECT 
                     b.currentLevel,
@@ -761,7 +762,42 @@ class Database implements DatabaseInterface {
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$result) {
-                throw new Exception("Gebäude '$buildingType' im Settlement '$settlementId' nicht gefunden.");
+                // Building doesn't exist yet - return level 0 with costs for level 1
+                $configSql = "SELECT costWood, costStone, costOre, settlers, buildTime 
+                             FROM BuildingConfig 
+                             WHERE buildingType = :buildingType AND level = 1";
+                $configStmt = $this->conn->prepare($configSql);
+                $configStmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+                $configStmt->execute();
+                $config = $configStmt->fetch(PDO::FETCH_ASSOC);
+                
+                if (!$config) {
+                    throw new Exception("Gebäude-Konfiguration für '$buildingType' Level 1 nicht gefunden.");
+                }
+                
+                // Apply Town Hall build time reduction
+                $townHallLevel = 0;
+                $thSql = "SELECT level FROM Buildings WHERE settlementId = :settlementId AND buildingType = 'Rathaus'";
+                $thStmt = $this->conn->prepare($thSql);
+                $thStmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+                $thStmt->execute();
+                $thResult = $thStmt->fetch(PDO::FETCH_ASSOC);
+                if ($thResult) {
+                    $townHallLevel = $thResult['level'];
+                }
+                
+                $buildTimeReduction = max(0.1, 1.0 - ($townHallLevel * 0.05));
+                $adjustedBuildTime = round($config['buildTime'] * $buildTimeReduction);
+                
+                return [
+                    'currentLevel' => 0,
+                    'nextLevel' => 1,
+                    'costWood' => $config['costWood'],
+                    'costStone' => $config['costStone'],
+                    'costOre' => $config['costOre'],
+                    'settlers' => $config['settlers'],
+                    'buildTime' => $adjustedBuildTime
+                ];
             }
             
             // Validate output data
