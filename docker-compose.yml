@@ -28,12 +28,13 @@ services:
       - ./sql/database.sql:/docker-entrypoint-initdb.d/01-init.sql
       - ./sql/add-kaserne.sql:/docker-entrypoint-initdb.d/02-add-kaserne.sql
       - ./sql/military-units.sql:/docker-entrypoint-initdb.d/03-military-units.sql
-      - ./sql/procedures/building_procedures.sql:/docker-entrypoint-initdb.d/04-building-procedures.sql
-      - ./sql/views/game_views.sql:/docker-entrypoint-initdb.d/05-game-views.sql
-      - ./sql/views/enhanced_views.sql:/docker-entrypoint-initdb.d/06-enhanced-views.sql
-      - ./sql/schema-fixes.sql:/docker-entrypoint-initdb.d/07-schema-fixes.sql
-      - ./sql/init-player.sql:/docker-entrypoint-initdb.d/08-init-player.sql
-      - ./sql/enable-events.sql:/docker-entrypoint-initdb.d/09-enable-events.sql
+      - ./sql/procedures/military_procedures.sql:/docker-entrypoint-initdb.d/04-military-procedures.sql
+      - ./sql/procedures/building_procedures.sql:/docker-entrypoint-initdb.d/05-building-procedures.sql
+      - ./sql/views/game_views.sql:/docker-entrypoint-initdb.d/06-game-views.sql
+      - ./sql/views/enhanced_views.sql:/docker-entrypoint-initdb.d/07-enhanced-views.sql
+      - ./sql/schema-fixes.sql:/docker-entrypoint-initdb.d/08-schema-fixes.sql
+      - ./sql/init-player.sql:/docker-entrypoint-initdb.d/09-init-player.sql
+      - ./sql/enable-events.sql:/docker-entrypoint-initdb.d/10-enable-events.sql
       - ./docker/mariadb.cnf:/etc/mysql/conf.d/browsergame.cnf
       - db_data:/var/lib/mysql
     networks:
