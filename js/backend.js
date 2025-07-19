@@ -33,6 +33,67 @@ function updateCostColors(resources) {
             }
         });
     });
+    
+    // Update button states based on resource availability
+    updateBuildingButtonStates(resources);
+}
+
+function updateBuildingButtonStates(resources) {
+    // Find all upgrade buttons and check if they can be enabled
+    const upgradeButtons = document.querySelectorAll('[id$="upgradeButton"]');
+    
+    upgradeButtons.forEach(button => {
+        const costWood = parseInt(button.getAttribute('data-cost-wood')) || 0;
+        const costStone = parseInt(button.getAttribute('data-cost-stone')) || 0;
+        const costOre = parseInt(button.getAttribute('data-cost-ore')) || 0;
+        const costSettlers = parseInt(button.getAttribute('data-cost-settlers')) || 0;
+        
+        // Check if all resources are sufficient
+        const canAfford = resources.wood >= costWood &&
+                         resources.stone >= costStone &&
+                         resources.ore >= costOre &&
+                         resources.freeSettlers >= costSettlers;
+        
+        if (canAfford) {
+            button.disabled = false;
+            button.classList.remove('insufficient-resources');
+        } else {
+            button.disabled = true;
+            button.classList.add('insufficient-resources');
+        }
+    });
+}
+
+function updateTabVisibility() {
+    // Check if Market building exists and has level > 0
+    const marketLevelElement = document.getElementById('markt');
+    const marketLevel = marketLevelElement ? parseInt(marketLevelElement.textContent) || 0 : 0;
+    
+    // Check if Barracks building exists and has level > 0
+    const barrackLevelElement = document.getElementById('kaserne');
+    const barrackLevel = barrackLevelElement ? parseInt(barrackLevelElement.textContent) || 0 : 0;
+    
+    // Find the Trade and Military tab links
+    const tradeTab = document.querySelector('a[href*="market.php"]');
+    const militaryTab = document.querySelector('a[href*="kaserne.php"]');
+    
+    // Show/hide Trade tab based on Market building level
+    if (tradeTab) {
+        if (marketLevel > 0) {
+            tradeTab.style.display = '';
+        } else {
+            tradeTab.style.display = 'none';
+        }
+    }
+    
+    // Show/hide Military tab based on Barracks building level
+    if (militaryTab) {
+        if (barrackLevel > 0) {
+            militaryTab.style.display = '';
+        } else {
+            militaryTab.style.display = 'none';
+        }
+    }
 }
 
 function getRegen(settlementId) {
@@ -207,7 +268,7 @@ function fetchBuildings(settlementId) {
                 // Fallback to default building types from centralized configuration
                 const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
                     window.getDefaultBuildingTypes().map(b => b.buildingType) :
-                    ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+                    ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Markt', 'Kaserne'];
                 fetchBuildingData(settlementId, defaultBuildingTypes);
             }
         })
@@ -216,7 +277,7 @@ function fetchBuildings(settlementId) {
             // Fallback to default building types from centralized configuration
             const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
                 window.getDefaultBuildingTypes().map(b => b.buildingType) :
-                ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm'];
+                ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Markt', 'Kaserne'];
             fetchBuildingData(settlementId, defaultBuildingTypes);
         });
 }
@@ -256,7 +317,22 @@ function fetchBuildingData(settlementId, buildingTypes) {
                         if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} 🪨`;
                         if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} 👥`;
                         if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s ⏱️`;
-                        if (buttonElement) buttonElement.textContent = `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
+                        
+                        // Update button text based on current level (Build vs Upgrade)
+                        if (buttonElement) {
+                            const isFirstBuild = data.building.level === 0;
+                            buttonElement.textContent = isFirstBuild 
+                                ? `Build ${formatNumberWithDots(data.building.nextLevel)}` 
+                                : `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
+                        }
+                        
+                        // Store building data for later cost checking
+                        if (buttonElement) {
+                            buttonElement.setAttribute('data-cost-wood', data.building.costWood);
+                            buttonElement.setAttribute('data-cost-stone', data.building.costStone);
+                            buttonElement.setAttribute('data-cost-ore', data.building.costOre);
+                            buttonElement.setAttribute('data-cost-settlers', data.building.costSettlers);
+                        }
                     } else {
                         console.warn(`No building data returned for ${buildingType}, response:`, data);
                         // If building data is missing, ensure level shows 0 explicitly
@@ -273,6 +349,8 @@ function fetchBuildingData(settlementId, buildingTypes) {
                         getRegen(settlementId);
                         // Trigger cost color update after all buildings are loaded
                         fetchResourcesForColorUpdate(settlementId);
+                        // Update tab visibility based on building levels
+                        updateTabVisibility();
                     }
                 })
                 .catch(error => {
@@ -289,6 +367,8 @@ function fetchBuildingData(settlementId, buildingTypes) {
                         getRegen(settlementId);
                         // Trigger cost color update after all buildings are loaded
                         fetchResourcesForColorUpdate(settlementId);
+                        // Update tab visibility based on building levels
+                        updateTabVisibility();
                     }
                 });
         }, index * 100); // 100ms delay between each request
