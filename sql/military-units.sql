@@ -3,26 +3,35 @@
 
 USE browsergame;
 
--- Table: MilitaryUnitConfig - Configuration for military unit types
-CREATE TABLE IF NOT EXISTS MilitaryUnitConfig (
-    unitType ENUM('guards', 'soldiers', 'archers', 'cavalry') NOT NULL,
-    costWood FLOAT NOT NULL,
-    costStone FLOAT NOT NULL,
-    costOre FLOAT NOT NULL,
-    trainingTime INT NOT NULL, -- in seconds
-    attackPower INT NOT NULL DEFAULT 0,
-    defensePower INT NOT NULL DEFAULT 0,
-    rangedPower INT NOT NULL DEFAULT 0,
-    speed INT NOT NULL DEFAULT 1,
-    PRIMARY KEY (unitType)
-);
+-- Add speed column to existing MilitaryUnitConfig table if it doesn't exist
+SET @sql = (SELECT IF(
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
+     WHERE table_name = 'MilitaryUnitConfig' 
+     AND column_name = 'speed' 
+     AND table_schema = DATABASE()) = 0,
+    'ALTER TABLE MilitaryUnitConfig ADD COLUMN speed INT NOT NULL DEFAULT 1',
+    'SELECT ''speed column already exists'''));
 
--- Insert military unit configurations
-INSERT INTO MilitaryUnitConfig (unitType, costWood, costStone, costOre, trainingTime, attackPower, defensePower, rangedPower, speed) VALUES
-('guards', 50, 30, 20, 30, 0, 2, 0, 1),
-('soldiers', 80, 60, 40, 60, 3, 1, 0, 1),
-('archers', 100, 40, 60, 90, 0, 1, 4, 1),
-('cavalry', 150, 100, 120, 180, 5, 2, 0, 2);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+-- Insert military unit configurations (update existing or ignore if exists)
+INSERT INTO MilitaryUnitConfig (unitType, level, costWood, costStone, costOre, costGold, trainingTime, defensePower, attackPower, rangedPower, speed) VALUES
+('guards', 1, 50, 30, 20, 10, 30, 2, 0, 0, 1),
+('soldiers', 1, 80, 60, 40, 25, 60, 1, 3, 0, 1),
+('archers', 1, 100, 40, 60, 20, 90, 1, 0, 4, 1),
+('cavalry', 1, 150, 100, 120, 50, 180, 2, 5, 0, 2)
+ON DUPLICATE KEY UPDATE
+    costWood = VALUES(costWood),
+    costStone = VALUES(costStone),
+    costOre = VALUES(costOre),
+    costGold = VALUES(costGold),
+    trainingTime = VALUES(trainingTime),
+    defensePower = VALUES(defensePower),
+    attackPower = VALUES(attackPower),
+    rangedPower = VALUES(rangedPower),
+    speed = VALUES(speed);
 
 -- Table: MilitaryUnits - Store unit counts per settlement
 CREATE TABLE IF NOT EXISTS MilitaryUnits (

@@ -798,10 +798,10 @@ DO
 BEGIN
     -- Update military units with completed training
     INSERT INTO MilitaryUnits (settlementId, unitType, count)
-    SELECT settlementId, unitType, count
-    FROM MilitaryTrainingQueue
-    WHERE endTime <= NOW()
-    ON DUPLICATE KEY UPDATE count = count + VALUES(count);
+    SELECT mtq.settlementId, mtq.unitType, mtq.count
+    FROM MilitaryTrainingQueue mtq
+    WHERE mtq.endTime <= NOW()
+    ON DUPLICATE KEY UPDATE count = MilitaryUnits.count + VALUES(count);
 
     -- Delete completed training queue entries
     DELETE FROM MilitaryTrainingQueue WHERE endTime <= NOW();
