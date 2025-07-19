@@ -207,22 +207,191 @@
     <script>
         // Military unit training functionality
         function trainUnit(unitType, settlementId) {
-            // For now, just show an alert - this would connect to backend later
-            alert(`Training ${unitType} in settlement ${settlementId}. This feature will be fully implemented in the next update!`);
+            // Check if current player owns this settlement
+            fetch(`../php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
+                .then(response => response.json())
+                .then(ownerData => {
+                    const settlementOwnerId = ownerData.playerInfo ? ownerData.playerInfo.playerId : null;
+                    const currentPlayerId = window.currentPlayerId || null;
+                    
+                    // Check ownership
+                    if (currentPlayerId !== null && settlementOwnerId !== null && currentPlayerId !== settlementOwnerId) {
+                        alert('You can only train units in your own settlement. Switch to your settlement first.');
+                        return;
+                    }
+                    
+                    // Proceed with training 1 unit
+                    fetch('../php/backend.php?settlementId=' + settlementId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            action: 'trainUnit',
+                            unitType: unitType,
+                            count: 1,
+                            currentPlayerId: currentPlayerId 
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Training started for ' + unitType + '!');
+                            // Refresh the page data
+                            loadMilitaryData(settlementId);
+                            fetchResources(settlementId);
+                        } else {
+                            alert('Training failed: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error training unit:', error);
+                        alert('Error training unit. Please try again.');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error checking settlement ownership:', error);
+                    alert('Error checking settlement ownership. Please try again.');
+                });
         }
         
-        // Initialize military stats (placeholder)
-        document.addEventListener('DOMContentLoaded', function() {
-            // These would be loaded from the backend in a full implementation
-            document.getElementById('guards-count').textContent = '0';
-            document.getElementById('soldiers-count').textContent = '0';
-            document.getElementById('archers-count').textContent = '0';
-            document.getElementById('cavalry-count').textContent = '0';
+        // Load military data from backend
+        function loadMilitaryData(settlementId) {
+            // Load unit counts
+            fetch(`../php/backend.php?settlementId=${settlementId}&getMilitaryUnits=true`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.militaryUnits && data.militaryUnits.units) {
+                        const units = data.militaryUnits.units;
+                        document.getElementById('guards-count').textContent = units.guards || 0;
+                        document.getElementById('soldiers-count').textContent = units.soldiers || 0;
+                        document.getElementById('archers-count').textContent = units.archers || 0;
+                        document.getElementById('cavalry-count').textContent = units.cavalry || 0;
+                    }
+                })
+                .catch(error => console.error('Error loading military units:', error));
+                
+            // Load military stats
+            fetch(`../php/backend.php?settlementId=${settlementId}&getMilitaryStats=true`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.militaryStats && data.militaryStats.stats) {
+                        const stats = data.militaryStats.stats;
+                        document.getElementById('total-defense').textContent = stats.totalDefense || 0;
+                        document.getElementById('total-attack').textContent = stats.totalAttack || 0;
+                        document.getElementById('total-units').textContent = stats.totalUnits || 0;
+                        document.getElementById('ranged-power').textContent = stats.rangedPower || 0;
+                    }
+                })
+                .catch(error => console.error('Error loading military stats:', error));
+                
+            // Load training queue
+            fetch(`../php/backend.php?settlementId=${settlementId}&getMilitaryQueue=true`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.militaryQueue && data.militaryQueue.queue) {
+                        updateMilitaryQueue(data.militaryQueue.queue);
+                    }
+                })
+                .catch(error => console.error('Error loading military queue:', error));
+        }
+        
+        // Update military training queue display
+        function updateMilitaryQueue(queue) {
+            const tbody = document.getElementById('buildingQueueBody');
+            tbody.innerHTML = '';
             
-            document.getElementById('total-defense').textContent = '0';
-            document.getElementById('total-attack').textContent = '0';
-            document.getElementById('total-units').textContent = '0';
-            document.getElementById('ranged-power').textContent = '0';
+            if (queue.length === 0) {
+                const row = tbody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 4;
+                cell.textContent = 'No units currently in training';
+                cell.style.textAlign = 'center';
+                cell.style.fontStyle = 'italic';
+                return;
+            }
+            
+            queue.forEach(item => {
+                const row = tbody.insertRow();
+                
+                // Unit type
+                const unitCell = row.insertCell(0);
+                unitCell.textContent = `${item.count}x ${item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1)}`;
+                
+                // Level (not applicable for units, show count instead)
+                const levelCell = row.insertCell(1);
+                levelCell.textContent = `Count: ${item.count}`;
+                
+                // Progress
+                const progressCell = row.insertCell(2);
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                progressBar.style.width = '100%';
+                progressBar.style.backgroundColor = '#e0e0e0';
+                progressBar.style.borderRadius = '4px';
+                progressBar.style.height = '20px';
+                progressBar.style.position = 'relative';
+                
+                const progressFill = document.createElement('div');
+                progressFill.style.width = `${Math.max(0, Math.min(100, item.completionPercentage || 0))}%`;
+                progressFill.style.backgroundColor = '#4CAF50';
+                progressFill.style.height = '100%';
+                progressFill.style.borderRadius = '4px';
+                progressFill.style.transition = 'width 0.3s ease';
+                
+                const progressText = document.createElement('span');
+                progressText.style.position = 'absolute';
+                progressText.style.left = '50%';
+                progressText.style.top = '50%';
+                progressText.style.transform = 'translate(-50%, -50%)';
+                progressText.style.fontSize = '12px';
+                progressText.style.fontWeight = 'bold';
+                progressText.textContent = `${Math.round(item.completionPercentage || 0)}%`;
+                
+                progressBar.appendChild(progressFill);
+                progressBar.appendChild(progressText);
+                progressCell.appendChild(progressBar);
+                
+                // End time
+                const timeCell = row.insertCell(3);
+                const endTime = new Date(item.endTime);
+                timeCell.textContent = endTime.toLocaleString();
+                
+                // Add remaining time
+                if (item.remainingTimeSeconds > 0) {
+                    const remainingDiv = document.createElement('div');
+                    remainingDiv.style.fontSize = '12px';
+                    remainingDiv.style.color = '#666';
+                    const minutes = Math.floor(item.remainingTimeSeconds / 60);
+                    const seconds = item.remainingTimeSeconds % 60;
+                    remainingDiv.textContent = `(${minutes}m ${seconds}s remaining)`;
+                    timeCell.appendChild(remainingDiv);
+                }
+            });
+        }
+        
+        // Initialize military data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get settlement ID from URL or other source
+            const urlParams = new URLSearchParams(window.location.search);
+            const settlementId = urlParams.get('settlementId');
+            
+            if (settlementId) {
+                loadMilitaryData(settlementId);
+                // Refresh military data every 5 seconds
+                setInterval(() => loadMilitaryData(settlementId), 5000);
+            } else {
+                // Fallback: Initialize with zeros if no settlement ID
+                document.getElementById('guards-count').textContent = '0';
+                document.getElementById('soldiers-count').textContent = '0';
+                document.getElementById('archers-count').textContent = '0';
+                document.getElementById('cavalry-count').textContent = '0';
+                
+                document.getElementById('total-defense').textContent = '0';
+                document.getElementById('total-attack').textContent = '0';
+                document.getElementById('total-units').textContent = '0';
+                document.getElementById('ranged-power').textContent = '0';
+            }
         });
     </script>
 </body>
