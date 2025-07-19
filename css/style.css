@@ -551,6 +551,56 @@ button {
     cursor: grabbing;
 }
 
+/* Coordinate labels */
+.map-x-coordinates {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1600px;
+    height: 25px;
+    z-index: 10;
+    background-color: rgba(44, 62, 80, 0.95);
+    border-bottom: 1px solid #34495e;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.map-y-coordinates {
+    position: absolute;
+    top: 25px;
+    left: 0;
+    width: 30px;
+    height: 1600px;
+    z-index: 10;
+    background-color: rgba(44, 62, 80, 0.95);
+    border-right: 1px solid #34495e;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.2);
+}
+
+.coordinate-label {
+    position: absolute;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ecf0f1;
+    text-align: center;
+    user-select: none;
+    pointer-events: none;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+.x-label {
+    top: 5px;
+    transform: translateX(-50%);
+    width: 30px;
+}
+
+.y-label {
+    left: 5px;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 15px;
+    line-height: 15px;
+}
+
 .map-grid {
     width: 1600px;
     height: 1600px;
@@ -564,6 +614,9 @@ button {
     background-size: 40px 40px;
     background-position: 0 0, 0 20px, 20px -20px, -20px 0px;
     background-color: #2ecc71;
+    /* Offset the map grid to account for coordinate labels */
+    margin-top: 25px;
+    margin-left: 30px;
 }
 
 .settlement-icon {
