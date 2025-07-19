@@ -13,7 +13,7 @@ ALTER TABLE BuildingQueue MODIFY COLUMN buildingType ENUM('Holzfäller', 'Steinb
 ALTER TABLE Buildings MODIFY COLUMN buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL;
 
 -- Add Kaserne configuration data for all levels (1-50)
-INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, settlers, productionRate, buildTime)
+INSERT IGNORE INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, settlers, productionRate, buildTime)
 SELECT 
     'Kaserne' as buildingType,
     level,
@@ -28,7 +28,7 @@ WHERE buildingType = 'Rathaus'  -- Use Town Hall as base template
 ORDER BY level;
 
 -- Add Kaserne building to all existing settlements
-INSERT INTO Buildings (settlementId, buildingType, level, visable)
+INSERT IGNORE INTO Buildings (settlementId, buildingType, level, visable)
 SELECT settlementId, 'Kaserne', 1, false
 FROM Buildings 
 WHERE buildingType = 'Rathaus'
