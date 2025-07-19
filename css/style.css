@@ -51,8 +51,15 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s ease, color 0.3s ease;
-    /* Add padding to account for fixed navigation with 3 rows */
-    padding-top: 140px;
+    /* Reduced padding - navigation is more compact now */
+    padding-top: 90px;
+}
+
+/* Adjust padding on small screens where fallback row is shown */
+@media (max-width: 900px) {
+    body {
+        padding-top: 130px;
+    }
 }
 
 .navigation {
@@ -72,7 +79,7 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Top row: Player controls and settlement name (compact) */
+/* Top row: Settlement name, tabs (inline), and user controls */
 .nav-top-row {
     display: flex;
     justify-content: space-between;
@@ -81,6 +88,32 @@ body {
     background-color: var(--nav-bg);
     border-bottom: 1px solid var(--nav-border);
     min-height: 35px;
+    gap: 15px;
+}
+
+/* Inline tabs in top row */
+.nav-tabs-inline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1;
+    justify-content: center;
+}
+
+/* Hide fallback tabs row by default */
+.nav-tabs-fallback {
+    display: none !important;
+}
+
+/* Show fallback row on small screens */
+@media (max-width: 900px) {
+    .nav-tabs-inline {
+        display: none !important;
+    }
+    
+    .nav-tabs-fallback {
+        display: flex !important;
+    }
 }
 
 .settlement-name-compact {
@@ -169,22 +202,33 @@ body {
 .nav-link {
     color: var(--nav-text);
     text-decoration: none;
-    padding: 12px 20px;
+    padding: 8px 15px;
     display: block;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 1px;
     transition: background-color 0.3s, color 0.3s;
     border-bottom: 3px solid transparent;
-    font-size: 13px;
+    font-size: 12px;
+    border-radius: 3px 3px 0 0;
 }
 
-.nav-link:hover {
+/* Inline tab links have slightly different styling */
+.nav-tabs-inline .nav-link {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 3px;
+    border-bottom: 2px solid transparent;
+}
+
+.nav-tabs-inline .nav-link:hover,
+.nav-tabs-fallback .nav-link:hover {
     background-color: var(--nav-hover);
     color: var(--nav-active);
 }
 
-.nav-link.active {
+.nav-tabs-inline .nav-link.active,
+.nav-tabs-fallback .nav-link.active {
     background-color: var(--nav-hover);
     color: var(--nav-active);
     border-bottom-color: var(--nav-active);
