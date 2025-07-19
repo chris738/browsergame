@@ -117,15 +117,15 @@ if (empty($mapData)) {
                     ?>
                     <div 
                         class="<?= $settlementClass ?> <?= $statusClass ?>" 
-                        data-x="<?= $settlement['xCoordinate'] ?>"
-                        data-y="<?= $settlement['yCoordinate'] ?>"
+                        data-x="<?= isset($settlement['xCoordinate']) ? (int)$settlement['xCoordinate'] : 0 ?>"
+                        data-y="<?= isset($settlement['yCoordinate']) ? (int)$settlement['yCoordinate'] : 0 ?>"
                         data-settlement-id="<?= $settlement['settlementId'] ?>"
                         data-settlement-name="<?= htmlspecialchars($settlement['name']) ?>"
                         data-player-name="<?= htmlspecialchars($settlement['playerName']) ?>"
                         data-player-id="<?= $settlement['playerId'] ?>"
                         data-is-own="<?= ($settlement['playerId'] == $currentPlayerId) ? 'true' : 'false' ?>"
                         data-is-current="<?= ($settlement['settlementId'] == $currentSettlementId) ? 'true' : 'false' ?>"
-                        title="<?= htmlspecialchars($settlement['name']) ?> (<?= $settlement['xCoordinate'] ?>, <?= $settlement['yCoordinate'] ?>) - Player: <?= htmlspecialchars($settlement['playerName']) ?>"
+                        title="<?= htmlspecialchars($settlement['name']) ?> (<?= isset($settlement['xCoordinate']) ? $settlement['xCoordinate'] : 0 ?>, <?= isset($settlement['yCoordinate']) ? $settlement['yCoordinate'] : 0 ?>) - Player: <?= htmlspecialchars($settlement['playerName']) ?>"
                         onclick="showSettlementInfo(this)">
                         <div class="settlement-base">🏘️</div>
                         <div class="status-indicator"></div>
@@ -209,7 +209,8 @@ if (empty($mapData)) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label x-label';
                 label.textContent = x;
-                const pixelX = (x + 20) * 40 + 20; // Same calculation as settlement positioning
+                // Calculate position relative to the visible area, accounting for grid offset
+                const pixelX = (x + 20) * 40 + 30 + 20; // grid offset + center in cell
                 label.style.left = pixelX + 'px';
                 xCoordinatesContainer.appendChild(label);
             }
@@ -219,7 +220,8 @@ if (empty($mapData)) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label y-label';
                 label.textContent = y;
-                const pixelY = (20 - y) * 40 + 20; // Same calculation as settlement positioning
+                // Calculate position relative to the visible area, accounting for grid offset
+                const pixelY = (20 - y) * 40 + 25 + 20; // grid offset + center in cell
                 label.style.top = pixelY + 'px';
                 yCoordinatesContainer.appendChild(label);
             }
@@ -228,14 +230,43 @@ if (empty($mapData)) {
         // Position settlements based on coordinates
         function positionSettlements() {
             const settlements = document.querySelectorAll('.settlement-icon');
+            const occupiedCells = new Set(); // Track occupied grid cells
+            
             settlements.forEach(settlement => {
-                const x = parseInt(settlement.dataset.x);
-                const y = parseInt(settlement.dataset.y);
+                const xAttr = settlement.dataset.x;
+                const yAttr = settlement.dataset.y;
+                
+                // Parse coordinates with better error handling
+                const x = xAttr ? parseInt(xAttr) : 0;
+                const y = yAttr ? parseInt(yAttr) : 0;
+                
+                // Validate coordinates
+                if (isNaN(x) || isNaN(y)) {
+                    console.warn(`Invalid coordinates for settlement: x=${xAttr}, y=${yAttr}. Using (0,0) as fallback.`);
+                    settlement.dataset.x = '0';
+                    settlement.dataset.y = '0';
+                    settlement.style.left = '820px'; // Center position
+                    settlement.style.top = '820px';
+                    return;
+                }
+                
+                // Create a cell key to track occupation
+                const cellKey = `${x},${y}`;
+                
+                // Check if cell is already occupied
+                if (occupiedCells.has(cellKey)) {
+                    console.warn(`Multiple settlements trying to occupy cell (${x}, ${y}). Only one will be displayed.`);
+                    settlement.style.display = 'none'; // Hide additional settlements in same cell
+                    return;
+                }
+                
+                // Mark cell as occupied
+                occupiedCells.add(cellKey);
                 
                 // Convert coordinates to pixel positions (center settlements within grid squares)
-                // Place settlements in the center of grid squares rather than on grid line intersections
-                const pixelX = (x + 20) * 40 + 20; // 40px per grid unit, offset by 20 to center map, +20 to center within square
-                const pixelY = (20 - y) * 40 + 20; // Invert Y axis, offset by 20 to center map, +20 to center within square
+                // Place settlements in the center of grid squares
+                const pixelX = (x + 20) * 40 + 20; // 40px per grid unit, offset to center in grid square
+                const pixelY = (20 - y) * 40 + 20; // Invert Y axis, offset to center in grid square
                 
                 settlement.style.left = pixelX + 'px';
                 settlement.style.top = pixelY + 'px';
