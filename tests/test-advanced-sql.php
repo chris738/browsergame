@@ -4,6 +4,8 @@
  * Tests edge cases and potential data corruption scenarios
  */
 
+// Change to parent directory to find php files
+chdir(__DIR__ . '/..');
 require_once 'php/database.php';
 
 class AdvancedSQLDataTest {

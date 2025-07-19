@@ -3,6 +3,8 @@
  * Test script to verify the SQL data validation improvements
  */
 
+// Change to parent directory to find php files
+chdir(__DIR__ . '/..');
 require_once 'php/database.php';
 
 class ValidationTest {
