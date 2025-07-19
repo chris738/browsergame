@@ -56,15 +56,19 @@
                 </div>
                 <div class="unit-stats">
                     <p><strong>Defense:</strong> +2 per unit</p>
-                    <p><strong>Cost:</strong> 50🪵 30🧱 20🪨</p>
-                    <p><strong>Training Time:</strong> 30s</p>
+                    <p><strong>Cost:</strong> 50🪵 30🧱 20🪨 1👥</p>
+                    <p><strong>Training Time:</strong> 2m per unit</p>
                 </div>
                 <div class="unit-count">
                     <span>Available: <span id="guards-count">0</span></span>
                 </div>
-                <button class="train-unit-btn" onclick="trainUnit('guards', <?= $settlementId ?>)">
-                    Train Guards
-                </button>
+                <div class="unit-training">
+                    <label for="guards-quantity">Quantity:</label>
+                    <input type="number" id="guards-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    <button class="train-unit-btn" onclick="trainMultipleUnits('guards', <?= $settlementId ?>)">
+                        Train Guards
+                    </button>
+                </div>
             </div>
 
             <div class="military-unit-card">
@@ -74,15 +78,19 @@
                 </div>
                 <div class="unit-stats">
                     <p><strong>Attack:</strong> +3 per unit</p>
-                    <p><strong>Cost:</strong> 80🪵 60🧱 40🪨</p>
-                    <p><strong>Training Time:</strong> 60s</p>
+                    <p><strong>Cost:</strong> 80🪵 60🧱 40🪨 1👥</p>
+                    <p><strong>Training Time:</strong> 3m per unit</p>
                 </div>
                 <div class="unit-count">
                     <span>Available: <span id="soldiers-count">0</span></span>
                 </div>
-                <button class="train-unit-btn" onclick="trainUnit('soldiers', <?= $settlementId ?>)">
-                    Train Soldiers
-                </button>
+                <div class="unit-training">
+                    <label for="soldiers-quantity">Quantity:</label>
+                    <input type="number" id="soldiers-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    <button class="train-unit-btn" onclick="trainMultipleUnits('soldiers', <?= $settlementId ?>)">
+                        Train Soldiers
+                    </button>
+                </div>
             </div>
 
             <div class="military-unit-card">
@@ -92,15 +100,19 @@
                 </div>
                 <div class="unit-stats">
                     <p><strong>Ranged Attack:</strong> +4 per unit</p>
-                    <p><strong>Cost:</strong> 100🪵 40🧱 60🪨</p>
-                    <p><strong>Training Time:</strong> 90s</p>
+                    <p><strong>Cost:</strong> 100🪵 40🧱 60🪨 1👥</p>
+                    <p><strong>Training Time:</strong> 4m per unit</p>
                 </div>
                 <div class="unit-count">
                     <span>Available: <span id="archers-count">0</span></span>
                 </div>
-                <button class="train-unit-btn" onclick="trainUnit('archers', <?= $settlementId ?>)">
-                    Train Archers
-                </button>
+                <div class="unit-training">
+                    <label for="archers-quantity">Quantity:</label>
+                    <input type="number" id="archers-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    <button class="train-unit-btn" onclick="trainMultipleUnits('archers', <?= $settlementId ?>)">
+                        Train Archers
+                    </button>
+                </div>
             </div>
 
             <div class="military-unit-card">
@@ -110,15 +122,19 @@
                 </div>
                 <div class="unit-stats">
                     <p><strong>Speed & Attack:</strong> +5 per unit</p>
-                    <p><strong>Cost:</strong> 150🪵 100🧱 120🪨</p>
-                    <p><strong>Training Time:</strong> 180s</p>
+                    <p><strong>Cost:</strong> 150🪵 100🧱 120🪨 1👥</p>
+                    <p><strong>Training Time:</strong> 5m per unit</p>
                 </div>
                 <div class="unit-count">
                     <span>Available: <span id="cavalry-count">0</span></span>
                 </div>
-                <button class="train-unit-btn" onclick="trainUnit('cavalry', <?= $settlementId ?>)">
-                    Train Cavalry
-                </button>
+                <div class="unit-training">
+                    <label for="cavalry-quantity">Quantity:</label>
+                    <input type="number" id="cavalry-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    <button class="train-unit-btn" onclick="trainMultipleUnits('cavalry', <?= $settlementId ?>)">
+                        Train Cavalry
+                    </button>
+                </div>
             </div>
         </div>
     </section>
@@ -159,7 +175,65 @@
     </section>
 
     <script>
-        // Military unit training functionality
+        // Military unit training functionality - multiple units
+        function trainMultipleUnits(unitType, settlementId) {
+            const quantityInput = document.getElementById(unitType + '-quantity');
+            const count = parseInt(quantityInput.value) || 1;
+            
+            if (count < 1 || count > 10) {
+                alert('Please enter a quantity between 1 and 10');
+                return;
+            }
+            
+            // Check if current player owns this settlement
+            fetch(`../php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
+                .then(response => response.json())
+                .then(ownerData => {
+                    const settlementOwnerId = ownerData.playerInfo ? ownerData.playerInfo.playerId : null;
+                    const currentPlayerId = window.currentPlayerId || null;
+                    
+                    // Check ownership
+                    if (currentPlayerId !== null && settlementOwnerId !== null && currentPlayerId !== settlementOwnerId) {
+                        alert('You can only train units in your own settlement. Switch to your settlement first.');
+                        return;
+                    }
+                    
+                    // Proceed with training multiple units
+                    fetch('../php/backend.php?settlementId=' + settlementId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            action: 'trainUnit',
+                            unitType: unitType,
+                            count: count,
+                            currentPlayerId: currentPlayerId 
+                        }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`Training started for ${count} ${unitType}!`);
+                            // Refresh the page data
+                            loadMilitaryData(settlementId);
+                            fetchResources(settlementId);
+                        } else {
+                            alert('Training failed: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error training unit:', error);
+                        alert('Error training unit. Please try again.');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error checking settlement ownership:', error);
+                    alert('Error checking settlement ownership. Please try again.');
+                });
+        }
+
+        // Military unit training functionality - single unit (kept for compatibility)
         function trainUnit(unitType, settlementId) {
             // Check if current player owns this settlement
             fetch(`../php/backend.php?settlementId=${settlementId}&getPlayerInfo=true`)
@@ -265,16 +339,23 @@
                 return;
             }
             
-            queue.forEach(item => {
+            queue.forEach((item, index) => {
                 const row = tbody.insertRow();
                 
-                // Unit type
+                // Unit type with training progress
                 const unitCell = row.insertCell(0);
-                unitCell.textContent = `${item.count}x ${item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1)}`;
+                if (item.count > 1) {
+                    // For multiple units, show "Training X of Y" format
+                    const completedUnits = Math.floor((item.completionPercentage || 0) / 100 * item.count);
+                    const currentUnit = Math.min(completedUnits + 1, item.count);
+                    unitCell.textContent = `Training ${currentUnit} of ${item.count} ${item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1)}`;
+                } else {
+                    unitCell.textContent = `${item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1)}`;
+                }
                 
-                // Level (not applicable for units, show count instead)
+                // Count info
                 const levelCell = row.insertCell(1);
-                levelCell.textContent = `Count: ${item.count}`;
+                levelCell.textContent = `${item.count} unit${item.count > 1 ? 's' : ''}`;
                 
                 // Progress
                 const progressCell = row.insertCell(2);
@@ -316,9 +397,15 @@
                     const remainingDiv = document.createElement('div');
                     remainingDiv.style.fontSize = '12px';
                     remainingDiv.style.color = '#666';
-                    const minutes = Math.floor(item.remainingTimeSeconds / 60);
+                    const hours = Math.floor(item.remainingTimeSeconds / 3600);
+                    const minutes = Math.floor((item.remainingTimeSeconds % 3600) / 60);
                     const seconds = item.remainingTimeSeconds % 60;
-                    remainingDiv.textContent = `(${minutes}m ${seconds}s remaining)`;
+                    
+                    if (hours > 0) {
+                        remainingDiv.textContent = `(${hours}h ${minutes}m remaining)`;
+                    } else {
+                        remainingDiv.textContent = `(${minutes}m ${seconds}s remaining)`;
+                    }
                     timeCell.appendChild(remainingDiv);
                 }
             });
