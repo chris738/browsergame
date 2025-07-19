@@ -154,6 +154,7 @@ CREATE TABLE MilitaryUnitConfig (
     costStone FLOAT NOT NULL,
     costOre FLOAT NOT NULL,
     costGold INT NOT NULL DEFAULT 0,
+    costSettlers INT NOT NULL DEFAULT 1,
     trainingTime INT NOT NULL, -- in seconds
     defensePower INT NOT NULL DEFAULT 1,
     attackPower INT NOT NULL DEFAULT 1,
