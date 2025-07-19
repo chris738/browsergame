@@ -1668,10 +1668,19 @@ button {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.military-unit-card.unit-needs-research {
+    border-color: #e74c3c;
+    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(231, 76, 60, 0.05) 100%);
+}
+
+.military-unit-card.unit-researched {
+    border-color: #27ae60;
+    background: linear-gradient(135deg, var(--card-bg) 0%, rgba(39, 174, 96, 0.05) 100%);
+}
+
 .military-unit-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-    border-color: var(--nav-active);
 }
 
 .unit-header {
@@ -1683,12 +1692,68 @@ button {
     border-bottom: 2px solid var(--card-border);
 }
 
+.research-status-mini {
+    margin-left: auto;
+    font-size: 16px;
+    cursor: help;
+}
+
 .unit-emoji {
     font-size: 24px;
     width: 32px;
     height: 32px;
     display: flex;
     align-items: center;
+    justify-content: center;
+}
+
+.unit-research-info {
+    margin: 10px 0;
+    padding: 10px;
+    background: var(--resource-bg);
+    border-radius: 6px;
+    border: 1px solid var(--card-border);
+}
+
+.research-costs-mini {
+    font-size: 13px;
+}
+
+.research-costs-mini h5 {
+    margin: 0 0 5px 0;
+    color: var(--text-color);
+    font-size: 14px;
+}
+
+.research-costs-mini p {
+    margin: 3px 0;
+    color: var(--text-color);
+}
+
+.unit-actions {
+    margin-top: 15px;
+}
+
+.research-unit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+}
+
+.research-unit-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #2980b9, #21618c);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(52, 152, 219, 0.4);
+}
     justify-content: center;
     background: var(--resource-bg);
     border-radius: 50%;
@@ -1770,6 +1835,15 @@ button {
     background: linear-gradient(135deg, #c0392b, #a93226);
     transform: translateY(-1px);
     box-shadow: 0 3px 8px rgba(231, 76, 60, 0.4);
+}
+
+.train-unit-btn.btn-disabled,
+.train-unit-btn:disabled {
+    background: #95a5a6 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+    opacity: 0.6;
 }
 
 .military-stats {

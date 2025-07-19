@@ -45,14 +45,10 @@
         </table>
     </section>
 
-    <!-- Research Section -->
-    <section class="buildings">
-        <h3>🔬 Unit Research</h3>
-        <p>Research new unit types to unlock them for training. Each unit requires specific resources and may have prerequisites.</p>
-        
-        <!-- Research Queue -->
-        <div id="researchQueueSection" style="margin-bottom: 20px;">
-            <h4>Research in Progress</h4>
+    <!-- Compact Research Queue -->
+    <section class="buildings" id="researchQueueSection" style="margin-bottom: 10px;">
+        <h3>🔬 Research Queue</h3>
+        <div id="researchQueueCompact">
             <table id="researchQueueTable" style="display: none;">
                 <thead>
                     <tr>
@@ -65,12 +61,7 @@
                     <!-- Research queue items will be populated by JavaScript -->
                 </tbody>
             </table>
-            <p id="noResearchMessage" style="font-style: italic; color: #666;">No research currently in progress</p>
-        </div>
-
-        <!-- Available Research -->
-        <div class="research-units-grid" id="researchUnitsGrid">
-            <!-- Research unit cards will be populated by JavaScript -->
+            <p id="noResearchMessage" style="font-style: italic; color: #666; margin: 10px 0;">No research currently in progress</p>
         </div>
     </section>
 
@@ -78,10 +69,11 @@
     <section class="buildings">
         <h3>Military Units</h3>
         <div class="military-units-grid">
-            <div class="military-unit-card">
+            <div class="military-unit-card" id="unit-card-guards">
                 <div class="unit-header">
                     <span class="unit-emoji">🛡️</span>
                     <h4>Guards</h4>
+                    <span class="research-status-mini" id="status-mini-guards">🔬</span>
                 </div>
                 <div class="unit-stats">
                     <p><strong>Defense:</strong> +2 per unit</p>
@@ -91,19 +83,34 @@
                 <div class="unit-count">
                     <span>Available: <span id="guards-count">0</span></span>
                 </div>
-                <div class="unit-training">
-                    <button class="train-unit-btn" onclick="trainMultipleUnits('guards', <?= $settlementId ?>)">
-                        Train
+                
+                <!-- Research Info (initially hidden) -->
+                <div class="unit-research-info" id="research-info-guards" style="display: none;">
+                    <div class="research-costs-mini">
+                        <h5>Research Required:</h5>
+                        <p id="guards-research-cost">🪵 100 🧱 50 🪨 30 ⏱️ 5min</p>
+                    </div>
+                </div>
+                
+                <div class="unit-actions">
+                    <button class="research-unit-btn" id="research-btn-guards" onclick="startResearch('guards', <?= $settlementId ?>)" style="display: none;">
+                        🔬 Research Guards
                     </button>
-                    <label for="guards-quantity">Quantity:</label>
-                    <input type="number" id="guards-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    <div class="unit-training" id="training-controls-guards">
+                        <button class="train-unit-btn" id="train-btn-guards" onclick="trainMultipleUnits('guards', <?= $settlementId ?>)">
+                            Train
+                        </button>
+                        <label for="guards-quantity">Quantity:</label>
+                        <input type="number" id="guards-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    </div>
                 </div>
             </div>
 
-            <div class="military-unit-card">
+            <div class="military-unit-card" id="unit-card-soldiers">
                 <div class="unit-header">
                     <span class="unit-emoji">⚔️</span>
                     <h4>Soldiers</h4>
+                    <span class="research-status-mini" id="status-mini-soldiers">🔬</span>
                 </div>
                 <div class="unit-stats">
                     <p><strong>Attack:</strong> +3 per unit</p>
@@ -113,19 +120,34 @@
                 <div class="unit-count">
                     <span>Available: <span id="soldiers-count">0</span></span>
                 </div>
-                <div class="unit-training">
-                    <button class="train-unit-btn" onclick="trainMultipleUnits('soldiers', <?= $settlementId ?>)">
-                        Train
+                
+                <!-- Research Info (initially hidden) -->
+                <div class="unit-research-info" id="research-info-soldiers" style="display: none;">
+                    <div class="research-costs-mini">
+                        <h5>Research Required:</h5>
+                        <p id="soldiers-research-cost">🪵 150 🧱 100 🪨 50 ⏱️ 8min</p>
+                    </div>
+                </div>
+                
+                <div class="unit-actions">
+                    <button class="research-unit-btn" id="research-btn-soldiers" onclick="startResearch('soldiers', <?= $settlementId ?>)" style="display: none;">
+                        🔬 Research Soldiers
                     </button>
-                    <label for="soldiers-quantity">Quantity:</label>
-                    <input type="number" id="soldiers-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    <div class="unit-training" id="training-controls-soldiers">
+                        <button class="train-unit-btn" id="train-btn-soldiers" onclick="trainMultipleUnits('soldiers', <?= $settlementId ?>)">
+                            Train
+                        </button>
+                        <label for="soldiers-quantity">Quantity:</label>
+                        <input type="number" id="soldiers-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    </div>
                 </div>
             </div>
 
-            <div class="military-unit-card">
+            <div class="military-unit-card" id="unit-card-archers">
                 <div class="unit-header">
                     <span class="unit-emoji">🏹</span>
                     <h4>Archers</h4>
+                    <span class="research-status-mini" id="status-mini-archers">🔬</span>
                 </div>
                 <div class="unit-stats">
                     <p><strong>Ranged Attack:</strong> +4 per unit</p>
@@ -135,19 +157,34 @@
                 <div class="unit-count">
                     <span>Available: <span id="archers-count">0</span></span>
                 </div>
-                <div class="unit-training">
-                    <button class="train-unit-btn" onclick="trainMultipleUnits('archers', <?= $settlementId ?>)">
-                        Train
+                
+                <!-- Research Info (initially hidden) -->
+                <div class="unit-research-info" id="research-info-archers" style="display: none;">
+                    <div class="research-costs-mini">
+                        <h5>Research Required:</h5>
+                        <p id="archers-research-cost">🪵 200 🧱 80 🪨 120 ⏱️ 12min</p>
+                    </div>
+                </div>
+                
+                <div class="unit-actions">
+                    <button class="research-unit-btn" id="research-btn-archers" onclick="startResearch('archers', <?= $settlementId ?>)" style="display: none;">
+                        🔬 Research Archers
                     </button>
-                    <label for="archers-quantity">Quantity:</label>
-                    <input type="number" id="archers-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    <div class="unit-training" id="training-controls-archers">
+                        <button class="train-unit-btn" id="train-btn-archers" onclick="trainMultipleUnits('archers', <?= $settlementId ?>)">
+                            Train
+                        </button>
+                        <label for="archers-quantity">Quantity:</label>
+                        <input type="number" id="archers-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    </div>
                 </div>
             </div>
 
-            <div class="military-unit-card">
+            <div class="military-unit-card" id="unit-card-cavalry">
                 <div class="unit-header">
                     <span class="unit-emoji">🐎</span>
                     <h4>Cavalry</h4>
+                    <span class="research-status-mini" id="status-mini-cavalry">🔬</span>
                 </div>
                 <div class="unit-stats">
                     <p><strong>Speed & Attack:</strong> +5 per unit</p>
@@ -157,12 +194,26 @@
                 <div class="unit-count">
                     <span>Available: <span id="cavalry-count">0</span></span>
                 </div>
-                <div class="unit-training">
-                    <button class="train-unit-btn" onclick="trainMultipleUnits('cavalry', <?= $settlementId ?>)">
-                        Train
+                
+                <!-- Research Info (initially hidden) -->
+                <div class="unit-research-info" id="research-info-cavalry" style="display: none;">
+                    <div class="research-costs-mini">
+                        <h5>Research Required:</h5>
+                        <p id="cavalry-research-cost">🪵 300 🧱 200 🪨 250 ⏱️ 20min</p>
+                    </div>
+                </div>
+                
+                <div class="unit-actions">
+                    <button class="research-unit-btn" id="research-btn-cavalry" onclick="startResearch('cavalry', <?= $settlementId ?>)" style="display: none;">
+                        🔬 Research Cavalry
                     </button>
-                    <label for="cavalry-quantity">Quantity:</label>
-                    <input type="number" id="cavalry-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    <div class="unit-training" id="training-controls-cavalry">
+                        <button class="train-unit-btn" id="train-btn-cavalry" onclick="trainMultipleUnits('cavalry', <?= $settlementId ?>)">
+                            Train
+                        </button>
+                        <label for="cavalry-quantity">Quantity:</label>
+                        <input type="number" id="cavalry-quantity" min="1" max="10" value="1" style="width: 60px;">
+                    </div>
                 </div>
             </div>
         </div>
@@ -465,31 +516,68 @@
                 })
                 .catch(error => console.error('Error loading research queue:', error));
                 
-            // Load research config and generate research cards
+            // Load research config and update costs
             fetch(`../php/backend.php?getResearchConfig=true`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.researchConfig && data.researchConfig.config) {
-                        generateResearchCards(data.researchConfig.config, settlementId);
+                        updateResearchCosts(data.researchConfig.config);
                     }
                 })
                 .catch(error => console.error('Error loading research config:', error));
         }
         
+        function updateResearchCosts(researchConfig) {
+            // Update research cost displays in unit cards
+            researchConfig.forEach(config => {
+                const costElement = document.getElementById(`${config.unitType}-research-cost`);
+                if (costElement) {
+                    const timeInMinutes = Math.floor(config.researchTime / 60);
+                    costElement.textContent = `🪵 ${config.researchCostWood} 🧱 ${config.researchCostStone} 🪨 ${config.researchCostOre} ⏱️ ${timeInMinutes}min`;
+                    
+                    if (config.prerequisiteUnit) {
+                        costElement.innerHTML += `<br><small>📋 Requires: ${config.prerequisiteUnit.charAt(0).toUpperCase() + config.prerequisiteUnit.slice(1)}</small>`;
+                    }
+                }
+            });
+        }
+        
         function updateUnitAvailability(researchStatus) {
-            // Update training button states based on research
+            // Update unit cards based on research status
             Object.keys(researchStatus).forEach(unitType => {
                 const isResearched = researchStatus[unitType];
-                const button = document.querySelector(`button[onclick*="'${unitType}'"]`);
-                if (button) {
-                    if (!isResearched) {
-                        button.disabled = true;
-                        button.textContent = 'Research Required';
-                        button.style.background = '#95a5a6';
+                const card = document.getElementById(`unit-card-${unitType}`);
+                const statusMini = document.getElementById(`status-mini-${unitType}`);
+                const researchInfo = document.getElementById(`research-info-${unitType}`);
+                const researchBtn = document.getElementById(`research-btn-${unitType}`);
+                const trainBtn = document.getElementById(`train-btn-${unitType}`);
+                const trainingControls = document.getElementById(`training-controls-${unitType}`);
+                
+                if (card && statusMini && researchInfo && researchBtn && trainBtn) {
+                    if (isResearched) {
+                        // Unit is researched - show training controls
+                        card.classList.remove('unit-needs-research');
+                        card.classList.add('unit-researched');
+                        statusMini.textContent = '✅';
+                        statusMini.title = 'Research Complete';
+                        researchInfo.style.display = 'none';
+                        researchBtn.style.display = 'none';
+                        trainingControls.style.display = 'block';
+                        trainBtn.disabled = false;
+                        trainBtn.textContent = 'Train';
+                        trainBtn.classList.remove('btn-disabled');
                     } else {
-                        button.disabled = false;
-                        button.textContent = 'Train';
-                        button.style.background = '';
+                        // Unit needs research - show research controls  
+                        card.classList.add('unit-needs-research');
+                        card.classList.remove('unit-researched');
+                        statusMini.textContent = '🔬';
+                        statusMini.title = 'Research Required';
+                        researchInfo.style.display = 'block';
+                        researchBtn.style.display = 'block';
+                        trainingControls.style.display = 'none';
+                        trainBtn.disabled = true;
+                        trainBtn.textContent = 'Research Required';
+                        trainBtn.classList.add('btn-disabled');
                     }
                 }
             });
@@ -566,45 +654,6 @@
                     }
                     timeCell.appendChild(remainingDiv);
                 }
-            });
-        }
-        
-        function generateResearchCards(researchConfig, settlementId) {
-            const grid = document.getElementById('researchUnitsGrid');
-            grid.innerHTML = '';
-            
-            const unitEmojis = {
-                'guards': '🛡️',
-                'soldiers': '⚔️',
-                'archers': '🏹',
-                'cavalry': '🐎'
-            };
-            
-            researchConfig.forEach(config => {
-                const card = document.createElement('div');
-                card.className = 'research-unit-card';
-                card.id = `research-${config.unitType}`;
-                
-                card.innerHTML = `
-                    <div class="research-header">
-                        <span class="unit-emoji">${unitEmojis[config.unitType] || '⚔️'}</span>
-                        <h4>${config.unitType.charAt(0).toUpperCase() + config.unitType.slice(1)}</h4>
-                        <span class="research-status" id="status-${config.unitType}">Unknown</span>
-                    </div>
-                    <div class="research-costs">
-                        <h5>Research Cost:</h5>
-                        <p>🪵 Wood: ${config.researchCostWood}</p>
-                        <p>🧱 Stone: ${config.researchCostStone}</p>
-                        <p>🪨 Ore: ${config.researchCostOre}</p>
-                        <p>⏱️ Time: ${Math.floor(config.researchTime / 60)} minutes</p>
-                        ${config.prerequisiteUnit ? `<p>📋 Requires: ${config.prerequisiteUnit.charAt(0).toUpperCase() + config.prerequisiteUnit.slice(1)}</p>` : ''}
-                    </div>
-                    <button class="research-btn" id="research-btn-${config.unitType}" onclick="startResearch('${config.unitType}', ${settlementId})">
-                        Research ${config.unitType.charAt(0).toUpperCase() + config.unitType.slice(1)}
-                    </button>
-                `;
-                
-                grid.appendChild(card);
             });
         }
         
