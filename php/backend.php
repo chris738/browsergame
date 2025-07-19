@@ -11,7 +11,8 @@ function getBuildingTranslations() {
         'Erzbergwerk' => 'Mine',
         'Lager' => 'Storage',
         'Farm' => 'Farm',
-        'Markt' => 'Market'
+        'Markt' => 'Market',
+        'Kaserne' => 'Barracks'
     ];
 }
 
