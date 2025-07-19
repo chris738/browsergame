@@ -134,18 +134,33 @@ class AdminRepository {
             $stmt->execute();
             $settlementId = $this->conn->lastInsertId();
             
-            // Create buildings
-            $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne'];
-            foreach ($buildingTypes as $buildingType) {
+            // Create starting buildings at level 1 and visible
+            $startingBuildings = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Rathaus'];
+            foreach ($startingBuildings as $buildingType) {
                 try {
-                    $sql = "INSERT INTO Buildings (settlementId, buildingType) VALUES (:settlementId, :buildingType)";
+                    $sql = "INSERT INTO Buildings (settlementId, buildingType, level, visable) VALUES (:settlementId, :buildingType, 1, true)";
                     $stmt = $this->conn->prepare($sql);
                     $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
                     $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
                     $stmt->execute();
                 } catch (PDOException $e) {
                     // Continue if building already exists
-                    error_log("Building creation failed (continuing): " . $e->getMessage());
+                    error_log("Starting building creation failed (continuing): " . $e->getMessage());
+                }
+            }
+            
+            // Create unlockable buildings at level 0 and invisible (will be unlocked when requirements are met)
+            $unlockableBuildings = ['Farm', 'Markt', 'Kaserne'];
+            foreach ($unlockableBuildings as $buildingType) {
+                try {
+                    $sql = "INSERT INTO Buildings (settlementId, buildingType, level, visable) VALUES (:settlementId, :buildingType, 0, false)";
+                    $stmt = $this->conn->prepare($sql);
+                    $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+                    $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+                    $stmt->execute();
+                } catch (PDOException $e) {
+                    // Continue if building already exists
+                    error_log("Unlockable building creation failed (continuing): " . $e->getMessage());
                 }
             }
             

@@ -81,7 +81,7 @@ class SQLDataValidator {
             
             // Check for reasonable bounds
             if ($field === 'currentLevel' || $field === 'nextLevel') {
-                if ($value < 1 || $value > 1000) {
+                if ($value < 0 || $value > 1000) {
                     throw new InvalidArgumentException("Building level $field out of reasonable range: $value");
                 }
             }
