@@ -194,9 +194,10 @@ if (empty($mapData)) {
                 const x = parseInt(settlement.dataset.x);
                 const y = parseInt(settlement.dataset.y);
                 
-                // Convert coordinates to pixel positions (center map at 0,0)
-                const pixelX = (x + 20) * 40; // 40px per grid unit, offset by 20 to center
-                const pixelY = (20 - y) * 40; // Invert Y axis, offset by 20 to center
+                // Convert coordinates to pixel positions (center settlements within grid squares)
+                // Place settlements in the center of grid squares rather than on grid line intersections
+                const pixelX = (x + 20) * 40 + 20; // 40px per grid unit, offset by 20 to center map, +20 to center within square
+                const pixelY = (20 - y) * 40 + 20; // Invert Y axis, offset by 20 to center map, +20 to center within square
                 
                 settlement.style.left = pixelX + 'px';
                 settlement.style.top = pixelY + 'px';
