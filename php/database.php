@@ -1403,7 +1403,8 @@ class Database implements DatabaseInterface {
                 ['buildingType' => 'Erzbergwerk'],
                 ['buildingType' => 'Lager'],
                 ['buildingType' => 'Farm'],
-                ['buildingType' => 'Markt']
+                ['buildingType' => 'Markt'],
+                ['buildingType' => 'Kaserne']
             ];
         }
 
@@ -1422,7 +1423,8 @@ class Database implements DatabaseInterface {
                 ['buildingType' => 'Erzbergwerk'],
                 ['buildingType' => 'Lager'],
                 ['buildingType' => 'Farm'],
-                ['buildingType' => 'Markt']
+                ['buildingType' => 'Markt'],
+                ['buildingType' => 'Kaserne']
             ];
         }
     }

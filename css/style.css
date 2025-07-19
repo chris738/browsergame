@@ -371,6 +371,20 @@ button:hover {
     background-color: var(--button-hover);
 }
 
+button:disabled,
+button.insufficient-resources {
+    background-color: #999 !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+button:disabled:hover,
+button.insufficient-resources:hover {
+    background-color: #999 !important;
+    transform: none !important;
+}
+
 button {
     display: inline-block;
     vertical-align: middle;
