@@ -253,7 +253,7 @@ function fetchMilitaryUnits($settlementId) {
     $database = new Database();
     $units = $database->getMilitaryUnits($settlementId);
     
-    if (!$units) {
+    if ($units === false || $units === null) {
         return ['error' => 'Military units could not be retrieved.'];
     }
     
@@ -264,7 +264,7 @@ function fetchMilitaryTrainingQueue($settlementId) {
     $database = new Database();
     $queue = $database->getMilitaryTrainingQueue($settlementId);
     
-    if (!$queue) {
+    if ($queue === false || $queue === null) {
         return ['error' => 'Military training queue could not be retrieved.'];
     }
     
@@ -275,7 +275,7 @@ function fetchMilitaryStats($settlementId) {
     $database = new Database();
     $stats = $database->getMilitaryStats($settlementId);
     
-    if (!$stats) {
+    if ($stats === false || $stats === null) {
         return ['error' => 'Military stats could not be retrieved.'];
     }
     
@@ -304,6 +304,57 @@ function handleMilitaryTraining($settlementId, $input) {
     }
 }
 
+// Research System Functions
+function fetchUnitResearch($settlementId) {
+    $database = new Database();
+    $research = $database->getUnitResearch($settlementId);
+    
+    if ($research === false || $research === null) {
+        return ['error' => 'Unit research data could not be retrieved.'];
+    }
+    
+    return ['research' => $research];
+}
+
+function fetchResearchQueue($settlementId) {
+    $database = new Database();
+    $queue = $database->getResearchQueue($settlementId);
+    
+    if ($queue === false || $queue === null) {
+        return ['error' => 'Research queue could not be retrieved.'];
+    }
+    
+    return ['queue' => $queue];
+}
+
+function fetchResearchConfig() {
+    $database = new Database();
+    $config = $database->getResearchConfig();
+    
+    if ($config === false || $config === null) {
+        return ['error' => 'Research configuration could not be retrieved.'];
+    }
+    
+    return ['config' => $config];
+}
+
+function handleResearch($settlementId, $input) {
+    if (!$settlementId || !isset($input['unitType'])) {
+        return json_encode(['success' => false, 'message' => 'Missing required parameters.']);
+    }
+
+    $unitType = $input['unitType'];
+    
+    $database = new Database();
+    $result = $database->startResearch($settlementId, $unitType);
+
+    if ($result['success']) {
+        return json_encode(['success' => true, 'message' => $result['message']]);
+    } else {
+        return json_encode(['success' => false, 'message' => $result['message']]);
+    }
+}
+
 // Eingehende Anfrage verarbeiten
 $method = $_SERVER['REQUEST_METHOD'];
 $settlementId = $_GET['settlementId'] ?? null;
@@ -318,6 +369,9 @@ $getAllPlayers = $_GET['getAllPlayers'] ?? null;
 $getMilitaryUnits = $_GET['getMilitaryUnits'] ?? null;
 $getMilitaryQueue = $_GET['getMilitaryQueue'] ?? null;
 $getMilitaryStats = $_GET['getMilitaryStats'] ?? null;
+$getUnitResearch = $_GET['getUnitResearch'] ?? null;
+$getResearchQueue = $_GET['getResearchQueue'] ?? null;
+$getResearchConfig = $_GET['getResearchConfig'] ?? null;
 
 try {
     if ($method === 'GET') {
@@ -333,6 +387,14 @@ try {
         if ($getAllPlayers == True) {
             header('Content-Type: application/json; charset=utf-8');
             $response = ['players' => fetchAllPlayersWithSettlements()];
+            echo json_encode($response);
+            exit;
+        }
+        
+        // Handle research config request (doesn't require settlementId)
+        if ($getResearchConfig == True) {
+            header('Content-Type: application/json; charset=utf-8');
+            $response = ['researchConfig' => fetchResearchConfig()];
             echo json_encode($response);
             exit;
         }
@@ -392,12 +454,24 @@ try {
             $response = ['militaryStats' => fetchMilitaryStats($settlementId)];
         }
 
+        // Unit Research
+        if ($getUnitResearch == True) {
+            $response = ['unitResearch' => fetchUnitResearch($settlementId)];
+        }
+
+        // Research Queue
+        if ($getResearchQueue == True) {
+            $response = ['researchQueue' => fetchResearchQueue($settlementId)];
+        }
+
         echo json_encode($response);
     } elseif ($method === 'POST') {
-        // Check if this is a military training request
+        // Check if this is a military training or research request
         $input = json_decode(file_get_contents('php://input'), true);
         if (isset($input['action']) && $input['action'] === 'trainUnit') {
             echo handleMilitaryTraining($settlementId, $input);
+        } elseif (isset($input['action']) && $input['action'] === 'startResearch') {
+            echo handleResearch($settlementId, $input);
         } else {
             // Upgrade-Building-Logik auslagern
             echo handleBuildingUpgrade($settlementId, $input);

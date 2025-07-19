@@ -1781,6 +1781,89 @@ class Database implements DatabaseInterface {
             return ['success' => false, 'message' => 'Failed to train unit: ' . $e->getMessage()];
         }
     }
+
+    // Research System Functions
+    public function getUnitResearch($settlementId) {
+        if ($this->connectionFailed) {
+            return ['guards' => false, 'soldiers' => false, 'archers' => false, 'cavalry' => false];
+        }
+
+        try {
+            $sql = "SELECT unitType, isResearched FROM UnitResearch WHERE settlementId = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$settlementId]);
+            $research = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            $result = ['guards' => false, 'soldiers' => false, 'archers' => false, 'cavalry' => false];
+            foreach ($research as $unit) {
+                $result[$unit['unitType']] = (bool)$unit['isResearched'];
+            }
+            
+            return $result;
+        } catch (Exception $e) {
+            error_log("Error getting unit research: " . $e->getMessage());
+            return ['guards' => false, 'soldiers' => false, 'archers' => false, 'cavalry' => false];
+        }
+    }
+
+    public function getResearchQueue($settlementId) {
+        if ($this->connectionFailed) {
+            return [];
+        }
+
+        try {
+            $sql = "SELECT * FROM OpenResearchQueue WHERE settlementId = ? ORDER BY endTime ASC";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$settlementId]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting research queue: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getResearchConfig() {
+        if ($this->connectionFailed) {
+            return [];
+        }
+
+        try {
+            $sql = "SELECT * FROM ResearchConfig ORDER BY FIELD(unitType, 'guards', 'soldiers', 'archers', 'cavalry')";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            error_log("Error getting research config: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function startResearch($settlementId, $unitType) {
+        if ($this->connectionFailed) {
+            return ['success' => false, 'message' => 'Database connection failed'];
+        }
+
+        try {
+            $stmt = $this->conn->prepare("CALL StartResearch(?, ?)");
+            $stmt->execute([$settlementId, $unitType]);
+            
+            return ['success' => true, 'message' => "Successfully started research for $unitType"];
+        } catch (Exception $e) {
+            error_log("Error starting research: " . $e->getMessage());
+            
+            if (strpos($e->getMessage(), 'already researched') !== false) {
+                return ['success' => false, 'message' => 'Unit is already researched'];
+            } elseif (strpos($e->getMessage(), 'already being researched') !== false) {
+                return ['success' => false, 'message' => 'Unit is already being researched'];
+            } elseif (strpos($e->getMessage(), 'Not enough resources') !== false) {
+                return ['success' => false, 'message' => 'Not enough resources for research'];
+            } elseif (strpos($e->getMessage(), 'Prerequisite unit') !== false) {
+                return ['success' => false, 'message' => 'Prerequisite unit must be researched first'];
+            }
+            
+            return ['success' => false, 'message' => 'Failed to start research: ' . $e->getMessage()];
+        }
+    }
 }
 
 ?>
