@@ -12,7 +12,7 @@ Der einfachste Weg ist die Verwendung des neuen All-in-One Docker Starts mit int
 # Docker All-in-One Start mit Event Scheduler
 git clone https://github.com/chris738/browsergame.git
 cd browsergame
-./docker-start.sh
+./scripts/docker-start.sh
 ```
 
 **Was passiert automatisch:**
@@ -31,7 +31,7 @@ Für Ubuntu/Debian/CentOS/RHEL Systeme:
 ```bash
 git clone https://github.com/chris738/browsergame.git
 cd browsergame
-./install.sh
+./scripts/install.sh
 ```
 
 ### Option 3: Manuelle Installation
@@ -76,13 +76,13 @@ Das Spiel bietet verschiedene Reset-Optionen:
 #### Kompletter Reset
 ```bash
 # Interaktiv (mit Bestätigung)
-./reset.sh
+./scripts/reset.sh
 
 # Automatisch (ohne Bestätigung) - VORSICHT!
-./reset.sh --force
+./scripts/reset.sh --force
 
 # Hilfe anzeigen
-./reset.sh --help
+./scripts/reset.sh --help
 ```
 
 **Was wird zurückgesetzt:**
@@ -95,13 +95,13 @@ Das Spiel bietet verschiedene Reset-Optionen:
 #### Nur Datenbank zurücksetzen
 ```bash
 # Interaktiv (mit Bestätigung)
-./reset-database.sh
+./scripts/reset-database.sh
 
 # Automatisch (ohne Bestätigung)
-./reset-database.sh --force
+./scripts/reset-database.sh --force
 
 # Hilfe anzeigen
-./reset-database.sh --help
+./scripts/reset-database.sh --help
 ```
 
 **Was wird zurückgesetzt:**
@@ -116,9 +116,9 @@ Das Spiel bietet verschiedene Reset-Optionen:
 
 #### Docker-integrierte Reset-Optionen
 ```bash
-# Über docker-start.sh
-./docker-start.sh reset     # Kompletter Reset
-./docker-start.sh reset-db  # Nur Datenbank
+# Über scripts/docker-start.sh
+./scripts/docker-start.sh reset     # Kompletter Reset
+./scripts/docker-start.sh reset-db  # Nur Datenbank
 ```
 
 ## 🔄 Datenbank-Neuerstellung / Database Rebuild
@@ -130,25 +130,25 @@ Für Entwicklung und Schema-Änderungen gibt es neue, fokussierte Skripte:
 #### Haupt-Rebuild-Skript
 ```bash
 # Interaktiv (mit Bestätigung)
-./rebuild-database.sh
+./scripts/rebuild-database.sh
 
 # Automatisch (ohne Bestätigung)  
-./rebuild-database.sh --force
+./scripts/rebuild-database.sh --force
 
 # Hilfe anzeigen
-./rebuild-database.sh --help
+./scripts/rebuild-database.sh --help
 ```
 
 #### Schnell-Rebuild für Entwicklung
 ```bash
 # Für schnelle Entwicklungszyklen
-./quick-rebuild-db.sh
+./scripts/quick-rebuild-db.sh
 ```
 
 #### Tests ausführen
 ```bash
 # Funktionalität testen
-./test-rebuild-scripts.sh
+./scripts/test-rebuild-scripts.sh
 ```
 
 **Was wird neu erstellt:**
@@ -290,7 +290,7 @@ git clone https://github.com/chris738/browsergame.git
 cd browsergame
 
 # Mit Docker starten
-./docker-start.sh
+./scripts/docker-start.sh
 
 # Oder manuell mit docker-compose
 docker-compose up -d --build
@@ -299,27 +299,27 @@ docker-compose up -d --build
 #### Docker Befehle
 ```bash
 # Stoppen
-./docker-start.sh stop
+./scripts/docker-start.sh stop
 # oder
 docker-compose down
 
 # Neustarten
-./docker-start.sh restart
+./scripts/docker-start.sh restart
 
 # Logs anzeigen
-./docker-start.sh logs
+./scripts/docker-start.sh logs
 
 # Status prüfen
-./docker-start.sh status
+./scripts/docker-start.sh status
 
 # Kompletter Reset (ALLE DATEN GEHEN VERLOREN!)
-./docker-start.sh reset
+./scripts/docker-start.sh reset
 
 # Nur Datenbank zurücksetzen
-./docker-start.sh reset-db
+./scripts/docker-start.sh reset-db
 
 # Hilfe anzeigen
-./docker-start.sh help
+./scripts/docker-start.sh help
 ```
 
 #### Zugriff
@@ -491,7 +491,7 @@ SHOW VARIABLES LIKE 'event_scheduler';
 
 ```bash
 # Automatisches Aktivierungsskript verwenden
-./init-event-scheduler.sh
+./scripts/init-event-scheduler.sh
 
 # Oder manuell als root:
 mysql -u root -e "SET GLOBAL event_scheduler = ON;"

@@ -41,136 +41,200 @@ docker compose up -d
 
 That's it! The game runs at **http://localhost:8080** with fully activated automatic resource generation.
 
-### Was passiert automatisch:
-- ✅ Startet alle Docker Container (Web + Datenbank)
-- ✅ Initialisiert die Datenbank komplett
-- ✅ Aktiviert den Event Scheduler für automatische Ressourcengenerierung
-- ✅ Erstellt einen Testspieler
-- ✅ Überprüft dass alle Systeme funktionieren
+### What happens automatically:
+- ✅ Starts all Docker containers (Web + Database)
+- ✅ Completely initializes the database
+- ✅ Activates the Event Scheduler for automatic resource generation
+- ✅ Creates a test player
+- ✅ Verifies that all systems are working
 
-### Zugriff
-- **Spiel**: http://localhost:8080/
+### Access
+- **Game**: http://localhost:8080/
 - **Admin Panel**: http://localhost:8080/admin.php
   - Username: `admin`
   - Password: `admin123`
 
-### Docker Befehle
+### Docker Commands
 
 ```bash
-# Stoppen
+# Stop containers
 docker compose down
 
-# Neustarten
+# Restart containers
 docker compose restart
 
-# Logs anzeigen
+# View logs
 docker compose logs -f
 
-# Status prüfen
+# Check status
 docker compose ps
 
-# Komplett zurücksetzen (ALLE DATEN GEHEN VERLOREN!)
+# Complete reset (ALL DATA WILL BE LOST!)
 ./fresh-start.sh --force
 
-# Interaktiver Reset mit Bestätigung
+# Interactive reset with confirmation
 ./fresh-start.sh
 ```
 
-## 🔄 Fresh Start Script - Neue Funktion!
+## 🔄 Fresh Start Script - New Feature!
 
-Für eine garantiert saubere Entwicklungsumgebung nutze das neue **Fresh Start Script**:
+For a guaranteed clean development environment, use the new **Fresh Start Script**:
 
 ```bash
-# Komplett frische Umgebung (löscht ALLES!)
+# Complete fresh environment (deletes EVERYTHING!)
 ./fresh-start.sh
 
-# Automatisch ohne Bestätigung
+# Automatic without confirmation
 ./fresh-start.sh --force
 
-# Mit Entfernung aller Docker Images
+# With removal of all Docker images
 ./fresh-start.sh --force --remove-images
 ```
 
-**Was macht das Fresh Start Script:**
-- ✅ Löscht ALLE bestehenden Docker-Container, Volumes und Netzwerke
-- ✅ Entfernt temporäre Dateien und Logs
-- ✅ Erstellt komplett frische Umgebung von Grund auf
-- ✅ Garantiert keine Altlasten oder Bug-verursachende Reste
-- ✅ Ideal für saubere Entwicklungsumgebung
+**What the Fresh Start Script does:**
+- ✅ Deletes ALL existing Docker containers, volumes and networks
+- ✅ Removes temporary files and logs
+- ✅ Creates completely fresh environment from scratch
+- ✅ Guarantees no legacy or bug-causing remnants
+- ✅ Ideal for clean development environment
 
-📖 **Detaillierte Dokumentation**: [docs/FRESH-START.md](docs/FRESH-START.md)
+📖 **Detailed Documentation**: [docs/FRESH-START.md](docs/FRESH-START.md)
 
-## 🎯 Spielfeatures
+## 🎯 Game Features
 
-- **Siedlungsverwaltung**: Baue und upgrade verschiedene Gebäude
-- **Ressourcensystem**: Sammle und verwalte Holz, Stein und Erz
-- **Echtzeitproduktion**: Ressourcen werden automatisch über die Zeit generiert
-- **Bausystem**: Gebäude-Upgrades mit Warteschlange und Bauzeiten
-- **Karte**: Siedlungen werden auf einer Koordinatenkarte platziert
-- **Admin-Panel**: Vollständige Verwaltung von Spielern und Siedlungen
+- **Settlement Management**: Build and upgrade various buildings
+- **Resource System**: Collect and manage wood, stone and ore
+- **Real-time Production**: Resources are automatically generated over time
+- **Building System**: Building upgrades with queue and construction times
+- **Map**: Settlements are placed on a coordinate map
+- **Military System**: Train units and manage your army through the barracks
+- **Trading System**: Trade resources with other players via the market
+- **Admin Panel**: Complete management of players and settlements
 
-### Verfügbare Gebäude
-- **Rathaus**: Zentrum der Siedlung
-- **Holzfäller**: Produziert Holz
-- **Steinbruch**: Produziert Stein  
-- **Erzbergwerk**: Produziert Erz
-- **Lager**: Erhöht die Lagerkapazität für Ressourcen
-- **Farm**: Stellt Siedler für andere Gebäude bereit
+### Available Buildings
+- **Town Hall**: Center of the settlement
+- **Lumberjack**: Produces wood
+- **Quarry**: Produces stone  
+- **Mine**: Produces ore
+- **Storage**: Increases storage capacity for resources
+- **Farm**: Provides settlers for other buildings
+- **Market**: Enables trading with other players
+- **Barracks**: Train military units and manage your army
 
-## 🎮 Schnellanleitung
+## 🎮 Quick Start Guide
 
-1. **Spiel öffnen**: Navigiere zu http://localhost:8080/
-2. **Ressourcen sammeln**: Deine Gebäude produzieren automatisch Ressourcen
-3. **Gebäude upgraden**: Klicke auf "Upgrade" bei einem Gebäude
-4. **Bauzeiten**: Upgrades dauern eine bestimmte Zeit und werden in der Warteschlange angezeigt
-5. **Lagerkapazität**: Vergiss nicht dein Lager zu erweitern!
+1. **Open the game**: Navigate to http://localhost:8080/
+2. **Collect resources**: Your buildings automatically produce resources
+3. **Upgrade buildings**: Click "Upgrade" on any building
+4. **Construction times**: Upgrades take time and are shown in the build queue
+5. **Storage capacity**: Don't forget to expand your storage!
+6. **Military**: Use the barracks to train units and build your army
+7. **Trading**: Build a market to trade resources with other players
 
-## 🔧 Fehlerbehebung
+## 🔧 Troubleshooting
 
-### Häufige Probleme
+### Common Issues
 
-**Port 8080 bereits belegt:**
+**Port 8080 already in use:**
 ```bash
-# Anderen Port verwenden (z.B. 8081)
+# Use different port (e.g. 8081)
 sed -i 's/8080:80/8081:80/g' docker-compose.yml
 docker compose up -d
 ```
 
-**Container starten nicht:**
+**Containers won't start:**
 ```bash
-# Logs prüfen
+# Check logs
 docker compose logs
 
-# Neustart mit Rebuild
+# Restart with rebuild
 docker compose down
 docker compose up -d --build
 ```
 
-**Datenbank-Probleme:**
+**Database problems:**
 ```bash
-# Volumes löschen und neu erstellen
+# Delete volumes and recreate
 docker compose down -v
 docker volume prune -f
 docker compose up -d
 ```
 
-## 📄 Weitere Dokumentation
+## 📄 Documentation
 
-Detaillierte Installations- und Konfigurationsanleitungen findest du im `docs/` Verzeichnis:
-- [Ausführliche README](docs/README.md)
-- [Installation Guide](docs/INSTALLATION.md)
-- [Admin Documentation](docs/ADMIN_README.md)
+### Quick Start
+- [README](README.md) - This file, project overview and quick start
+- [Installation Guide](docs/INSTALLATION.md) - Detailed installation and troubleshooting
 
-## 🔒 Sicherheitshinweis
+### Game Information
+- [Game Mechanics Guide](docs/GAME_MECHANICS.md) - Complete gameplay mechanics documentation
+- [Admin Documentation](docs/ADMIN_README.md) - Admin panel usage guide
 
-⚠️ **Nur für Entwicklungsumgebungen!**
+### Development
+- [Development Guide](docs/DEVELOPMENT.md) - How to contribute and develop features
+- [API Documentation](docs/API_DOCUMENTATION.md) - REST API endpoints reference
 
-Für Produktivumgebungen **unbedingt** Standard-Passwörter ändern und weitere Sicherheitsmaßnahmen implementieren.
+### Operations
+- [Fresh Start Guide](docs/FRESH-START.md) - Complete environment reset documentation
+- [Database Rebuild Guide](docs/DATABASE_REBUILD.md) - Database management scripts
+- [Reset Documentation](docs/RESET.md) - Various reset options
 
-## 🤝 Beitragen
+### Comprehensive Guide
+- [Comprehensive README](docs/README.md) *(German)* - Detailed German documentation
 
-Contributions sind willkommen! Erstelle gerne Issues oder Pull Requests.
+## 📁 Project Structure
+
+```
+browsergame/
+├── README.md              # This file - project overview
+├── index.php              # Main game interface
+├── admin.php              # Admin panel
+├── kaserne.php            # Military/Barracks interface
+├── market.php             # Trading interface
+├── map.php                # Map view
+├── settlement-info.php    # Settlement details
+├── docker-compose.yml     # Docker configuration
+├── fresh-start.sh         # Fresh start convenience script
+├── css/                   # Stylesheets
+│   ├── style.css          # Main game styles
+│   └── admin.css          # Admin panel styles
+├── js/                    # JavaScript files
+│   ├── backend.js         # Main game logic
+│   ├── admin.js           # Admin panel functionality
+│   ├── market.js          # Trading system
+│   └── translations.js    # Language support
+├── php/                   # PHP backend files
+│   ├── database.php       # Database connection and operations
+│   ├── backend.php        # Main API endpoints
+│   ├── admin-backend.php  # Admin API endpoints
+│   ├── market-backend.php # Trading API endpoints
+│   └── navigation.php     # Navigation components
+├── sql/                   # Database schema and migrations
+│   ├── database.sql       # Main database schema
+│   ├── military-units.sql # Military system tables
+│   └── add-research-system.sql # Research system
+├── scripts/               # Utility scripts
+│   ├── docker-start.sh    # Docker startup script
+│   ├── fresh-start.sh     # Complete environment reset
+│   ├── install.sh         # Automatic installation
+│   └── reset.sh           # Game data reset
+├── docs/                  # Documentation
+│   ├── README.md          # Comprehensive guide (German)
+│   ├── INSTALLATION.md    # Installation troubleshooting
+│   └── ADMIN_README.md    # Admin panel documentation
+└── test-*.php            # Test scripts for validation
+```
+
+## 🔒 Security Notice
+
+⚠️ **For development environments only!**
+
+For production environments, **make sure to** change default passwords and implement additional security measures.
+
+## 🤝 Contributing
+
+Contributions are welcome! Please create issues or pull requests.
 
 ## 📞 Support
 
-Bei Problemen oder Fragen erstelle ein Issue im GitHub-Repository.
+For problems or questions, please create an issue in the GitHub repository.
