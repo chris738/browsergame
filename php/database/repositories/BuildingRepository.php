@@ -71,6 +71,27 @@ class BuildingRepository {
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$result) {
+                // Check if building exists in Buildings table but not in BuildingDetails (max level case)
+                $buildingSql = "SELECT level FROM Buildings WHERE settlementId = :settlementId AND buildingType = :buildingType";
+                $buildingStmt = $this->conn->prepare($buildingSql);
+                $buildingStmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+                $buildingStmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+                $buildingStmt->execute();
+                $buildingResult = $buildingStmt->fetch(PDO::FETCH_ASSOC);
+                
+                if ($buildingResult) {
+                    // Building exists but not in BuildingDetails - this means it's at max level
+                    return [
+                        'currentLevel' => $buildingResult['level'],
+                        'nextLevel' => $buildingResult['level'] + 1, // Not upgradeable but we provide next level for completeness
+                        'costWood' => 0,
+                        'costStone' => 0,
+                        'costOre' => 0,
+                        'settlers' => 0,
+                        'buildTime' => 0
+                    ];
+                }
+                
                 // Building doesn't exist yet - return level 0 with costs for level 1
                 $configSql = "SELECT costWood, costStone, costOre, settlers, buildTime 
                              FROM BuildingConfig 

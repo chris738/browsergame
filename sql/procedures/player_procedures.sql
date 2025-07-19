@@ -28,15 +28,16 @@ BEGIN
     INSERT INTO Map (settlementId, xCoordinate, yCoordinate)
     VALUES (newSettlementId, xCoord, yCoord);
 
-    -- Create initial buildings - Rathaus, resource buildings and storage at level 1
+    -- Create initial buildings - Rathaus, resource buildings, storage and farm at level 1
     INSERT INTO Buildings (settlementId, buildingType, level, visable) VALUES
         (newSettlementId, 'Rathaus', 1, true),        -- Town Hall
         (newSettlementId, 'Holzfäller', 1, true),     -- Lumberjack for wood production
         (newSettlementId, 'Steinbruch', 1, true),     -- Quarry for stone production
         (newSettlementId, 'Erzbergwerk', 1, true),    -- Mine for ore production
-        (newSettlementId, 'Lager', 1, true);          -- Storage for resources
+        (newSettlementId, 'Lager', 1, true),          -- Storage for resources
+        (newSettlementId, 'Farm', 1, true);           -- Farm for settlers production
     
-    -- Other buildings (Farm, Market, Kaserne) are NOT created initially
+    -- Other buildings (Market, Kaserne) are NOT created initially
     -- They will be created when first built by the player
     -- Market requires Storage Level 5 (will be created when requirements are met)
     -- Kaserne requires Farm Level 5 (will be created when requirements are met)
