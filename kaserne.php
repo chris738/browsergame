@@ -33,7 +33,7 @@
         <table>
             <thead>
                 <tr>
-                    <th>Unit/Building</th>
+                    <th>Unit</th>
                     <th>Level</th>
                     <th>Progress</th>
                     <th>End Time</th>
@@ -43,6 +43,35 @@
                 <!-- Queue items will be populated by JavaScript -->
             </tbody>
         </table>
+    </section>
+
+    <!-- Research Section -->
+    <section class="buildings">
+        <h3>🔬 Unit Research</h3>
+        <p>Research new unit types to unlock them for training. Each unit requires specific resources and may have prerequisites.</p>
+        
+        <!-- Research Queue -->
+        <div id="researchQueueSection" style="margin-bottom: 20px;">
+            <h4>Research in Progress</h4>
+            <table id="researchQueueTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Unit</th>
+                        <th>Progress</th>
+                        <th>End Time</th>
+                    </tr>
+                </thead>
+                <tbody id="researchQueueBody">
+                    <!-- Research queue items will be populated by JavaScript -->
+                </tbody>
+            </table>
+            <p id="noResearchMessage" style="font-style: italic; color: #666;">No research currently in progress</p>
+        </div>
+
+        <!-- Available Research -->
+        <div class="research-units-grid" id="researchUnitsGrid">
+            <!-- Research unit cards will be populated by JavaScript -->
+        </div>
     </section>
 
     <!-- Military Units Section -->
@@ -63,11 +92,11 @@
                     <span>Available: <span id="guards-count">0</span></span>
                 </div>
                 <div class="unit-training">
+                    <button class="train-unit-btn" onclick="trainMultipleUnits('guards', <?= $settlementId ?>)">
+                        Train
+                    </button>
                     <label for="guards-quantity">Quantity:</label>
                     <input type="number" id="guards-quantity" min="1" max="10" value="1" style="width: 60px;">
-                    <button class="train-unit-btn" onclick="trainMultipleUnits('guards', <?= $settlementId ?>)">
-                        Train Guards
-                    </button>
                 </div>
             </div>
 
@@ -85,11 +114,11 @@
                     <span>Available: <span id="soldiers-count">0</span></span>
                 </div>
                 <div class="unit-training">
+                    <button class="train-unit-btn" onclick="trainMultipleUnits('soldiers', <?= $settlementId ?>)">
+                        Train
+                    </button>
                     <label for="soldiers-quantity">Quantity:</label>
                     <input type="number" id="soldiers-quantity" min="1" max="10" value="1" style="width: 60px;">
-                    <button class="train-unit-btn" onclick="trainMultipleUnits('soldiers', <?= $settlementId ?>)">
-                        Train Soldiers
-                    </button>
                 </div>
             </div>
 
@@ -107,11 +136,11 @@
                     <span>Available: <span id="archers-count">0</span></span>
                 </div>
                 <div class="unit-training">
+                    <button class="train-unit-btn" onclick="trainMultipleUnits('archers', <?= $settlementId ?>)">
+                        Train
+                    </button>
                     <label for="archers-quantity">Quantity:</label>
                     <input type="number" id="archers-quantity" min="1" max="10" value="1" style="width: 60px;">
-                    <button class="train-unit-btn" onclick="trainMultipleUnits('archers', <?= $settlementId ?>)">
-                        Train Archers
-                    </button>
                 </div>
             </div>
 
@@ -129,11 +158,11 @@
                     <span>Available: <span id="cavalry-count">0</span></span>
                 </div>
                 <div class="unit-training">
+                    <button class="train-unit-btn" onclick="trainMultipleUnits('cavalry', <?= $settlementId ?>)">
+                        Train
+                    </button>
                     <label for="cavalry-quantity">Quantity:</label>
                     <input type="number" id="cavalry-quantity" min="1" max="10" value="1" style="width: 60px;">
-                    <button class="train-unit-btn" onclick="trainMultipleUnits('cavalry', <?= $settlementId ?>)">
-                        Train Cavalry
-                    </button>
                 </div>
             </div>
         </div>
@@ -322,6 +351,9 @@
                     }
                 })
                 .catch(error => console.error('Error loading military queue:', error));
+                
+            // Load research data
+            loadResearchData(settlementId);
         }
         
         // Update military training queue display
@@ -408,6 +440,198 @@
                     }
                     timeCell.appendChild(remainingDiv);
                 }
+            });
+        }
+        
+        // Research System Functions
+        function loadResearchData(settlementId) {
+            // Load research status
+            fetch(`../php/backend.php?settlementId=${settlementId}&getUnitResearch=true`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.unitResearch && data.unitResearch.research) {
+                        updateUnitAvailability(data.unitResearch.research);
+                    }
+                })
+                .catch(error => console.error('Error loading unit research:', error));
+                
+            // Load research queue
+            fetch(`../php/backend.php?settlementId=${settlementId}&getResearchQueue=true`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.researchQueue && data.researchQueue.queue) {
+                        updateResearchQueue(data.researchQueue.queue);
+                    }
+                })
+                .catch(error => console.error('Error loading research queue:', error));
+                
+            // Load research config and generate research cards
+            fetch(`../php/backend.php?getResearchConfig=true`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.researchConfig && data.researchConfig.config) {
+                        generateResearchCards(data.researchConfig.config, settlementId);
+                    }
+                })
+                .catch(error => console.error('Error loading research config:', error));
+        }
+        
+        function updateUnitAvailability(researchStatus) {
+            // Update training button states based on research
+            Object.keys(researchStatus).forEach(unitType => {
+                const isResearched = researchStatus[unitType];
+                const button = document.querySelector(`button[onclick*="'${unitType}'"]`);
+                if (button) {
+                    if (!isResearched) {
+                        button.disabled = true;
+                        button.textContent = 'Research Required';
+                        button.style.background = '#95a5a6';
+                    } else {
+                        button.disabled = false;
+                        button.textContent = 'Train';
+                        button.style.background = '';
+                    }
+                }
+            });
+        }
+        
+        function updateResearchQueue(queue) {
+            const tbody = document.getElementById('researchQueueBody');
+            const table = document.getElementById('researchQueueTable');
+            const noMessage = document.getElementById('noResearchMessage');
+            
+            tbody.innerHTML = '';
+            
+            if (queue.length === 0) {
+                table.style.display = 'none';
+                noMessage.style.display = 'block';
+                return;
+            }
+            
+            table.style.display = 'table';
+            noMessage.style.display = 'none';
+            
+            queue.forEach(item => {
+                const row = tbody.insertRow();
+                
+                // Unit type
+                const unitCell = row.insertCell(0);
+                unitCell.textContent = item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1);
+                
+                // Progress
+                const progressCell = row.insertCell(1);
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                progressBar.style.width = '100%';
+                progressBar.style.backgroundColor = '#e0e0e0';
+                progressBar.style.borderRadius = '4px';
+                progressBar.style.height = '20px';
+                progressBar.style.position = 'relative';
+                
+                const progressFill = document.createElement('div');
+                progressFill.style.width = `${Math.max(0, Math.min(100, item.completionPercentage || 0))}%`;
+                progressFill.style.backgroundColor = '#3498db';
+                progressFill.style.height = '100%';
+                progressFill.style.borderRadius = '4px';
+                
+                const progressText = document.createElement('span');
+                progressText.style.position = 'absolute';
+                progressText.style.left = '50%';
+                progressText.style.top = '50%';
+                progressText.style.transform = 'translate(-50%, -50%)';
+                progressText.style.fontSize = '12px';
+                progressText.style.fontWeight = 'bold';
+                progressText.textContent = `${Math.round(item.completionPercentage || 0)}%`;
+                
+                progressBar.appendChild(progressFill);
+                progressBar.appendChild(progressText);
+                progressCell.appendChild(progressBar);
+                
+                // End time
+                const timeCell = row.insertCell(2);
+                const endTime = new Date(item.endTime);
+                timeCell.textContent = endTime.toLocaleString();
+                
+                if (item.remainingTimeSeconds > 0) {
+                    const remainingDiv = document.createElement('div');
+                    remainingDiv.style.fontSize = '12px';
+                    remainingDiv.style.color = '#666';
+                    const hours = Math.floor(item.remainingTimeSeconds / 3600);
+                    const minutes = Math.floor((item.remainingTimeSeconds % 3600) / 60);
+                    
+                    if (hours > 0) {
+                        remainingDiv.textContent = `(${hours}h ${minutes}m remaining)`;
+                    } else {
+                        remainingDiv.textContent = `(${minutes}m remaining)`;
+                    }
+                    timeCell.appendChild(remainingDiv);
+                }
+            });
+        }
+        
+        function generateResearchCards(researchConfig, settlementId) {
+            const grid = document.getElementById('researchUnitsGrid');
+            grid.innerHTML = '';
+            
+            const unitEmojis = {
+                'guards': '🛡️',
+                'soldiers': '⚔️',
+                'archers': '🏹',
+                'cavalry': '🐎'
+            };
+            
+            researchConfig.forEach(config => {
+                const card = document.createElement('div');
+                card.className = 'research-unit-card';
+                card.id = `research-${config.unitType}`;
+                
+                card.innerHTML = `
+                    <div class="research-header">
+                        <span class="unit-emoji">${unitEmojis[config.unitType] || '⚔️'}</span>
+                        <h4>${config.unitType.charAt(0).toUpperCase() + config.unitType.slice(1)}</h4>
+                        <span class="research-status" id="status-${config.unitType}">Unknown</span>
+                    </div>
+                    <div class="research-costs">
+                        <h5>Research Cost:</h5>
+                        <p>🪵 Wood: ${config.researchCostWood}</p>
+                        <p>🧱 Stone: ${config.researchCostStone}</p>
+                        <p>🪨 Ore: ${config.researchCostOre}</p>
+                        <p>⏱️ Time: ${Math.floor(config.researchTime / 60)} minutes</p>
+                        ${config.prerequisiteUnit ? `<p>📋 Requires: ${config.prerequisiteUnit.charAt(0).toUpperCase() + config.prerequisiteUnit.slice(1)}</p>` : ''}
+                    </div>
+                    <button class="research-btn" id="research-btn-${config.unitType}" onclick="startResearch('${config.unitType}', ${settlementId})">
+                        Research ${config.unitType.charAt(0).toUpperCase() + config.unitType.slice(1)}
+                    </button>
+                `;
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        function startResearch(unitType, settlementId) {
+            fetch(`../php/backend.php?settlementId=${settlementId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    action: 'startResearch',
+                    unitType: unitType
+                }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`Research started for ${unitType}!`);
+                    loadResearchData(settlementId);
+                    fetchResources(settlementId);
+                } else {
+                    alert('Research failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error starting research:', error);
+                alert('Error starting research. Please try again.');
             });
         }
         
