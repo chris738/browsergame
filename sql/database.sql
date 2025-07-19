@@ -176,15 +176,13 @@
             ('Rathaus', 1),
             ('Markt', 1);
 
-        -- Gebäude erstellen
-        INSERT INTO Buildings (settlementId, buildingType) VALUES
-            (newSettlementId, 'Holzfäller'),
-            (newSettlementId, 'Steinbruch'),
-            (newSettlementId, 'Erzbergwerk'),
-            (newSettlementId, 'Lager'),
-            (newSettlementId, 'Farm'),
-            (newSettlementId, 'Rathaus'),
-            (newSettlementId, 'Markt');
+        -- Gebäude erstellen - nur Startsiedlung mit Rathaus, Ressourcengebäuden und Lager
+        INSERT INTO Buildings (settlementId, buildingType, level, visable) VALUES
+            (newSettlementId, 'Rathaus', 1, true),
+            (newSettlementId, 'Holzfäller', 1, true),
+            (newSettlementId, 'Steinbruch', 1, true),
+            (newSettlementId, 'Erzbergwerk', 1, true),
+            (newSettlementId, 'Lager', 1, true);
     END //
 
     DELIMITER ;

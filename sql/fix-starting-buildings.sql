@@ -4,14 +4,22 @@ USE browsergame;
 -- Remove Market and Kaserne from existing settlement (Issue #71)
 DELETE FROM Buildings WHERE settlementId = 1 AND buildingType IN ('Markt', 'Kaserne');
 
--- Remove most buildings so they need to be built (they don't exist = level 0)
+-- Remove Farm from existing settlement as it's not part of starting buildings
 DELETE FROM Buildings 
-WHERE settlementId = 1 AND buildingType IN ('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm');
+WHERE settlementId = 1 AND buildingType = 'Farm';
 
--- Keep only Rathaus at level 1 as the core settlement building
+-- Ensure starting buildings exist and are visible for existing settlement
+INSERT IGNORE INTO Buildings (settlementId, buildingType, level, visable) VALUES
+    (1, 'Rathaus', 1, true),
+    (1, 'Holzfäller', 1, true),
+    (1, 'Steinbruch', 1, true),
+    (1, 'Erzbergwerk', 1, true),
+    (1, 'Lager', 1, true);
+
+-- Update existing buildings to be visible if they already exist
 UPDATE Buildings 
 SET level = 1, visable = true 
-WHERE settlementId = 1 AND buildingType = 'Rathaus';
+WHERE settlementId = 1 AND buildingType IN ('Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager');
 
 -- Update the CreatePlayerWithSettlement procedure to fix starting buildings
 DROP PROCEDURE IF EXISTS CreatePlayerWithSettlement;
@@ -42,13 +50,16 @@ BEGIN
     INSERT INTO Map (settlementId, xCoordinate, yCoordinate)
     VALUES (newSettlementId, xCoord, yCoord);
 
-    -- Create initial buildings - only Rathaus at level 1, others are not built yet
+    -- Create initial buildings - Rathaus, resource buildings and storage at level 1
     INSERT INTO Buildings (settlementId, buildingType, level, visable) VALUES
-        (newSettlementId, 'Rathaus', 1, true);        -- Town Hall is always built first
+        (newSettlementId, 'Rathaus', 1, true),        -- Town Hall
+        (newSettlementId, 'Holzfäller', 1, true),     -- Lumberjack for wood production
+        (newSettlementId, 'Steinbruch', 1, true),     -- Quarry for stone production
+        (newSettlementId, 'Erzbergwerk', 1, true),    -- Mine for ore production
+        (newSettlementId, 'Lager', 1, true);          -- Storage for resources
     
-    -- Other buildings (Holzfäller, Steinbruch, Erzbergwerk, Lager, Farm) are NOT created initially
+    -- Other buildings (Farm, Market, Kaserne) are NOT created initially
     -- They will be created when first built by the player
-    -- Market and Kaserne are also NOT created initially
     -- Market requires Storage Level 5 (will be created when requirements are met)
     -- Kaserne requires Farm Level 5 (will be created when requirements are met)
     
