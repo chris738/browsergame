@@ -1,11 +1,13 @@
 # Database Rebuild Scripts
 
-This directory contains scripts for rebuilding the database from the `database.sql` file. These scripts are essential when:
+This directory contains scripts for rebuilding the database from the organized SQL structure. These scripts are essential when:
 
 - Database schema changes are made
 - Tables need to be recreated
 - Complete database reset is required
 - Development environment needs fresh data
+
+**Note**: The SQL files have been reorganized into a structured directory layout. See [SQL_ORGANIZATION.md](SQL_ORGANIZATION.md) for details on the new structure.
 
 ## Scripts Overview
 

@@ -1,5 +1,6 @@
 -- Browsergame Database Schema
--- Main database initialization file (restructured and organized)
+-- Organized database initialization file with modular structure
+-- This file orchestrates the database creation using organized SQL files
 
 -- Setup
 -- Löschen der bestehenden Datenbank
@@ -25,9 +26,13 @@ USE browsergame;
 SET GLOBAL event_scheduler = ON;
 
 -- ====================================
--- TABLE DEFINITIONS (from tables/core_tables.sql)
+-- CORE TABLES (from tables/core_tables.sql)
 -- ====================================
+-- NOTE: This file now references organized SQL files
+-- To rebuild database, use: mysql -u root -p < database.sql
+-- Or run individual files in order as needed
 
+-- For now, including core table definitions inline for compatibility
 -- Tabelle: Spieler
 CREATE TABLE Spieler (
     playerId INT AUTO_INCREMENT PRIMARY KEY,
@@ -48,38 +53,17 @@ CREATE TABLE Settlement (
     FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
 );
 
--- Tabelle: Map
-CREATE TABLE Map (
-    settlementId INT PRIMARY KEY,
-    xCoordinate INT NOT NULL,
-    yCoordinate INT NOT NULL,
-    UNIQUE (xCoordinate, yCoordinate),
-    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
-);
-
 -- Tabelle: BuildingConfig
 CREATE TABLE BuildingConfig (
     buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
     level INT NOT NULL,
-    costWood FLOAT NOT NULL,
-    costStone FLOAT NOT NULL,
-    costOre FLOAT NOT NULL,
-    settlers FLOAT NOT NULL DEFAULT 0.0,
-    productionRate FLOAT NOT NULL,
-    buildTime INT,
+    costWood FLOAT NOT NULL DEFAULT 100,
+    costStone FLOAT NOT NULL DEFAULT 100,
+    costOre FLOAT NOT NULL DEFAULT 100,
+    settlers INT NOT NULL DEFAULT 1,
+    productionRate FLOAT NOT NULL DEFAULT 5.0,
+    buildTime INT NOT NULL DEFAULT 30,
     PRIMARY KEY (buildingType, level)
-);
-
--- Tabelle: BuildingQueue
-CREATE TABLE BuildingQueue (
-    queueId INT AUTO_INCREMENT PRIMARY KEY,
-    settlementId INT NOT NULL,
-    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
-    startTime DATETIME NOT NULL,
-    endTime DATETIME NOT NULL,
-    isActive BOOLEAN NOT NULL DEFAULT FALSE,
-    level INT NOT NULL DEFAULT 0,
-    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
 );
 
 -- Tabelle: Buildings
@@ -87,109 +71,74 @@ CREATE TABLE Buildings (
     settlementId INT NOT NULL,
     buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
     level INT NOT NULL DEFAULT 0,
-    visable boolean NOT NULL DEFAULT false,
+    visable TINYINT(1) NOT NULL DEFAULT 1,
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
     PRIMARY KEY (settlementId, buildingType)
 );
 
--- Tabelle: TradeOffers - for player-to-player trading
-CREATE TABLE TradeOffers (
-    offerId INT AUTO_INCREMENT PRIMARY KEY,
-    fromSettlementId INT NOT NULL,
-    offerType ENUM('resource_trade', 'resource_sell', 'resource_buy') NOT NULL,
-    -- What the offering player gives
-    offerWood FLOAT NOT NULL DEFAULT 0,
-    offerStone FLOAT NOT NULL DEFAULT 0,
-    offerOre FLOAT NOT NULL DEFAULT 0,
-    offerGold INT NOT NULL DEFAULT 0,
-    -- What the offering player wants in return
-    requestWood FLOAT NOT NULL DEFAULT 0,
-    requestStone FLOAT NOT NULL DEFAULT 0,
-    requestOre FLOAT NOT NULL DEFAULT 0,
-    requestGold INT NOT NULL DEFAULT 0,
-    -- Offer details
-    maxTrades INT NOT NULL DEFAULT 1, -- How many times this offer can be accepted
-    currentTrades INT NOT NULL DEFAULT 0, -- How many times it has been accepted
-    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    expiresAt DATETIME NULL, -- Optional expiration
-    isActive BOOLEAN NOT NULL DEFAULT TRUE,
-    FOREIGN KEY (fromSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
-);
-
--- Tabelle: TradeTransactions - log of completed trades
-CREATE TABLE TradeTransactions (
-    transactionId INT AUTO_INCREMENT PRIMARY KEY,
-    offerId INT NOT NULL,
-    fromSettlementId INT NOT NULL,
-    toSettlementId INT NOT NULL,
-    -- Resources traded from offering player
-    tradedWood FLOAT NOT NULL DEFAULT 0,
-    tradedStone FLOAT NOT NULL DEFAULT 0,
-    tradedOre FLOAT NOT NULL DEFAULT 0,
-    tradedGold INT NOT NULL DEFAULT 0,
-    -- Resources received by offering player
-    receivedWood FLOAT NOT NULL DEFAULT 0,
-    receivedStone FLOAT NOT NULL DEFAULT 0,
-    receivedOre FLOAT NOT NULL DEFAULT 0,
-    receivedGold INT NOT NULL DEFAULT 0,
-    completedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (offerId) REFERENCES TradeOffers(offerId) ON DELETE CASCADE,
-    FOREIGN KEY (fromSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
-    FOREIGN KEY (toSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
-);
-
--- Military tables
-CREATE TABLE MilitaryUnits (
+-- Tabelle: BuildingQueue
+CREATE TABLE BuildingQueue (
+    queueId INT AUTO_INCREMENT PRIMARY KEY,
     settlementId INT NOT NULL,
-    unitType ENUM('guards', 'soldiers', 'archers', 'cavalry') NOT NULL,
-    count INT NOT NULL DEFAULT 0,
-    PRIMARY KEY (settlementId, unitType),
+    buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
+    level INT NOT NULL,
+    startTime DATETIME NOT NULL,
+    endTime DATETIME NOT NULL,
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
 );
 
+-- Military and Trading tables
 CREATE TABLE MilitaryUnitConfig (
     unitType ENUM('guards', 'soldiers', 'archers', 'cavalry') NOT NULL,
     level INT NOT NULL DEFAULT 1,
     costWood FLOAT NOT NULL,
     costStone FLOAT NOT NULL,
     costOre FLOAT NOT NULL,
-    costGold INT NOT NULL DEFAULT 0,
+    costGold FLOAT NOT NULL DEFAULT 0,
     costSettlers INT NOT NULL DEFAULT 1,
-    trainingTime INT NOT NULL, -- in seconds
-    defensePower INT NOT NULL DEFAULT 1,
-    attackPower INT NOT NULL DEFAULT 1,
+    trainingTime INT NOT NULL,
+    defensePower INT NOT NULL DEFAULT 0,
+    attackPower INT NOT NULL DEFAULT 0,
     rangedPower INT NOT NULL DEFAULT 0,
+    speed INT NOT NULL DEFAULT 1,
     PRIMARY KEY (unitType, level)
+);
+
+CREATE TABLE MilitaryUnits (
+    settlementId INT NOT NULL,
+    unitType ENUM('guards', 'soldiers', 'archers', 'cavalry') NOT NULL,
+    count INT NOT NULL DEFAULT 0,
+    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    PRIMARY KEY (settlementId, unitType)
 );
 
 CREATE TABLE MilitaryTrainingQueue (
     queueId INT AUTO_INCREMENT PRIMARY KEY,
     settlementId INT NOT NULL,
     unitType ENUM('guards', 'soldiers', 'archers', 'cavalry') NOT NULL,
-    count INT NOT NULL,
+    count INT NOT NULL DEFAULT 1,
     startTime DATETIME NOT NULL,
     endTime DATETIME NOT NULL,
     isActive BOOLEAN NOT NULL DEFAULT FALSE,
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
 );
 
--- Research tables
 CREATE TABLE UnitResearch (
     settlementId INT NOT NULL,
     unitType ENUM('guards', 'soldiers', 'archers', 'cavalry') NOT NULL,
     isResearched BOOLEAN NOT NULL DEFAULT FALSE,
-    researchedAt DATETIME NULL,
-    PRIMARY KEY (settlementId, unitType),
-    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
+    researchStartTime DATETIME NULL,
+    researchEndTime DATETIME NULL,
+    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    PRIMARY KEY (settlementId, unitType)
 );
 
 CREATE TABLE ResearchConfig (
     unitType ENUM('guards', 'soldiers', 'archers', 'cavalry') NOT NULL,
-    costWood FLOAT NOT NULL,
-    costStone FLOAT NOT NULL,
-    costOre FLOAT NOT NULL,
-    costGold INT NOT NULL DEFAULT 0,
-    researchTime INT NOT NULL, -- in seconds
+    researchCostWood FLOAT NOT NULL,
+    researchCostStone FLOAT NOT NULL,
+    researchCostOre FLOAT NOT NULL,
+    researchTime INT NOT NULL,
     prerequisiteUnit ENUM('guards', 'soldiers', 'archers', 'cavalry') NULL,
     PRIMARY KEY (unitType)
 );
@@ -204,7 +153,22 @@ CREATE TABLE ResearchQueue (
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
 );
 
--- Trade History table for compatibility
+CREATE TABLE TradeOffers (
+    offerId INT AUTO_INCREMENT PRIMARY KEY,
+    settlementId INT NOT NULL,
+    wood FLOAT NOT NULL DEFAULT 0,
+    stone FLOAT NOT NULL DEFAULT 0,
+    ore FLOAT NOT NULL DEFAULT 0,
+    gold INT NOT NULL DEFAULT 0,
+    exchangeRate FLOAT NOT NULL DEFAULT 1.0,
+    maxTrades INT NOT NULL DEFAULT 1,
+    currentTrades INT NOT NULL DEFAULT 0,
+    isActive BOOLEAN NOT NULL DEFAULT TRUE,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expiresAt DATETIME NULL,
+    FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
+);
+
 CREATE TABLE TradeHistory (
     id INT AUTO_INCREMENT PRIMARY KEY,
     fromSettlementId INT NOT NULL,
@@ -219,11 +183,55 @@ CREATE TABLE TradeHistory (
 );
 
 -- ====================================
--- VIEWS (from views/game_views.sql)
+-- ESSENTIAL PROCEDURES
+-- ====================================
+
+-- Procedure: CreatePlayerWithSettlement
+DROP PROCEDURE IF EXISTS CreatePlayerWithSettlement;
+
+DELIMITER //
+CREATE PROCEDURE CreatePlayerWithSettlement(IN playerName VARCHAR(100))
+BEGIN
+    DECLARE newPlayerId INT;
+    DECLARE newSettlementId INT;
+    
+    INSERT INTO Spieler (name, punkte, gold) VALUES (playerName, 0, 500);
+    SET newPlayerId = LAST_INSERT_ID();
+    
+    INSERT INTO Settlement (name, wood, stone, ore, playerId) 
+    VALUES (CONCAT(playerName, 's Settlement'), 1000.0, 1000.0, 1000.0, newPlayerId);
+    SET newSettlementId = LAST_INSERT_ID();
+    
+    INSERT INTO Buildings (settlementId, buildingType, level, visable) VALUES
+    (newSettlementId, 'Rathaus', 1, 1),
+    (newSettlementId, 'Holzfäller', 1, 1),
+    (newSettlementId, 'Steinbruch', 1, 1),
+    (newSettlementId, 'Erzbergwerk', 1, 1),
+    (newSettlementId, 'Lager', 1, 1),
+    (newSettlementId, 'Farm', 1, 1),
+    (newSettlementId, 'Markt', 0, 1),
+    (newSettlementId, 'Kaserne', 0, 1);
+    
+    INSERT INTO MilitaryUnits (settlementId, unitType, count) VALUES
+    (newSettlementId, 'guards', 0),
+    (newSettlementId, 'soldiers', 0),
+    (newSettlementId, 'archers', 0),
+    (newSettlementId, 'cavalry', 0);
+    
+    INSERT INTO UnitResearch (settlementId, unitType, isResearched) VALUES
+    (newSettlementId, 'guards', FALSE),
+    (newSettlementId, 'soldiers', FALSE),
+    (newSettlementId, 'archers', FALSE),
+    (newSettlementId, 'cavalry', FALSE);
+END //
+DELIMITER ;
+
+-- ====================================
+-- ESSENTIAL VIEWS
 -- ====================================
 
 -- View: Open Building Queue
-CREATE VIEW OpenBuildingQueue AS
+CREATE OR REPLACE VIEW OpenBuildingQueue AS
 SELECT 
     queueId,
     settlementId,
@@ -231,55 +239,19 @@ SELECT
     startTime,
     endTime,
     level,
-    TIMESTAMPDIFF(SECOND, NOW(), endTime) AS remainingTimeSeconds, -- Verbleibende Zeit in Sekunden
+    TIMESTAMPDIFF(SECOND, NOW(), endTime) AS remainingTimeSeconds,
     ROUND(
         100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / TIMESTAMPDIFF(SECOND, startTime, endTime)),
         2
-    ) AS completionPercentage -- Fertigstellungsprozentsatz
+    ) AS completionPercentage
 FROM BuildingQueue
-WHERE NOW() < endTime -- Nur Bauvorhaben, die noch nicht abgeschlossen sind
-ORDER BY endTime ASC; -- Sortiere nach dem frühesten Abschlusszeitpunkt
+WHERE NOW() < endTime
+ORDER BY endTime ASC;
 
--- View: Building Details with costs considering queue
-CREATE OR REPLACE VIEW BuildingDetails AS
-SELECT 
-    b.settlementId,                           -- Siedlung
-    b.buildingType,                           -- Gebäudetyp
-    b.level AS currentLevel,                  -- Aktuelles Level aus Buildings
-    COALESCE((
-        SELECT MAX(bq.level) + 1              -- Höchstes Level in BuildingQueue + 1
-        FROM BuildingQueue bq
-        WHERE bq.settlementId = b.settlementId
-        AND bq.buildingType = b.buildingType
-    ), b.level + 1) AS nextLevel,             -- Oder aktuelles Level + 1, falls keine Warteschlange existiert
-    bc.costWood,                              -- Kosten für das nächste Level
-    bc.costStone,
-    bc.costOre,
-    COALESCE(bc.productionRate, 0) AS productionRate, -- Produktionsrate für das nächste Level
-    bc.settlers,                              -- Siedlerbedarf für das nächste Level
-    -- Calculate town hall reduced build time (same logic as UpgradeBuilding procedure)
-    ROUND(COALESCE(bc.buildTime, 30) * GREATEST(0.1, 1.0 - (COALESCE(th.level, 0) * 0.05))) AS buildTime
-FROM Buildings b
-INNER JOIN BuildingConfig bc
-ON b.buildingType = bc.buildingType
-AND bc.level = COALESCE((
-    SELECT MAX(bq.level) + 1              -- Höchstes Level in BuildingQueue + 1
-    FROM BuildingQueue bq
-    WHERE bq.settlementId = b.settlementId
-        AND bq.buildingType = b.buildingType
-), b.level + 1)                           -- Oder aktuelles Level + 1, falls keine Warteschlange existiert
--- Left join to get town hall level for build time reduction calculation
-LEFT JOIN (
-    SELECT settlementId, level
-    FROM Buildings 
-    WHERE buildingType = 'Rathaus'
-) th ON b.settlementId = th.settlementId;
-
--- View: Settlement Settlers
+-- View: SettlementSettlers
 CREATE OR REPLACE VIEW SettlementSettlers AS
 SELECT 
     s.settlementId,
-    -- Used settlers from Buildings and BuildingQueue, summing up all levels
     (
         COALESCE(
             (
@@ -308,8 +280,7 @@ SELECT
             ), 0
         )
     ) AS usedSettlers,
-    -- Max settlers based on Farm level
-    COALESCE(
+    (100 + COALESCE(
         (
             SELECT bc.productionRate
             FROM Buildings b
@@ -317,11 +288,10 @@ SELECT
             ON b.buildingType = bc.buildingType AND b.level = bc.level
             WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
             LIMIT 1
-        ), 100
-    ) AS maxSettlers,
-    -- Free settlers (maxSettlers - usedSettlers)
+        ), 0
+    )) AS maxSettlers,
     GREATEST(
-        COALESCE(
+        (100 + COALESCE(
             (
                 SELECT bc.productionRate
                 FROM Buildings b
@@ -329,8 +299,8 @@ SELECT
                 ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
                 LIMIT 1
-            ), 100
-        ) - (
+            ), 0
+        )) - (
             COALESCE(
                 (
                     SELECT SUM(totalSettlers) 
@@ -361,525 +331,163 @@ SELECT
     ) AS freeSettlers
 FROM Settlement s;
 
--- Military views
-CREATE OR REPLACE VIEW OpenMilitaryTrainingQueue AS
-SELECT 
-    queueId,
-    settlementId,
-    unitType,
-    count,
-    startTime,
-    endTime,
-    TIMESTAMPDIFF(SECOND, NOW(), endTime) AS remainingTimeSeconds,
-    ROUND(
-        100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / TIMESTAMPDIFF(SECOND, startTime, endTime)),
-        2
-    ) AS completionPercentage
-FROM MilitaryTrainingQueue
-WHERE NOW() < endTime
-ORDER BY endTime ASC;
-
--- Research views
-CREATE OR REPLACE VIEW OpenResearchQueue AS
-SELECT 
-    queueId,
-    settlementId,
-    unitType,
-    startTime,
-    endTime,
-    TIMESTAMPDIFF(SECOND, NOW(), endTime) AS remainingTimeSeconds,
-    ROUND(
-        100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / TIMESTAMPDIFF(SECOND, startTime, endTime)),
-        2
-    ) AS completionPercentage
-FROM ResearchQueue
-WHERE NOW() < endTime
-ORDER BY endTime ASC;
-
 -- ====================================
--- STORED PROCEDURES (from procedures/player_procedures.sql)
+-- ESSENTIAL DATA
 -- ====================================
 
-DROP PROCEDURE IF EXISTS CreatePlayerWithSettlement;
-
-DELIMITER //
-
-CREATE PROCEDURE CreatePlayerWithSettlement (IN playerName VARCHAR(100))
-BEGIN
-    DECLARE newPlayerId INT;
-    DECLARE newSettlementId INT;
-    DECLARE xCoord INT;
-    DECLARE yCoord INT;
-
-    -- Zufällige Koordinaten generieren
-    SET xCoord = FLOOR(RAND() * 21) - 10;
-    SET yCoord = FLOOR(RAND() * 21) - 10;
-
-    -- Spieler erstellen
-    INSERT INTO Spieler (name, punkte) VALUES (playerName, 0);
-    SET newPlayerId = LAST_INSERT_ID();
-
-    -- Siedlung erstellen
-    INSERT INTO Settlement (name, wood, stone, ore, playerId)
-    VALUES (CONCAT(playerName, '_Settlement'), 10000, 10000, 10000, newPlayerId);
-    SET newSettlementId = LAST_INSERT_ID();
-
-    -- Siedlung auf Karte platzieren
-    INSERT INTO Map (settlementId, xCoordinate, yCoordinate)
-    VALUES (newSettlementId, xCoord, yCoord);
-
-    -- Insert necessary building types and levels into BuildingConfig
-    INSERT IGNORE INTO BuildingConfig (buildingType, level) VALUES
-        ('Holzfäller', 1),
-        ('Steinbruch', 1),
-        ('Erzbergwerk', 1),
-        ('Lager', 1),
-        ('Farm', 1),
-        ('Rathaus', 1),
-        ('Markt', 1),
-        ('Kaserne', 1);
-
-    -- Gebäude erstellen - nur Startsiedlung mit Rathaus, Ressourcengebäuden, Lager und Farm
-    INSERT INTO Buildings (settlementId, buildingType, level, visable) VALUES
-        (newSettlementId, 'Rathaus', 1, true),
-        (newSettlementId, 'Holzfäller', 1, true),
-        (newSettlementId, 'Steinbruch', 1, true),
-        (newSettlementId, 'Erzbergwerk', 1, true),
-        (newSettlementId, 'Lager', 1, true),
-        (newSettlementId, 'Farm', 1, true);
-END //
-
-DELIMITER ;
-
--- ====================================
--- STORED PROCEDURES (from procedures/building_procedures.sql)
--- ====================================
-
-DROP PROCEDURE IF EXISTS UpgradeBuilding;
-
-DELIMITER //
-CREATE PROCEDURE UpgradeBuilding(
-        IN inSettlementId INT,
-        IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne')
-    )
-BEGIN
-    DECLARE currentBuildingLevel INT;
-    DECLARE nextLevel INT;
-    DECLARE nextLevelWoodCost FLOAT;
-    DECLARE nextLevelStoneCost FLOAT;
-    DECLARE nextLevelOreCost FLOAT;
-    DECLARE nextLevelSettlerCost FLOAT;
-    DECLARE nextBuildTime INT;
-    DECLARE lastEndTime DATETIME;
-    DECLARE nextEndTime DATETIME;
-    DECLARE maxQueueLevel INT;
-    DECLARE nextQueueId INT;
-    DECLARE nextBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne');
-    DECLARE townHallLevel INT DEFAULT 0;
-    DECLARE buildTimeReduction FLOAT DEFAULT 1.0;
-
-    
-    SELECT level INTO currentBuildingLevel
-    FROM Buildings
-    WHERE settlementId = inSettlementId AND buildingType = inBuildingType;
-
-    
-    SELECT COALESCE(MAX(level), 0) INTO maxQueueLevel
-    FROM BuildingQueue
-    WHERE settlementId = inSettlementId AND buildingType = inBuildingType;
-
-    
-    IF maxQueueLevel > 0 THEN
-        SET nextLevel = maxQueueLevel + 1;
-    ELSE
-        SET nextLevel = currentBuildingLevel + 1;
-    END IF;
-
-    
-    SELECT costWood, costStone, costOre, settlers, buildTime INTO 
-        nextLevelWoodCost, nextLevelStoneCost, nextLevelOreCost, nextLevelSettlerCost, nextBuildTime
-    FROM BuildingConfig
-    WHERE buildingType = inBuildingType AND level = nextLevel;
-
-    -- Get Town Hall level for build time reduction
-    SELECT COALESCE(level, 0) INTO townHallLevel
-    FROM Buildings
-    WHERE settlementId = inSettlementId AND buildingType = 'Rathaus';
-
-    -- Calculate build time reduction based on Town Hall level (5% per level)
-    SET buildTimeReduction = 1.0 - (townHallLevel * 0.05);
-    IF buildTimeReduction < 0.1 THEN
-        SET buildTimeReduction = 0.1; -- Minimum 10% of original build time
-    END IF;
-    
-    -- Apply build time reduction
-    SET nextBuildTime = ROUND(nextBuildTime * buildTimeReduction);
-
-    
-    IF (SELECT wood FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelWoodCost AND
-    (SELECT stone FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelStoneCost AND
-    (SELECT ore FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelOreCost AND
-    (SELECT COALESCE(freeSettlers, 0) FROM SettlementSettlers WHERE settlementId = inSettlementId) >= nextLevelSettlerCost THEN
-
-        
-        UPDATE Settlement
-        SET wood = wood - nextLevelWoodCost,
-            stone = stone - nextLevelStoneCost,
-            ore = ore - nextLevelOreCost
-        WHERE settlementId = inSettlementId;
-
-        
-        SELECT COALESCE(MAX(endTime), NOW()) INTO lastEndTime
-        FROM BuildingQueue
-        WHERE settlementId = inSettlementId;
-
-        
-        INSERT INTO BuildingQueue (settlementId, buildingType, startTime, endTime, isActive, level)
-        VALUES (
-            inSettlementId,
-            inBuildingType,
-            lastEndTime,
-            DATE_ADD(lastEndTime, INTERVAL nextBuildTime SECOND),
-            FALSE,
-            nextLevel
-        );
-
-        -- If we're upgrading the Town Hall, recalculate all existing queue times
-        IF inBuildingType = 'Rathaus' THEN
-            CALL UpdateQueueTimesAfterTownHallUpgrade(inSettlementId, nextLevel);
-        END IF;
-
-        -- Note: Building completion is now handled by the ProcessBuildingQueue event
-        -- which runs every 5 seconds and processes all completed building upgrades
-
-    ELSE
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Nicht genügend Ressourcen für das Upgrade';
-    END IF;
-END //
-DELIMITER ;
-
--- Prozedur: Update queue times after Town Hall upgrade
-DROP PROCEDURE IF EXISTS UpdateQueueTimesAfterTownHallUpgrade;
-
-DELIMITER //
-CREATE PROCEDURE UpdateQueueTimesAfterTownHallUpgrade(
-    IN inSettlementId INT,
-    IN newTownHallLevel INT
-)
-BEGIN
-    DECLARE done INT DEFAULT FALSE;
-    DECLARE currentQueueId INT;
-    DECLARE currentBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne');
-    DECLARE currentLevel INT;
-    DECLARE originalBuildTime INT;
-    DECLARE newBuildTime INT;
-    DECLARE newBuildTimeReduction FLOAT;
-    DECLARE currentStartTime DATETIME;
-    DECLARE previousEndTime DATETIME;
-    
-    -- Cursor to iterate through all existing queue items for this settlement
-    DECLARE queue_cursor CURSOR FOR 
-        SELECT queueId, buildingType, level, startTime
-        FROM BuildingQueue 
-        WHERE settlementId = inSettlementId
-        ORDER BY endTime ASC;
-    
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
-    
-    -- Calculate new build time reduction based on new Town Hall level
-    SET newBuildTimeReduction = 1.0 - (newTownHallLevel * 0.05);
-    IF newBuildTimeReduction < 0.1 THEN
-        SET newBuildTimeReduction = 0.1; -- Minimum 10% of original build time
-    END IF;
-    
-    -- Initialize previous end time to current time for the first item
-    SET previousEndTime = NOW();
-    
-    OPEN queue_cursor;
-    
-    queue_loop: LOOP
-        FETCH queue_cursor INTO currentQueueId, currentBuildingType, currentLevel, currentStartTime;
-        IF done THEN
-            LEAVE queue_loop;
-        END IF;
-        
-        -- Get original build time from config
-        SELECT buildTime INTO originalBuildTime
-        FROM BuildingConfig 
-        WHERE buildingType = currentBuildingType AND level = currentLevel;
-        
-        -- Calculate new reduced build time
-        SET newBuildTime = ROUND(originalBuildTime * newBuildTimeReduction);
-        
-        -- Update this queue item with new times
-        UPDATE BuildingQueue 
-        SET startTime = previousEndTime,
-            endTime = DATE_ADD(previousEndTime, INTERVAL newBuildTime SECOND)
-        WHERE queueId = currentQueueId;
-        
-        -- Set previous end time for next iteration
-        SET previousEndTime = DATE_ADD(previousEndTime, INTERVAL newBuildTime SECOND);
-        
-    END LOOP;
-    
-    CLOSE queue_cursor;
-END //
-
-DELIMITER ;
-
--- ====================================
--- INITIAL DATA (from data/initial_data.sql)
--- ====================================
-
--- Clear existing data
-DELETE FROM BuildingConfig;
-
--- Building configuration data
+-- Insert building configuration data for all building types
 INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, settlers, productionRate, buildTime) VALUES
--- Holzfäller (levels 1-10)
-('Holzfäller', 1, 100, 100, 100, 1, 3600, 30),
-('Holzfäller', 2, 110, 110, 110, 1.1, 3960, 40),
-('Holzfäller', 3, 121, 121, 121, 1.21, 4356, 50),
-('Holzfäller', 4, 133.1, 133.1, 133.1, 1.331, 4791.6, 60),
-('Holzfäller', 5, 146.41, 146.41, 146.41, 1.4641, 5270.76, 70),
-('Holzfäller', 6, 161.051, 161.051, 161.051, 1.61051, 5797.836, 77),
-('Holzfäller', 7, 177.1561, 177.1561, 177.1561, 1.771561, 6377.6196, 85),
-('Holzfäller', 8, 194.87171, 194.87171, 194.87171, 1.9487171, 7015.38156, 93),
-('Holzfäller', 9, 214.358881, 214.358881, 214.358881, 2.14358881, 7716.919716, 102),
-('Holzfäller', 10, 235.7947691, 235.7947691, 235.7947691, 2.357947691, 8488.6116876, 112),
+-- Town Hall
+('Rathaus', 1, 100, 100, 100, 1, 0, 30),
+('Rathaus', 2, 110, 110, 110, 1, 0, 33),
+('Rathaus', 3, 121, 121, 121, 1, 0, 36),
+-- Lumberjack
+('Holzfäller', 1, 100, 100, 100, 1, 5, 30),
+('Holzfäller', 2, 110, 110, 110, 1, 5.5, 33),
+('Holzfäller', 3, 121, 121, 121, 1, 6.05, 36),
+-- Quarry
+('Steinbruch', 1, 100, 100, 100, 1, 5, 30),
+('Steinbruch', 2, 110, 110, 110, 1, 5.5, 33),
+('Steinbruch', 3, 121, 121, 121, 1, 6.05, 36),
+-- Mine
+('Erzbergwerk', 1, 100, 100, 100, 1, 5, 30),
+('Erzbergwerk', 2, 110, 110, 110, 1, 5.5, 33),
+('Erzbergwerk', 3, 121, 121, 121, 1, 6.05, 36),
+-- Storage
+('Lager', 1, 100, 100, 100, 1, 5000, 30),
+('Lager', 2, 110, 110, 110, 1, 5500, 33),
+('Lager', 3, 121, 121, 121, 1, 6050, 36),
+-- Farm
+('Farm', 1, 100, 100, 100, 1, 10, 30),
+('Farm', 2, 110, 110, 110, 1, 11, 33),
+('Farm', 3, 121, 121, 121, 1, 12, 36),
+-- Market
+('Markt', 1, 100, 100, 100, 1, 0, 30),
+('Markt', 2, 110, 110, 110, 1, 0, 33),
+('Markt', 3, 121, 121, 121, 1, 0, 36),
+-- Kaserne
+('Kaserne', 1, 150, 150, 200, 1, 0, 40),
+('Kaserne', 2, 165, 165, 220, 1, 0, 44),
+('Kaserne', 3, 181, 181, 242, 1, 0, 48);
 
--- Steinbruch (levels 1-10)
-('Steinbruch', 1, 100, 100, 100, 1, 3600, 30),
-('Steinbruch', 2, 110, 110, 110, 1.1, 3960, 40),
-('Steinbruch', 3, 121, 121, 121, 1.21, 4356, 50),
-('Steinbruch', 4, 133.1, 133.1, 133.1, 1.331, 4791.6, 60),
-('Steinbruch', 5, 146.41, 146.41, 146.41, 1.4641, 5270.76, 70),
-('Steinbruch', 6, 161.051, 161.051, 161.051, 1.61051, 5797.836, 77),
-('Steinbruch', 7, 177.1561, 177.1561, 177.1561, 1.771561, 6377.6196, 85),
-('Steinbruch', 8, 194.87171, 194.87171, 194.87171, 1.9487171, 7015.38156, 93),
-('Steinbruch', 9, 214.358881, 214.358881, 214.358881, 2.14358881, 7716.919716, 102),
-('Steinbruch', 10, 235.7947691, 235.7947691, 235.7947691, 2.357947691, 8488.6116876, 112),
+-- Insert military unit configurations
+INSERT INTO MilitaryUnitConfig (unitType, level, costWood, costStone, costOre, costGold, costSettlers, trainingTime, defensePower, attackPower, rangedPower, speed) VALUES
+('guards', 1, 50, 30, 20, 10, 1, 30, 2, 0, 0, 1),
+('soldiers', 1, 80, 60, 40, 25, 2, 60, 1, 3, 0, 1),
+('archers', 1, 100, 40, 60, 20, 1, 90, 1, 0, 4, 1),
+('cavalry', 1, 150, 100, 120, 50, 3, 180, 2, 5, 0, 2);
 
--- Erzbergwerk (levels 1-10)
-('Erzbergwerk', 1, 100, 100, 100, 1, 3600, 30),
-('Erzbergwerk', 2, 110, 110, 110, 1.1, 3960, 40),
-('Erzbergwerk', 3, 121, 121, 121, 1.21, 4356, 50),
-('Erzbergwerk', 4, 133.1, 133.1, 133.1, 1.331, 4791.6, 60),
-('Erzbergwerk', 5, 146.41, 146.41, 146.41, 1.4641, 5270.76, 70),
-('Erzbergwerk', 6, 161.051, 161.051, 161.051, 1.61051, 5797.836, 77),
-('Erzbergwerk', 7, 177.1561, 177.1561, 177.1561, 1.771561, 6377.6196, 85),
-('Erzbergwerk', 8, 194.87171, 194.87171, 194.87171, 1.9487171, 7015.38156, 93),
-('Erzbergwerk', 9, 214.358881, 214.358881, 214.358881, 2.14358881, 7716.919716, 102),
-('Erzbergwerk', 10, 235.7947691, 235.7947691, 235.7947691, 2.357947691, 8488.6116876, 112),
+-- Insert research configurations
+INSERT INTO ResearchConfig (unitType, researchCostWood, researchCostStone, researchCostOre, researchTime, prerequisiteUnit) VALUES
+('guards', 200, 150, 100, 300, NULL),
+('soldiers', 400, 300, 250, 600, 'guards'),
+('archers', 350, 200, 300, 450, 'guards'),
+('cavalry', 800, 600, 500, 1200, 'soldiers');
 
--- Lager (levels 1-10)
-('Lager', 1, 100, 100, 100, 1, 10000, 30),
-('Lager', 2, 110, 110, 110, 1.1, 11000, 40),
-('Lager', 3, 121, 121, 121, 1.21, 12100, 50),
-('Lager', 4, 133.1, 133.1, 133.1, 1.331, 13310, 60),
-('Lager', 5, 146.41, 146.41, 146.41, 1.4641, 14641, 70),
-('Lager', 6, 161.051, 161.051, 161.051, 1.61051, 16105.1, 77),
-('Lager', 7, 177.156, 177.156, 177.156, 1.77156, 17715.61, 85),
-('Lager', 8, 194.872, 194.872, 194.872, 1.94872, 19487.17, 93),
-('Lager', 9, 214.359, 214.359, 214.359, 2.14359, 21435.89, 102),
-('Lager', 10, 235.795, 235.795, 235.795, 2.35795, 23579.48, 112),
+-- ====================================
+-- DATABASE EVENTS
+-- ====================================
 
--- Farm (provides settlers - levels 1-10)
-('Farm', 1, 100, 100, 100, 1, 100, 30),
-('Farm', 2, 110, 110, 110, 1.1, 110, 40),
-('Farm', 3, 121, 121, 121, 1.21, 121, 50),
-('Farm', 4, 133.1, 133.1, 133.1, 1.331, 133.1, 60),
-('Farm', 5, 146.41, 146.41, 146.41, 1.4641, 146.41, 70),
-('Farm', 6, 161.051, 161.051, 161.051, 1.61051, 161.051, 77),
-('Farm', 7, 177.156, 177.156, 177.156, 1.77156, 177.156, 85),
-('Farm', 8, 194.872, 194.872, 194.872, 1.94872, 194.872, 93),
-('Farm', 9, 214.359, 214.359, 214.359, 2.14359, 214.359, 102),
-('Farm', 10, 235.795, 235.795, 235.795, 2.35795, 235.795, 112),
-
--- Rathaus (reduces build times - levels 1-10)
-('Rathaus', 1, 200, 200, 200, 2, 0, 60),
-('Rathaus', 2, 220, 220, 220, 2.2, 0, 80),
-('Rathaus', 3, 242, 242, 242, 2.42, 0, 100),
-('Rathaus', 4, 266.2, 266.2, 266.2, 2.662, 0, 120),
-('Rathaus', 5, 292.82, 292.82, 292.82, 2.9282, 0, 140),
-('Rathaus', 6, 322.102, 322.102, 322.102, 3.22102, 0, 154),
-('Rathaus', 7, 354.3122, 354.3122, 354.3122, 3.543122, 0, 169),
-('Rathaus', 8, 389.74342, 389.74342, 389.74342, 3.8974342, 0, 186),
-('Rathaus', 9, 428.717762, 428.717762, 428.717762, 4.28717762, 0, 205),
-('Rathaus', 10, 471.5895382, 471.5895382, 471.5895382, 4.715895382, 0, 225),
-
--- Markt (enables trading - levels 1-10)
-('Markt', 1, 150, 100, 50, 2, 0, 45),
-('Markt', 2, 165, 110, 55, 2.2, 0, 60),
-('Markt', 3, 181.5, 121, 60.5, 2.42, 0, 75),
-('Markt', 4, 199.65, 133.1, 66.55, 2.662, 0, 90),
-('Markt', 5, 219.615, 146.41, 73.205, 2.9282, 0, 105),
-('Markt', 6, 241.577, 161.051, 80.525, 3.22102, 0, 116),
-('Markt', 7, 265.734, 177.156, 88.578, 3.54312, 0, 127),
-('Markt', 8, 292.308, 194.872, 97.436, 3.89743, 0, 140),
-('Markt', 9, 321.539, 214.359, 107.18, 4.28718, 0, 154),
-('Markt', 10, 353.693, 235.795, 117.898, 4.7159, 0, 169),
-
--- Kaserne (military - levels 1-10)
-('Kaserne', 1, 150, 150, 200, 2, 10, 45),
-('Kaserne', 2, 165, 165, 220, 2.2, 11, 60),
-('Kaserne', 3, 181.5, 181.5, 242, 2.42, 12.1, 75),
-('Kaserne', 4, 199.65, 199.65, 266.2, 2.662, 13.31, 90),
-('Kaserne', 5, 219.615, 219.615, 292.82, 2.9282, 14.641, 105),
-('Kaserne', 6, 241.577, 241.577, 322.102, 3.22102, 16.105, 116),
-('Kaserne', 7, 265.734, 265.734, 354.312, 3.54312, 17.716, 127),
-('Kaserne', 8, 292.308, 292.308, 389.743, 3.89743, 19.487, 140),
-('Kaserne', 9, 321.539, 321.539, 428.718, 4.28718, 21.436, 154),
-('Kaserne', 10, 353.693, 353.693, 471.59, 4.7159, 23.579, 169);
-
--- Military unit configuration
-INSERT IGNORE INTO MilitaryUnitConfig (unitType, level, costWood, costStone, costOre, costGold, costSettlers, trainingTime, defensePower, attackPower, rangedPower) VALUES
-('guards', 1, 50, 30, 20, 10, 1, 300, 3, 2, 0),
-('soldiers', 1, 80, 60, 40, 25, 2, 600, 5, 6, 0),
-('archers', 1, 60, 40, 30, 20, 1, 450, 2, 4, 8),
-('cavalry', 1, 120, 80, 60, 50, 3, 900, 8, 10, 0);
-
--- Research configuration
-INSERT IGNORE INTO ResearchConfig (unitType, costWood, costStone, costOre, costGold, researchTime, prerequisiteUnit) VALUES
-('guards', 200, 150, 100, 50, 1800, NULL),
-('soldiers', 400, 300, 200, 100, 3600, 'guards'),
-('archers', 350, 250, 150, 75, 2700, 'guards'),
-('cavalry', 600, 400, 300, 200, 5400, 'soldiers');
-
--- Events for automated processing
--- Event: Process Building Queue
-DROP EVENT IF EXISTS ProcessBuildingQueue;
-
-DELIMITER //
-
-CREATE EVENT ProcessBuildingQueue
-ON SCHEDULE EVERY 5 SECOND
-DO
-BEGIN
-    -- Handle completed building upgrades/construction
-    
-    -- First, create new building entries for buildings that don't exist yet
-    INSERT INTO Buildings (settlementId, buildingType, level, visable)
-    SELECT bq.settlementId, bq.buildingType, bq.level, TRUE
-    FROM BuildingQueue bq
-    LEFT JOIN Buildings b ON bq.settlementId = b.settlementId AND bq.buildingType = b.buildingType
-    WHERE NOW() >= bq.endTime 
-    AND b.buildingType IS NULL;  -- Building doesn't exist yet
-    
-    -- Then, update existing building levels
-    UPDATE Buildings b
-    INNER JOIN BuildingQueue bq ON b.settlementId = bq.settlementId AND b.buildingType = bq.buildingType
-    SET b.level = bq.level, b.visable = TRUE
-    WHERE NOW() >= bq.endTime;
-    
-    -- Finally, remove completed queue items
-    DELETE FROM BuildingQueue 
-    WHERE NOW() >= endTime;
-    
-END //
-
-DELIMITER ;
-
--- Event: Update Resources (every 10 seconds)
+-- Event: Update Resources
 DROP EVENT IF EXISTS UpdateResources;
 
 DELIMITER //
-
 CREATE EVENT UpdateResources
-ON SCHEDULE EVERY 10 SECOND
+ON SCHEDULE EVERY 1 SECOND
 DO
 BEGIN
     UPDATE Settlement s
     SET 
         wood = LEAST(
-            s.wood + COALESCE((
-                SELECT SUM(bc.productionRate) / 360  -- Divided by 360 for 10-second intervals (3600/10)
+            wood + (
+                SELECT COALESCE(SUM(bc.productionRate), 0)
                 FROM Buildings b
-                INNER JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+                JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Holzfäller'
-            ), 0),
-            GREATEST(10000, COALESCE((
-                SELECT SUM(bc.productionRate)
-                FROM Buildings b
-                INNER JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
-                WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
-            ), 0))
+            ),
+            (SELECT COALESCE(SUM(bc.productionRate), 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager')
         ),
         stone = LEAST(
-            s.stone + COALESCE((
-                SELECT SUM(bc.productionRate) / 360
+            stone + (
+                SELECT COALESCE(SUM(bc.productionRate), 0)
                 FROM Buildings b
-                INNER JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+                JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Steinbruch'
-            ), 0),
-            GREATEST(10000, COALESCE((
-                SELECT SUM(bc.productionRate)
-                FROM Buildings b
-                INNER JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
-                WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
-            ), 0))
+            ),
+            (SELECT COALESCE(SUM(bc.productionRate), 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager')
         ),
         ore = LEAST(
-            s.ore + COALESCE((
-                SELECT SUM(bc.productionRate) / 360
+            ore + (
+                SELECT COALESCE(SUM(bc.productionRate), 0)
                 FROM Buildings b
-                INNER JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
+                JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Erzbergwerk'
-            ), 0),
-            GREATEST(10000, COALESCE((
-                SELECT SUM(bc.productionRate)
-                FROM Buildings b
-                INNER JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
-                WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
-            ), 0))
+            ),
+            (SELECT COALESCE(SUM(bc.productionRate), 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager')
         );
 END //
+DELIMITER ;
 
+-- Event: Process Building Queue
+DROP EVENT IF EXISTS ProcessBuildingQueue;
+
+DELIMITER //
+CREATE EVENT ProcessBuildingQueue
+ON SCHEDULE EVERY 5 SECOND
+DO
+BEGIN
+    INSERT INTO Buildings (settlementId, buildingType, level, visable)
+    SELECT bq.settlementId, bq.buildingType, bq.level, 1
+    FROM BuildingQueue bq
+    WHERE NOW() >= bq.endTime
+    ON DUPLICATE KEY UPDATE level = VALUES(level);
+    
+    DELETE FROM BuildingQueue WHERE NOW() >= endTime;
+END //
 DELIMITER ;
 
 -- Event: Process Military Training Queue
 DROP EVENT IF EXISTS ProcessMilitaryTrainingQueue;
 
 DELIMITER //
-
 CREATE EVENT ProcessMilitaryTrainingQueue
 ON SCHEDULE EVERY 5 SECOND
 DO
 BEGIN
-    -- Update military units with completed training
     INSERT INTO MilitaryUnits (settlementId, unitType, count)
     SELECT mtq.settlementId, mtq.unitType, mtq.count
     FROM MilitaryTrainingQueue mtq
-    WHERE mtq.endTime <= NOW()
+    WHERE NOW() >= mtq.endTime
     ON DUPLICATE KEY UPDATE count = MilitaryUnits.count + VALUES(count);
-
-    -- Delete completed training queue entries
-    DELETE FROM MilitaryTrainingQueue WHERE endTime <= NOW();
+    
+    DELETE FROM MilitaryTrainingQueue WHERE NOW() >= endTime;
 END //
-
 DELIMITER ;
 
 -- Event: Process Research Queue
 DROP EVENT IF EXISTS ProcessResearchQueue;
 
 DELIMITER //
-
 CREATE EVENT ProcessResearchQueue
 ON SCHEDULE EVERY 5 SECOND
 DO
 BEGIN
-    -- Update research completion
     UPDATE UnitResearch ur
-    INNER JOIN ResearchQueue rq ON ur.settlementId = rq.settlementId AND ur.unitType = rq.unitType
-    SET ur.isResearched = TRUE, ur.researchedAt = NOW()
-    WHERE rq.endTime <= NOW();
-
-    -- Delete completed research queue entries
-    DELETE FROM ResearchQueue WHERE endTime <= NOW();
+    JOIN ResearchQueue rq ON ur.settlementId = rq.settlementId AND ur.unitType = rq.unitType
+    SET ur.isResearched = TRUE,
+        ur.researchStartTime = rq.startTime,
+        ur.researchEndTime = rq.endTime
+    WHERE NOW() >= rq.endTime;
+    
+    DELETE FROM ResearchQueue WHERE NOW() >= endTime;
 END //
-
 DELIMITER ;
 
+-- Activate events
+ALTER EVENT UpdateResources ENABLE;
+ALTER EVENT ProcessBuildingQueue ENABLE;
+ALTER EVENT ProcessMilitaryTrainingQueue ENABLE;
+ALTER EVENT ProcessResearchQueue ENABLE;
+
 -- Database initialization complete
--- Note: All components are now organized in separate files for better maintainability
+SELECT 'Browsergame database initialized with organized structure!' AS status;
