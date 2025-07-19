@@ -8,27 +8,49 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
 ?>
 
 <nav class="navigation">
-    <div class="nav-links">
-        <div class="settlement-name">
+    <!-- Top row: Admin title, tabs, and user controls -->
+    <div class="nav-top-row">
+        <div class="settlement-name-compact">
             <span>Admin Panel</span>
         </div>
+        
+        <!-- Tab navigation in top row -->
+        <div class="nav-tabs-inline">
+            <a href="admin-overview.php" class="nav-link <?= ($current_page == 'admin-overview') ? 'active' : '' ?>">
+                Overview
+            </a>
+            <a href="admin-buildings.php" class="nav-link <?= ($current_page == 'admin-buildings') ? 'active' : '' ?>">
+                Buildings
+            </a>
+            <a href="admin-market.php" class="nav-link <?= ($current_page == 'admin-market') ? 'active' : '' ?>">
+                Trade
+            </a>
+            <a href="admin-map.php" class="nav-link <?= ($current_page == 'admin-map') ? 'active' : '' ?>">
+                Map
+            </a>
+        </div>
+        
+        <div class="nav-user-compact">
+            <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode"><?= EmojiConfig::getUIEmoji('moon') ?> Dark</button>
+            <span class="user-display-compact"><?= EmojiConfig::getUIEmoji('player') ?> admin</span>
+            <a href="../admin.php?logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+    
+    <!-- Fallback second row for small screens -->
+    <div class="nav-tabs-row nav-tabs-fallback">
         <a href="admin-overview.php" class="nav-link <?= ($current_page == 'admin-overview') ? 'active' : '' ?>">
             Overview
         </a>
         <a href="admin-buildings.php" class="nav-link <?= ($current_page == 'admin-buildings') ? 'active' : '' ?>">
-            Building Configuration
+            Buildings
         </a>
         <a href="admin-market.php" class="nav-link <?= ($current_page == 'admin-market') ? 'active' : '' ?>">
-            Trade Management
+            Trade
         </a>
         <a href="admin-map.php" class="nav-link <?= ($current_page == 'admin-map') ? 'active' : '' ?>">
             Map
         </a>
-    </div>
-    <div class="nav-user">
-        <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode"><?= EmojiConfig::getUIEmoji('moon') ?> Dark</button>
-        <span class="user-display"><?= EmojiConfig::getUIEmoji('player') ?> admin</span>
-        <a href="../admin.php?logout" class="logout-btn">Logout</a>
     </div>
 </nav>
 

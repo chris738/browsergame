@@ -8,11 +8,28 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
 ?>
 
 <nav class="navigation">
-    <!-- Top row: Player controls, dark mode, settlement name (compact) -->
+    <!-- Top row: Settlement name, tabs, and user controls -->
     <div class="nav-top-row">
         <div class="settlement-name-compact">
             <span id="Siedlungsname">Settlement Name</span>
         </div>
+        
+        <!-- Tab navigation in top row -->
+        <div class="nav-tabs-inline">
+            <a href="index.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : '' ?>">
+                Settlement
+            </a>
+            <a href="market.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'market.php') ? 'active' : '' ?>">
+                Trade
+            </a>
+            <a href="map.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'map.php') ? 'active' : '' ?>">
+                Map
+            </a>
+            <a href="kaserne.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'kaserne.php') ? 'active' : '' ?>">
+                Military
+            </a>
+        </div>
+        
         <div class="nav-user-compact">
             <button id="theme-toggle" class="theme-toggle" aria-label="Switch to dark mode"><?= EmojiConfig::getUIEmoji('moon') ?> Dark</button>
             <div class="player-controls-compact">
@@ -27,8 +44,8 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
         </div>
     </div>
     
-    <!-- Second row: Tab navigation -->
-    <div class="nav-tabs-row">
+    <!-- Fallback second row for small screens -->
+    <div class="nav-tabs-row nav-tabs-fallback">
         <a href="index.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'index.php') ? 'active' : '' ?>">
             Settlement
         </a>
@@ -43,7 +60,7 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
         </a>
     </div>
     
-    <!-- Third row: Resources (moved into navbar) -->
+    <!-- Resources row (responsive) -->
     <div class="nav-resources-row">
         <div class="resource">
             <p><?= EmojiConfig::formatResourceWithEmoji('wood', '<span id="holz">0</span>', true, '<span id="holzRegen">0</span>') ?></p>

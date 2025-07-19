@@ -166,12 +166,19 @@ function checkBuildingRequirements() {
             }
         }
         
-        // Hide the building row entirely if requirements aren't met and it's at level 0
+        // Hide the building row only if requirements aren't met and it has never been unlocked
         const currentLevel = parseInt(document.getElementById(buildingId)?.textContent || '0');
-        if (!requirementsMet && currentLevel === 0) {
+        // Check if this building was previously unlocked (stored in sessionStorage)
+        const wasUnlocked = sessionStorage.getItem(`building_${buildingId}_unlocked`) === 'true';
+        
+        if (!requirementsMet && currentLevel === 0 && !wasUnlocked) {
             row.style.display = 'none';
         } else {
             row.style.display = '';
+            // Mark as unlocked once requirements are met
+            if (requirementsMet) {
+                sessionStorage.setItem(`building_${buildingId}_unlocked`, 'true');
+            }
         }
     });
 }
