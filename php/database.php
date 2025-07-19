@@ -196,7 +196,7 @@ class Database implements DatabaseInterface {
             // Create procedure with proper delimiter handling
             $procedureSQL = "CREATE PROCEDURE UpgradeBuilding(
                     IN inSettlementId INT,
-                    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt')
+                    IN inBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne')
                 )
                 BEGIN
                     DECLARE currentBuildingLevel INT DEFAULT 1;
@@ -338,7 +338,7 @@ class Database implements DatabaseInterface {
                 BEGIN
                     DECLARE done INT DEFAULT FALSE;
                     DECLARE currentQueueId INT;
-                    DECLARE currentBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt');
+                    DECLARE currentBuildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne');
                     DECLARE currentLevel INT;
                     DECLARE originalBuildTime INT;
                     DECLARE newBuildTime INT;
@@ -428,7 +428,7 @@ class Database implements DatabaseInterface {
                 FOREIGN KEY (playerId) REFERENCES Spieler(playerId) ON DELETE CASCADE
             )",
             "CREATE TABLE IF NOT EXISTS BuildingConfig (
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
                 level INT NOT NULL,
                 costWood FLOAT NOT NULL,
                 costStone FLOAT NOT NULL,
@@ -441,7 +441,7 @@ class Database implements DatabaseInterface {
             "CREATE TABLE IF NOT EXISTS BuildingQueue (
                 queueId INT AUTO_INCREMENT PRIMARY KEY,
                 settlementId INT NOT NULL,
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
                 startTime DATETIME NOT NULL,
                 endTime DATETIME NOT NULL,
                 isActive BOOLEAN NOT NULL DEFAULT FALSE,
@@ -450,7 +450,7 @@ class Database implements DatabaseInterface {
             )",
             "CREATE TABLE IF NOT EXISTS Buildings (
                 settlementId INT NOT NULL,
-                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt') NOT NULL,
+                buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
                 level INT NOT NULL DEFAULT 1,
                 visable boolean NOT NULL DEFAULT false,
                 FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
@@ -464,6 +464,98 @@ class Database implements DatabaseInterface {
             } catch (PDOException $e) {
                 error_log("Failed to create table: " . $e->getMessage());
             }
+        }
+
+        // Create SettlementSettlers view if it doesn't exist
+        try {
+            $this->conn->exec("DROP VIEW IF EXISTS SettlementSettlers");
+            $settlementSettlersView = "CREATE VIEW SettlementSettlers AS
+            SELECT 
+                s.settlementId,
+                -- Used settlers from Buildings, summing up all levels
+                (
+                    COALESCE(
+                        (
+                            SELECT SUM(totalSettlers) 
+                            FROM (
+                                SELECT b.settlementId, b.buildingType, SUM(bc.settlers) AS totalSettlers
+                                FROM Buildings b
+                                INNER JOIN BuildingConfig bc
+                                ON b.buildingType = bc.buildingType AND bc.level <= b.level
+                                GROUP BY b.settlementId, b.buildingType
+                            ) AS BuildingSummed
+                            WHERE BuildingSummed.settlementId = s.settlementId
+                        ), 0
+                    ) + 
+                    COALESCE(
+                        (
+                            SELECT SUM(totalSettlers) 
+                            FROM (
+                                SELECT bq.settlementId, bq.buildingType, SUM(bc.settlers) AS totalSettlers
+                                FROM BuildingQueue bq
+                                INNER JOIN BuildingConfig bc
+                                ON bq.buildingType = bc.buildingType AND bc.level <= bq.level
+                                GROUP BY bq.settlementId, bq.buildingType
+                            ) AS QueueSummed
+                            WHERE QueueSummed.settlementId = s.settlementId
+                        ), 0
+                    )
+                ) AS usedSettlers,
+                -- Max settlers based on Farm level
+                COALESCE(
+                    (
+                        SELECT bc.productionRate
+                        FROM Buildings b
+                        INNER JOIN BuildingConfig bc
+                        ON b.buildingType = bc.buildingType AND b.level = bc.level
+                        WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
+                        LIMIT 1
+                    ), 100
+                ) AS maxSettlers,
+                -- Free settlers (maxSettlers - usedSettlers)
+                GREATEST(
+                    COALESCE(
+                        (
+                            SELECT bc.productionRate
+                            FROM Buildings b
+                            INNER JOIN BuildingConfig bc
+                            ON b.buildingType = bc.buildingType AND b.level = bc.level
+                            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Farm'
+                            LIMIT 1
+                        ), 100
+                    ) - (
+                        COALESCE(
+                            (
+                                SELECT SUM(totalSettlers) 
+                                FROM (
+                                    SELECT b.settlementId, b.buildingType, SUM(bc.settlers) AS totalSettlers
+                                    FROM Buildings b
+                                    INNER JOIN BuildingConfig bc
+                                    ON b.buildingType = bc.buildingType AND bc.level <= b.level
+                                    GROUP BY b.settlementId, b.buildingType
+                                ) AS BuildingSummed
+                                WHERE BuildingSummed.settlementId = s.settlementId
+                            ), 0
+                        ) + 
+                        COALESCE(
+                            (
+                                SELECT SUM(totalSettlers) 
+                                FROM (
+                                    SELECT bq.settlementId, bq.buildingType, SUM(bc.settlers) AS totalSettlers
+                                    FROM BuildingQueue bq
+                                    INNER JOIN BuildingConfig bc
+                                    ON bq.buildingType = bc.buildingType AND bc.level <= bq.level
+                                    GROUP BY bq.settlementId, bq.buildingType
+                                ) AS QueueSummed
+                                WHERE QueueSummed.settlementId = s.settlementId
+                            ), 0
+                        )
+                    ), 0
+                ) AS freeSettlers
+            FROM Settlement s";
+            $this->conn->exec($settlementSettlersView);
+        } catch (PDOException $e) {
+            error_log("Failed to create SettlementSettlers view: " . $e->getMessage());
         }
 
         // Insert some basic building config if it doesn't exist
@@ -482,7 +574,9 @@ class Database implements DatabaseInterface {
                 ('Rathaus', 1, 200, 200, 200, 2, 0, 60),
                 ('Rathaus', 2, 220, 220, 220, 2.2, 0, 80),
                 ('Markt', 1, 150, 100, 50, 2, 0, 45),
-                ('Markt', 2, 165, 110, 55, 2.2, 0, 60)");
+                ('Markt', 2, 165, 110, 55, 2.2, 0, 60),
+                ('Kaserne', 1, 150, 150, 200, 2, 10, 45),
+                ('Kaserne', 2, 165, 165, 220, 2.2, 11, 60)");
         } catch (PDOException $e) {
             error_log("Failed to insert basic building config: " . $e->getMessage());
         }
@@ -653,15 +747,15 @@ class Database implements DatabaseInterface {
             return false;
         }
 
-        // Return mock data if database connection failed - modified for testing insufficient resources
+        // Return mock data if database connection failed
         if ($this->connectionFailed) {
             return [
-                'wood' => 50,        // Insufficient for 100 wood cost
-                'stone' => 30,       // Insufficient for 50 stone cost  
-                'ore' => 200,        // Sufficient for 25 ore cost
+                'wood' => 5000,        // Sufficient for building upgrades including Kaserne
+                'stone' => 5000,       // Sufficient for building upgrades including Kaserne  
+                'ore' => 5000,         // Sufficient for building upgrades including Kaserne
                 'storageCapacity' => 10000,
                 'maxSettlers' => 100,
-                'freeSettlers' => 3  // Insufficient for 5 settler cost
+                'freeSettlers' => 50   // Sufficient for settler requirements
             ];
         }
 
@@ -729,15 +823,28 @@ class Database implements DatabaseInterface {
 
         // Return mock data if database connection failed
         if ($this->connectionFailed) {
-            return [
-                'currentLevel' => 1,
-                'nextLevel' => 2,
-                'costWood' => 100,
-                'costStone' => 50,
-                'costOre' => 25,
-                'settlers' => 5,
-                'buildTime' => 30
-            ];
+            // Return appropriate mock data based on building type
+            if ($buildingType === 'Kaserne') {
+                return [
+                    'currentLevel' => 1,
+                    'nextLevel' => 2,
+                    'costWood' => 165,      // Level 2 cost for Kaserne (150 * 1.1)
+                    'costStone' => 165,     // Level 2 cost for Kaserne (150 * 1.1)
+                    'costOre' => 220,       // Level 2 cost for Kaserne (200 * 1.1)
+                    'settlers' => 2.2,      // Level 2 cost for Kaserne (2 * 1.1)
+                    'buildTime' => 60       // Level 2 build time for Kaserne
+                ];
+            } else {
+                return [
+                    'currentLevel' => 1,
+                    'nextLevel' => 2,
+                    'costWood' => 110,      // Standard level 2 cost (100 * 1.1)
+                    'costStone' => 110,     // Standard level 2 cost (100 * 1.1)
+                    'costOre' => 110,       // Standard level 2 cost (100 * 1.1)
+                    'settlers' => 1.1,      // Standard level 2 cost (1 * 1.1)
+                    'buildTime' => 40       // Standard level 2 build time
+                ];
+            }
         }
 
         try {
@@ -1237,7 +1344,7 @@ class Database implements DatabaseInterface {
             $settlementId = $this->conn->lastInsertId();
             
             // Create buildings
-            $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt'];
+            $buildingTypes = ['Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne'];
             foreach ($buildingTypes as $buildingType) {
                 try {
                     $sql = "INSERT INTO Buildings (settlementId, buildingType) VALUES (:settlementId, :buildingType)";
