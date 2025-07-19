@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/sql-data-validator.php';
+
 interface DatabaseInterface {
     public function getResources($settlementId);
     public function getBuilding($settlementId, $buildingType);
@@ -643,6 +645,14 @@ class Database implements DatabaseInterface {
     }
 
     public function getResources($settlementId) {
+        // Validate input
+        try {
+            $settlementId = SQLDataValidator::validateId($settlementId, 'Settlement ID');
+        } catch (InvalidArgumentException $e) {
+            SQLDataValidator::logValidationError('getResources input', $e->getMessage());
+            return false;
+        }
+
         // Return mock data if database connection failed - modified for testing insufficient resources
         if ($this->connectionFailed) {
             return [
@@ -655,39 +665,68 @@ class Database implements DatabaseInterface {
             ];
         }
 
-        $sql = "
-            SELECT 
-                s.wood, 
-                s.stone, 
-                s.ore, 
-                COALESCE(
-                    (
-                        SELECT SUM(bc.productionRate)
-                        FROM Buildings b
-                        INNER JOIN BuildingConfig bc 
-                        ON b.buildingType = bc.buildingType AND b.level = bc.level
-                        WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
-                    ), 
-                    0
-                ) AS storageCapacity,
-                ss.maxSettlers,
-                ss.freeSettlers
-            FROM 
-                Settlement s
-            LEFT JOIN 
-                SettlementSettlers ss
-            ON 
-                s.settlementId = ss.settlementId
-            WHERE 
-                s.settlementId = :settlementId";
-        
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
-        $stmt->execute();
-        return $resources = $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            $sql = "
+                SELECT 
+                    s.wood, 
+                    s.stone, 
+                    s.ore, 
+                    COALESCE(
+                        (
+                            SELECT SUM(bc.productionRate)
+                            FROM Buildings b
+                            INNER JOIN BuildingConfig bc 
+                            ON b.buildingType = bc.buildingType AND b.level = bc.level
+                            WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
+                        ), 
+                        0
+                    ) AS storageCapacity,
+                    ss.maxSettlers,
+                    ss.freeSettlers
+                FROM 
+                    Settlement s
+                LEFT JOIN 
+                    SettlementSettlers ss
+                ON 
+                    s.settlementId = ss.settlementId
+                WHERE 
+                    s.settlementId = :settlementId";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+            $stmt->execute();
+            $resources = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Validate output data
+            if ($resources) {
+                try {
+                    SQLDataValidator::validateResourceData($resources);
+                } catch (InvalidArgumentException $e) {
+                    SQLDataValidator::logValidationError('getResources output', $e->getMessage());
+                    // Log the actual data for debugging
+                    error_log("Invalid resource data for settlement $settlementId: " . json_encode($resources));
+                    return false;
+                }
+            }
+            
+            return $resources;
+        } catch (PDOException $e) {
+            SQLDataValidator::logValidationError('getResources SQL', $e->getMessage());
+            error_log("SQL error in getResources for settlement $settlementId: " . $e->getMessage());
+            return false;
+        }
     }
     
     public function getBuilding($settlementId, $buildingType) {
+        // Validate inputs
+        try {
+            $settlementId = SQLDataValidator::validateId($settlementId, 'Settlement ID');
+            $buildingType = SQLDataValidator::validateBuildingType($buildingType);
+        } catch (InvalidArgumentException $e) {
+            SQLDataValidator::logValidationError('getBuilding input', $e->getMessage());
+            throw new Exception("Invalid input parameters: " . $e->getMessage());
+        }
+
         // Return mock data if database connection failed
         if ($this->connectionFailed) {
             return [
@@ -701,30 +740,45 @@ class Database implements DatabaseInterface {
             ];
         }
 
-        $sql = "
-            SELECT 
-                b.currentLevel,
-                b.nextLevel, 
-                b.costWood, 
-                b.costStone, 
-                b.costOre, 
-                b.settlers,
-                b.buildTime
-            FROM BuildingDetails b
-            WHERE b.settlementId = :settlementId AND b.buildingType = :buildingType";
+        try {
+            $sql = "
+                SELECT 
+                    b.currentLevel,
+                    b.nextLevel, 
+                    b.costWood, 
+                    b.costStone, 
+                    b.costOre, 
+                    b.settlers,
+                    b.buildTime
+                FROM BuildingDetails b
+                WHERE b.settlementId = :settlementId AND b.buildingType = :buildingType";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+            $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
+            $stmt->execute();
+            
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if (!$result) {
+                throw new Exception("Gebäude '$buildingType' im Settlement '$settlementId' nicht gefunden.");
+            }
+            
+            // Validate output data
+            try {
+                SQLDataValidator::validateBuildingData($result);
+            } catch (InvalidArgumentException $e) {
+                SQLDataValidator::logValidationError('getBuilding output', $e->getMessage());
+                error_log("Invalid building data for settlement $settlementId, building $buildingType: " . json_encode($result));
+                throw new Exception("Building data validation failed: " . $e->getMessage());
+            }
         
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
-        $stmt->bindParam(':buildingType', $buildingType, PDO::PARAM_STR);
-        $stmt->execute();
-        
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if (!$result) {
-            throw new Exception("Gebäude '$buildingType' im Settlement '$settlementId' nicht gefunden.");
+            return $result;
+        } catch (PDOException $e) {
+            SQLDataValidator::logValidationError('getBuilding SQL', $e->getMessage());
+            error_log("SQL error in getBuilding for settlement $settlementId, building $buildingType: " . $e->getMessage());
+            throw new Exception("Database error: " . $e->getMessage());
         }
-    
-        return $result;
     }
     
     public function upgradeBuilding($settlementId, $buildingType) {
@@ -846,61 +900,149 @@ class Database implements DatabaseInterface {
     }
 
     public function getSettlementName($settlementId) {
+        // Validate input
+        try {
+            $settlementId = SQLDataValidator::validateId($settlementId, 'Settlement ID');
+        } catch (InvalidArgumentException $e) {
+            SQLDataValidator::logValidationError('getSettlementName input', $e->getMessage());
+            return false;
+        }
+
         // Return mock data if database connection failed
         if ($this->connectionFailed) {
             return ['SettlementName' => 'Test-Siedlung'];
         }
 
-        $sql = "
-            SELECT 
-                s.name AS SettlementName
-            FROM 
-                Settlement s
-            WHERE 
-                s.settlementId = :settlementId";
-        
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetch(PDO::FETCH_ASSOC);
+        try {
+            $sql = "
+                SELECT 
+                    s.name AS SettlementName
+                FROM 
+                    Settlement s
+                WHERE 
+                    s.settlementId = :settlementId";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Validate output data
+            if ($result) {
+                try {
+                    SQLDataValidator::validateSettlementName($result);
+                } catch (InvalidArgumentException $e) {
+                    SQLDataValidator::logValidationError('getSettlementName output', $e->getMessage());
+                    error_log("Invalid settlement name data for settlement $settlementId: " . json_encode($result));
+                    return false;
+                }
+            }
+            
+            return $result;
+        } catch (PDOException $e) {
+            SQLDataValidator::logValidationError('getSettlementName SQL', $e->getMessage());
+            error_log("SQL error in getSettlementName for settlement $settlementId: " . $e->getMessage());
+            return false;
+        }
     }
 
     public function getQueue($settlementId) {
+        // Validate input
+        try {
+            $settlementId = SQLDataValidator::validateId($settlementId, 'Settlement ID');
+        } catch (InvalidArgumentException $e) {
+            SQLDataValidator::logValidationError('getQueue input', $e->getMessage());
+            return [];
+        }
+
         // Return mock empty queue if database connection failed
         if ($this->connectionFailed) {
             return [];
         }
 
-        $sql = "
-        SELECT
-            queueId,
-            settlementId,
-            buildingType,
-            startTime,
-            endTime, 
-            completionPercentage,
-            level
-        FROM 
-            OpenBuildingQueue 
-        WHERE 
-            settlementId = :settlementId";
-        
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        try {
+            $sql = "
+            SELECT
+                queueId,
+                settlementId,
+                buildingType,
+                startTime,
+                endTime, 
+                completionPercentage,
+                level
+            FROM 
+                OpenBuildingQueue 
+            WHERE 
+                settlementId = :settlementId";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->bindParam(':settlementId', $settlementId, PDO::PARAM_INT);
+            $stmt->execute();
+            $queue = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Validate each queue entry
+            if ($queue && is_array($queue)) {
+                foreach ($queue as $index => $entry) {
+                    try {
+                        SQLDataValidator::validateQueueData($entry);
+                    } catch (InvalidArgumentException $e) {
+                        SQLDataValidator::logValidationError('getQueue output entry ' . $index, $e->getMessage());
+                        error_log("Invalid queue entry for settlement $settlementId at index $index: " . json_encode($entry));
+                        // Remove invalid entry instead of failing completely
+                        unset($queue[$index]);
+                    }
+                }
+                // Re-index array after potential unset operations
+                $queue = array_values($queue);
+            }
+            
+            return $queue ?: [];
+        } catch (PDOException $e) {
+            SQLDataValidator::logValidationError('getQueue SQL', $e->getMessage());
+            error_log("SQL error in getQueue for settlement $settlementId: " . $e->getMessage());
+            return [];
+        }
     }
 
     public function getMap() {
-        $sql = "
-        SELECT
-            settlementId, xCoordinate, yCoordinate
-        FROM 
-            Map";
-        
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Return empty array if database connection failed
+        if ($this->connectionFailed) {
+            return [];
+        }
+
+        try {
+            $sql = "
+            SELECT
+                settlementId, xCoordinate, yCoordinate
+            FROM 
+                Map";
+            
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            $map = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Validate each map entry
+            if ($map && is_array($map)) {
+                foreach ($map as $index => $entry) {
+                    try {
+                        SQLDataValidator::validateMapData($entry);
+                    } catch (InvalidArgumentException $e) {
+                        SQLDataValidator::logValidationError('getMap output entry ' . $index, $e->getMessage());
+                        error_log("Invalid map entry at index $index: " . json_encode($entry));
+                        // Remove invalid entry instead of failing completely
+                        unset($map[$index]);
+                    }
+                }
+                // Re-index array after potential unset operations
+                $map = array_values($map);
+            }
+            
+            return $map ?: [];
+        } catch (PDOException $e) {
+            SQLDataValidator::logValidationError('getMap SQL', $e->getMessage());
+            error_log("SQL error in getMap: " . $e->getMessage());
+            return [];
+        }
     }
 
     // Admin-specific methods
