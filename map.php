@@ -94,6 +94,12 @@ if (empty($mapData)) {
         </div>
         
         <div class="map-container-fullscreen" id="mapContainer">
+            <!-- X-axis coordinate labels (top) -->
+            <div class="map-x-coordinates" id="mapXCoordinates"></div>
+            
+            <!-- Y-axis coordinate labels (left) -->
+            <div class="map-y-coordinates" id="mapYCoordinates"></div>
+            
             <div class="map-grid" id="mapGrid">
                 <?php foreach ($mapData as $settlement): ?>
                     <?php 
@@ -184,8 +190,39 @@ if (empty($mapData)) {
         
         // Initialize map positioning
         function initializeMap() {
+            generateCoordinateLabels();
             positionSettlements();
             centerMap();
+        }
+        
+        // Generate coordinate labels for X and Y axes
+        function generateCoordinateLabels() {
+            const xCoordinatesContainer = document.getElementById('mapXCoordinates');
+            const yCoordinatesContainer = document.getElementById('mapYCoordinates');
+            
+            // Clear existing labels
+            xCoordinatesContainer.innerHTML = '';
+            yCoordinatesContainer.innerHTML = '';
+            
+            // Generate X-axis labels (top) - range from -20 to 20, show every 5
+            for (let x = -20; x <= 20; x += 5) {
+                const label = document.createElement('div');
+                label.className = 'coordinate-label x-label';
+                label.textContent = x;
+                const pixelX = (x + 20) * 40 + 20; // Same calculation as settlement positioning
+                label.style.left = pixelX + 'px';
+                xCoordinatesContainer.appendChild(label);
+            }
+            
+            // Generate Y-axis labels (left) - range from 20 to -20 (inverted), show every 5
+            for (let y = 20; y >= -20; y -= 5) {
+                const label = document.createElement('div');
+                label.className = 'coordinate-label y-label';
+                label.textContent = y;
+                const pixelY = (20 - y) * 40 + 20; // Same calculation as settlement positioning
+                label.style.top = pixelY + 'px';
+                yCoordinatesContainer.appendChild(label);
+            }
         }
         
         // Position settlements based on coordinates
