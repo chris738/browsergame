@@ -1,8 +1,10 @@
 -- Database Views
 -- Views for the browser game
 
+USE browsergame;
+
 -- View: Open Building Queue
-CREATE VIEW OpenBuildingQueue AS
+CREATE OR REPLACE VIEW OpenBuildingQueue AS
 SELECT 
     queueId,
     settlementId,

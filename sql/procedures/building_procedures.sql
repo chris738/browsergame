@@ -1,5 +1,7 @@
 -- Building Management Procedures
 
+USE browsergame;
+
 DROP PROCEDURE IF EXISTS UpgradeBuilding;
 
 DELIMITER //
@@ -49,7 +51,7 @@ BEGIN
     -- If no config found, signal error
     IF nextLevelWoodCost IS NULL THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = CONCAT('Keine Konfiguration für ', inBuildingType, ' Level ', nextLevel, ' gefunden');
+            SET MESSAGE_TEXT = 'Keine Konfiguration für das Gebäude-Level gefunden';
     END IF;
 
     -- Get Town Hall level for build time reduction
@@ -102,7 +104,7 @@ BEGIN
 
     ELSE
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Nicht genügend Ressourcen für das Upgrade';
+            SET MESSAGE_TEXT = 'Nicht genügend Ressourcen für das Upgrade';
     END IF;
 END //
 DELIMITER ;
@@ -278,10 +280,10 @@ BEGIN
     ELSE
         IF currentFreeSettlers < totalCostSettlers THEN
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Not enough settlers for unit training';
+                SET MESSAGE_TEXT = 'Not enough settlers for unit training';
         ELSE
             SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'Not enough resources for unit training';
+                SET MESSAGE_TEXT = 'Not enough resources for unit training';
         END IF;
     END IF;
 END //
