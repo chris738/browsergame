@@ -19,7 +19,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
             Building Configuration
         </a>
         <a href="admin-market.php" class="nav-link <?= ($current_page == 'admin-market') ? 'active' : '' ?>">
-            Market Trades
+            Trade Management
         </a>
         <a href="admin-map.php" class="nav-link <?= ($current_page == 'admin-map') ? 'active' : '' ?>">
             Map

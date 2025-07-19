@@ -2,16 +2,6 @@
     require_once 'php/database.php';
     require_once 'php/emoji-config.php';
     
-    // Get Kaserne (Barracks) specific data from database
-    $database = new Database();
-    
-    // We only need Kaserne building type for this page
-    $kaserneBuilding = [
-        'name' => 'Barracks',
-        'id' => 'kaserne',
-        'originalName' => 'Kaserne'
-    ];
-
     // Process incoming requests
     $method = $_SERVER['REQUEST_METHOD'];
     $settlementId = $_GET['settlementId'] ?? null;
@@ -22,7 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barracks - Military Training</title>
+    <title>Military - Training</title>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/theme-switcher.js"></script>
     <script src="js/emoji-config.js"></script>
@@ -33,7 +23,7 @@
     <?php include 'php/navigation.php'; ?>
     
     <div class="main-content">
-        <h2><?= EmojiConfig::getBuildingEmoji('kaserne') ?> Barracks - Military Command Center</h2>
+        <h2><?= EmojiConfig::getBuildingEmoji('kaserne') ?> Military - Command Center</h2>
         <p>Train military units, manage your army, and prepare for battles. Higher level barracks allow training of more powerful units.</p>
     </div>
     
@@ -51,42 +41,6 @@
             </thead>
             <tbody id="buildingQueueBody">
                 <!-- Queue items will be populated by JavaScript -->
-            </tbody>
-        </table>
-    </section>
-
-    <!-- Barracks Building Management -->
-    <section class="buildings">
-        <h3>Barracks Building</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>Building</th>
-                    <th>Level</th>
-                    <th>Cost</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        <?= EmojiConfig::formatBuildingWithEmoji('kaserne', $kaserneBuilding['name']) ?>
-                    </td>
-                    <td><span id="kaserne">0</span></td>
-                    <td>
-                        <span class="cost-box" id="kaserneKostenHolz">0 <?= EmojiConfig::getResourceEmoji('wood') ?></span>
-                        <span class="cost-box" id="kaserneKostenStein">0 <?= EmojiConfig::getResourceEmoji('stone') ?></span>
-                        <span class="cost-box" id="kaserneKostenErz">0 <?= EmojiConfig::getResourceEmoji('ore') ?></span>
-                        <span class="cost-box" id="kaserneKostenSiedler">0 <?= EmojiConfig::getResourceEmoji('settlers') ?></span>
-                        <span class="cost-box" id="kaserneBauzeit">0s <?= EmojiConfig::getUIEmoji('time') ?></span>
-                    </td>
-                    <td style="text-align: right;">
-                        <button id="kaserneupgradeButton" 
-                            onclick="upgradeBuilding('<?= htmlspecialchars($kaserneBuilding['originalName']) ?>','<?= htmlspecialchars($settlementId) ?>')">
-                            Upgrade Barracks
-                        </button>
-                    </td>
-                </tr>
             </tbody>
         </table>
     </section>

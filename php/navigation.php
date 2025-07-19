@@ -33,13 +33,13 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
             Settlement
         </a>
         <a href="market.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'market.php') ? 'active' : '' ?>">
-            Market
+            Trade
         </a>
         <a href="map.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'map.php') ? 'active' : '' ?>">
             Map
         </a>
         <a href="kaserne.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'kaserne.php') ? 'active' : '' ?>">
-            Barracks
+            Military
         </a>
     </div>
     

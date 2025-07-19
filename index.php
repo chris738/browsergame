@@ -79,10 +79,27 @@
             foreach ($buildings as $building): 
                 $buildingId = $building['id'];
                 $buildingName = $building['name'];
+                $originalName = $building['originalName'];
+                
+                // Define building requirements
+                $requirements = [];
+                $requirementText = '';
+                
+                if ($originalName === 'Kaserne') {
+                    $requirements = ['farm' => 5];
+                    $requirementText = 'Requires Farm Level 5';
+                } elseif ($originalName === 'Markt') {
+                    $requirements = ['lager' => 5];
+                    $requirementText = 'Requires Storage Level 5';
+                }
             ?>
-                <tr>
+                <tr data-building="<?= htmlspecialchars($buildingId) ?>" 
+                    data-requirements='<?= json_encode($requirements) ?>'>
                     <td>
                         <?= EmojiConfig::formatBuildingWithEmoji($buildingId, $buildingName) ?>
+                        <?php if ($requirementText): ?>
+                            <br><small style="color: #666; font-style: italic;"><?= $requirementText ?></small>
+                        <?php endif; ?>
                     </td>
                     <td><span id="<?= htmlspecialchars($buildingId) ?>">0</span></td>
                     <td>
@@ -95,7 +112,8 @@
                     <td style="text-align: right;">
                         <!-- Button with a unique ID -->
                         <button id="<?= htmlspecialchars($buildingId) ?>upgradeButton" 
-                            onclick="upgradeBuilding('<?= htmlspecialchars($building['originalName']) ?>','<?= htmlspecialchars($settlementId) ?>')">>
+                            onclick="upgradeBuilding('<?= htmlspecialchars($building['originalName']) ?>','<?= htmlspecialchars($settlementId) ?>')"
+                            class="building-upgrade-btn">
                             Upgrade
                         </button>
                     </td>
@@ -104,5 +122,76 @@
         </tbody>
         </table>
     </section>
+
+<script>
+// Function to check and update building requirements
+function checkBuildingRequirements() {
+    const buildingRows = document.querySelectorAll('tr[data-requirements]');
+    
+    buildingRows.forEach(row => {
+        const buildingId = row.getAttribute('data-building');
+        const requirements = JSON.parse(row.getAttribute('data-requirements') || '{}');
+        const upgradeButton = document.getElementById(buildingId + 'upgradeButton');
+        
+        if (Object.keys(requirements).length === 0) {
+            // No requirements, always enabled
+            return;
+        }
+        
+        let requirementsMet = true;
+        let requirementText = '';
+        
+        for (const [requiredBuilding, requiredLevel] of Object.entries(requirements)) {
+            const currentLevel = parseInt(document.getElementById(requiredBuilding)?.textContent || '0');
+            if (currentLevel < requiredLevel) {
+                requirementsMet = false;
+                const buildingNames = {
+                    'farm': 'Farm',
+                    'lager': 'Storage'
+                };
+                requirementText = `Requires ${buildingNames[requiredBuilding] || requiredBuilding} Level ${requiredLevel} (current: ${currentLevel})`;
+                break;
+            }
+        }
+        
+        if (upgradeButton) {
+            if (requirementsMet) {
+                upgradeButton.disabled = false;
+                upgradeButton.style.opacity = '1';
+                upgradeButton.title = '';
+            } else {
+                upgradeButton.disabled = true;
+                upgradeButton.style.opacity = '0.5';
+                upgradeButton.title = requirementText;
+            }
+        }
+        
+        // Hide the building row entirely if requirements aren't met and it's at level 0
+        const currentLevel = parseInt(document.getElementById(buildingId)?.textContent || '0');
+        if (!requirementsMet && currentLevel === 0) {
+            row.style.display = 'none';
+        } else {
+            row.style.display = '';
+        }
+    });
+}
+
+// Override the existing resource update function to include requirement checking
+const originalFetchResources = window.fetchResources;
+if (originalFetchResources) {
+    window.fetchResources = function(settlementId) {
+        originalFetchResources(settlementId);
+        // Add a small delay to ensure resources are updated first
+        setTimeout(checkBuildingRequirements, 100);
+    };
+}
+
+// Check requirements when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(checkBuildingRequirements, 500); // Give time for initial data to load
+    // Check periodically
+    setInterval(checkBuildingRequirements, 2000);
+});
+</script>
 </body>
 </html>

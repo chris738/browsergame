@@ -1,21 +1,119 @@
 /* Admin Panel Specific Styles */
 
-/* Admin Navigation */
-.admin-navigation {
+/* Admin Navigation - Responsive Design */
+.admin-navigation,
+.navigation {
     background-color: var(--nav-bg);
     color: var(--nav-text);
-    padding: 15px 20px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     transition: background-color 0.3s ease, color 0.3s ease;
+    flex-wrap: wrap;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
 }
 
-.admin-nav-links {
+/* Responsive navigation layout */
+@media (min-width: 1024px) {
+    /* Desktop - combine tab and info bars */
+    .navigation {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 20px;
+        min-height: 60px;
+    }
+    
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex: 1;
+    }
+    
+    .nav-user {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .settlement-name {
+        font-size: 18px;
+        font-weight: bold;
+        margin-right: 30px;
+        color: var(--nav-text);
+    }
+}
+
+@media (max-width: 1023px) {
+    /* Tablet/Mobile - stack tab and info bars */
+    .navigation {
+        flex-direction: column;
+        padding: 0;
+    }
+    
+    .nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 10px 15px;
+        border-bottom: 1px solid var(--nav-border);
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .nav-user {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 15px;
+        background-color: var(--nav-hover);
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .settlement-name {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--nav-text);
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--nav-border);
+    }
+}
+
+@media (max-width: 768px) {
+    /* Mobile - more compact */
+    .nav-links {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .nav-user {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+    
+    .settlement-name {
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+}
+
+.nav-links {
     display: flex;
     align-items: center;
-    gap: 30px;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        gap: 5px;
+        flex-wrap: wrap;
+    }
 }
 
 .admin-title h1 {
@@ -25,28 +123,85 @@
     transition: color 0.3s ease;
 }
 
-.admin-nav-link {
+.nav-link {
     color: #bbb;
     text-decoration: none;
-    padding: 10px 20px;
+    padding: 10px 15px;
     border-radius: 4px;
     transition: all 0.3s;
     font-weight: 500;
+    white-space: nowrap;
 }
 
-.admin-nav-link:hover {
+.nav-link:hover {
     color: var(--nav-text);
     background-color: var(--nav-hover);
 }
 
-.admin-nav-link.active {
+.nav-link.active {
     color: var(--nav-text);
     background-color: var(--nav-active);
 }
 
-.admin-nav-actions {
+@media (max-width: 768px) {
+    .nav-link {
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+}
+
+.nav-user {
     display: flex;
     align-items: center;
+    gap: 15px;
+}
+
+.user-display {
+    color: var(--nav-text);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 6px 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--nav-text);
+    color: var(--nav-text);
+    padding: 6px 12px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.theme-toggle:hover {
+    background-color: var(--nav-hover);
+    border-color: var(--nav-active);
+    color: var(--nav-active);
+}
+
+@media (max-width: 768px) {
+    .nav-user {
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .user-display {
+        font-size: 12px;
+        padding: 4px 8px;
+    }
+    
+    .theme-toggle {
+        font-size: 11px;
+        padding: 4px 8px;
+    }
 }
 
 /* Building Configuration Specific Styles */
@@ -207,6 +362,20 @@
     max-width: 1200px;
     margin: 0 auto;
     padding: 20px;
+    padding-top: 80px; /* Account for fixed navigation */
+}
+
+@media (max-width: 1023px) {
+    .admin-container {
+        padding-top: 120px; /* More space for stacked navigation */
+    }
+}
+
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 10px;
+        padding-top: 140px; /* Even more space for mobile navigation */
+    }
 }
 
 .admin-section {
@@ -443,15 +612,32 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .admin-navigation {
+    .navigation {
         flex-direction: column;
-        gap: 15px;
+        gap: 10px;
+        padding: 10px;
     }
     
-    .admin-nav-links {
+    .nav-links {
+        flex-direction: column;
+        gap: 5px;
+        width: 100%;
+    }
+    
+    .nav-user {
         flex-direction: column;
         gap: 10px;
         width: 100%;
+        text-align: center;
+    }
+    
+    .settlement-name {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 10px;
+        font-size: 16px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--nav-border);
     }
     
     .admin-container {
