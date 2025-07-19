@@ -30,9 +30,10 @@ services:
       - ./sql/military-units.sql:/docker-entrypoint-initdb.d/03-military-units.sql
       - ./sql/procedures/building_procedures.sql:/docker-entrypoint-initdb.d/04-building-procedures.sql
       - ./sql/views/game_views.sql:/docker-entrypoint-initdb.d/05-game-views.sql
-      - ./sql/schema-fixes.sql:/docker-entrypoint-initdb.d/06-schema-fixes.sql
-      - ./sql/init-player.sql:/docker-entrypoint-initdb.d/07-init-player.sql
-      - ./sql/enable-events.sql:/docker-entrypoint-initdb.d/08-enable-events.sql
+      - ./sql/views/enhanced_views.sql:/docker-entrypoint-initdb.d/06-enhanced-views.sql
+      - ./sql/schema-fixes.sql:/docker-entrypoint-initdb.d/07-schema-fixes.sql
+      - ./sql/init-player.sql:/docker-entrypoint-initdb.d/08-init-player.sql
+      - ./sql/enable-events.sql:/docker-entrypoint-initdb.d/09-enable-events.sql
       - ./docker/mariadb.cnf:/etc/mysql/conf.d/browsergame.cnf
       - db_data:/var/lib/mysql
     networks:
