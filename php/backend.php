@@ -249,6 +249,61 @@ function getMap() {
     ];
 }
 
+function fetchMilitaryUnits($settlementId) {
+    $database = new Database();
+    $units = $database->getMilitaryUnits($settlementId);
+    
+    if (!$units) {
+        return ['error' => 'Military units could not be retrieved.'];
+    }
+    
+    return ['units' => $units];
+}
+
+function fetchMilitaryTrainingQueue($settlementId) {
+    $database = new Database();
+    $queue = $database->getMilitaryTrainingQueue($settlementId);
+    
+    if (!$queue) {
+        return ['error' => 'Military training queue could not be retrieved.'];
+    }
+    
+    return ['queue' => $queue];
+}
+
+function fetchMilitaryStats($settlementId) {
+    $database = new Database();
+    $stats = $database->getMilitaryStats($settlementId);
+    
+    if (!$stats) {
+        return ['error' => 'Military stats could not be retrieved.'];
+    }
+    
+    return ['stats' => $stats];
+}
+
+function handleMilitaryTraining($settlementId, $input) {
+    if (!$settlementId || !isset($input['unitType']) || !isset($input['count'])) {
+        return json_encode(['success' => false, 'message' => 'Missing required parameters.']);
+    }
+
+    $unitType = $input['unitType'];
+    $count = (int)$input['count'];
+    
+    if ($count <= 0) {
+        return json_encode(['success' => false, 'message' => 'Invalid unit count.']);
+    }
+
+    $database = new Database();
+    $result = $database->trainMilitaryUnit($settlementId, $unitType, $count);
+
+    if ($result['success']) {
+        return json_encode(['success' => true, 'message' => $result['message']]);
+    } else {
+        return json_encode(['success' => false, 'message' => $result['message']]);
+    }
+}
+
 // Eingehende Anfrage verarbeiten
 $method = $_SERVER['REQUEST_METHOD'];
 $settlementId = $_GET['settlementId'] ?? null;
@@ -260,6 +315,9 @@ $getMap = $_GET['getMap'] ?? null;
 $getBuildingTypes = $_GET['getBuildingTypes'] ?? null;
 $getPlayerInfo = $_GET['getPlayerInfo'] ?? null;
 $getAllPlayers = $_GET['getAllPlayers'] ?? null;
+$getMilitaryUnits = $_GET['getMilitaryUnits'] ?? null;
+$getMilitaryQueue = $_GET['getMilitaryQueue'] ?? null;
+$getMilitaryStats = $_GET['getMilitaryStats'] ?? null;
 
 try {
     if ($method === 'GET') {
@@ -319,11 +377,31 @@ try {
             $response = ['info' => getMap()];
         }
 
+        // Military Units
+        if ($getMilitaryUnits == True) {
+            $response = ['militaryUnits' => fetchMilitaryUnits($settlementId)];
+        }
+
+        // Military Training Queue
+        if ($getMilitaryQueue == True) {
+            $response = ['militaryQueue' => fetchMilitaryTrainingQueue($settlementId)];
+        }
+
+        // Military Stats
+        if ($getMilitaryStats == True) {
+            $response = ['militaryStats' => fetchMilitaryStats($settlementId)];
+        }
+
         echo json_encode($response);
     } elseif ($method === 'POST') {
-        // Upgrade-Building-Logik auslagern
+        // Check if this is a military training request
         $input = json_decode(file_get_contents('php://input'), true);
-        echo handleBuildingUpgrade($settlementId, $input);
+        if (isset($input['action']) && $input['action'] === 'trainUnit') {
+            echo handleMilitaryTraining($settlementId, $input);
+        } else {
+            // Upgrade-Building-Logik auslagern
+            echo handleBuildingUpgrade($settlementId, $input);
+        }
     } else {
         echo json_encode(['success' => false, 'message' => 'Methode nicht unterstützt.']);
     }

@@ -26,7 +26,9 @@ services:
       - "3306:3306"
     volumes:
       - ./sql/database.sql:/docker-entrypoint-initdb.d/01-init.sql
-      - ./sql/init-player.sql:/docker-entrypoint-initdb.d/02-init-player.sql
+      - ./sql/add-kaserne.sql:/docker-entrypoint-initdb.d/02-add-kaserne.sql
+      - ./sql/military-units.sql:/docker-entrypoint-initdb.d/03-military-units.sql
+      - ./sql/init-player.sql:/docker-entrypoint-initdb.d/04-init-player.sql
       - ./docker/mariadb.cnf:/etc/mysql/conf.d/browsergame.cnf
       - db_data:/var/lib/mysql
     networks:
