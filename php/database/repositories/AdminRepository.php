@@ -38,6 +38,10 @@ class AdminRepository {
     }
 
     public function getAllPlayers() {
+        if ($this->connectionFailed) {
+            return [];
+        }
+        
         $sql = "SELECT playerId, name, punkte as points, gold FROM Spieler ORDER BY playerId";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute();
@@ -45,6 +49,10 @@ class AdminRepository {
     }
 
     public function getAllSettlements() {
+        if ($this->connectionFailed) {
+            return [];
+        }
+        
         $sql = "
             SELECT 
                 s.settlementId,
