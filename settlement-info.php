@@ -4,7 +4,7 @@ require_once 'php/emoji-config.php';
 
 // Get settlement ID and current player's settlement ID from URL parameters
 $settlementId = $_GET['settlementId'] ?? null;
-$currentSettlementId = $_GET['currentSettlementId'] ?? null;
+$currentSettlementId = $_GET['currentSettlementId'] ?? $settlementId; // Default to same settlement for single-player
 
 if (!$settlementId) {
     header('Location: map.php');
@@ -20,21 +20,23 @@ $targetPlayerId = null;
 
 try {
     if ($database->isConnected()) {
-        // Get all settlements to find the current player and target settlement info
+        // Get settlement information with coordinates
         $allSettlements = $database->getAllSettlements();
         
+        // Find the target settlement
         foreach ($allSettlements as $settlement) {
-            if ($settlement['settlementId'] == $currentSettlementId) {
-                $currentPlayerId = $settlement['playerId'] ?? null;
-            }
             if ($settlement['settlementId'] == $settlementId) {
                 $settlementInfo = $settlement;
                 $targetPlayerId = $settlement['playerId'] ?? null;
+                break;
             }
         }
         
+        // For single-player game, assume current player is player 1
+        $currentPlayerId = 1;
+        
         // Get trade history between the current player and target player
-        if ($currentPlayerId && $targetPlayerId) {
+        if ($currentPlayerId && $targetPlayerId && $currentPlayerId != $targetPlayerId) {
             $tradeHistory = $database->getTradeHistoryBetweenPlayers($currentPlayerId, $targetPlayerId);
         }
     }
@@ -60,6 +62,7 @@ $isOwnSettlement = ($currentPlayerId && $targetPlayerId && $currentPlayerId == $
     <title>Settlement Info - <?= htmlspecialchars($settlementInfo['name']) ?></title>
     <link rel="stylesheet" href="css/style.css">
     <script src="js/theme-switcher.js"></script>
+    <script src="js/backend.js" defer></script>
 </head>
 <body>
     <?php include 'php/navigation.php'; ?>
@@ -154,5 +157,12 @@ $isOwnSettlement = ($currentPlayerId && $targetPlayerId && $currentPlayerId == $
             </div>
         </div>
     </main>
+    
+    <script>
+        // Declare settlementId only if not already declared
+        if (typeof settlementId === 'undefined') {
+            const settlementId = <?= json_encode($settlementId) ?>;
+        }
+    </script>
 </body>
 </html>
