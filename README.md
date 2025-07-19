@@ -178,6 +178,7 @@ docker compose up -d
 - [Fresh Start Guide](docs/FRESH-START.md) - Complete environment reset documentation
 - [Database Rebuild Guide](docs/DATABASE_REBUILD.md) - Database management scripts
 - [Reset Documentation](docs/RESET.md) - Various reset options
+- [Production Deployment](docs/PRODUCTION_DEPLOYMENT.md) - Production deployment guide (⚠️ Security considerations)
 
 ### Comprehensive Guide
 - [Comprehensive README](docs/README.md) *(German)* - Detailed German documentation
