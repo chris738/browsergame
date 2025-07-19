@@ -623,12 +623,19 @@ button {
     position: relative;
     transform-origin: center center;
     transition: transform 0.2s ease;
+    /* Checkerboard pattern with alternating green shades */
     background-color: #2ecc71;
-    /* Clear grid lines instead of checkered pattern */
     background-image: 
-        linear-gradient(to right, #27ae60 0px, #27ae60 1px, transparent 1px),
-        linear-gradient(to bottom, #27ae60 0px, #27ae60 1px, transparent 1px);
-    background-size: 40px 40px;
+        /* Dark green squares for checkerboard pattern */
+        linear-gradient(45deg, #27ae60 25%, transparent 25%), 
+        linear-gradient(-45deg, #27ae60 25%, transparent 25%), 
+        linear-gradient(45deg, transparent 75%, #27ae60 75%), 
+        linear-gradient(-45deg, transparent 75%, #27ae60 75%),
+        /* Grid lines */
+        linear-gradient(to right, #229954 0px, #229954 1px, transparent 1px),
+        linear-gradient(to bottom, #229954 0px, #229954 1px, transparent 1px);
+    background-size: 80px 80px, 80px 80px, 80px 80px, 80px 80px, 40px 40px, 40px 40px;
+    background-position: 0 0, 0 40px, 40px -40px, -40px 0px, 0 0, 0 0;
     /* Offset the map grid to account for coordinate labels */
     margin-top: 25px;
     margin-left: 30px;

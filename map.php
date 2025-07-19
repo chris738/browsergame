@@ -193,9 +193,43 @@ if (empty($mapData)) {
             generateCoordinateLabels();
             positionSettlements();
             centerMap();
+            // Update coordinates when map is panned
+            updateCoordinateLabelsPosition();
         }
         
-        // Generate coordinate labels for X and Y axes
+        // Update coordinate label positions based on current scroll position
+        function updateCoordinateLabelsPosition() {
+            const xCoordinatesContainer = document.getElementById('mapXCoordinates');
+            const yCoordinatesContainer = document.getElementById('mapYCoordinates');
+            const scrollLeft = mapContainer.scrollLeft;
+            const scrollTop = mapContainer.scrollTop;
+            
+            // Update X-axis labels to stay aligned with visible area
+            const xLabels = xCoordinatesContainer.querySelectorAll('.x-label');
+            xLabels.forEach(label => {
+                const originalLeft = parseInt(label.style.left);
+                // Keep labels visible by adjusting for scroll offset
+                if (originalLeft - scrollLeft >= 0 && originalLeft - scrollLeft <= mapContainer.clientWidth) {
+                    label.style.opacity = '1';
+                } else {
+                    label.style.opacity = '0.3';
+                }
+            });
+            
+            // Update Y-axis labels to stay aligned with visible area
+            const yLabels = yCoordinatesContainer.querySelectorAll('.y-label');
+            yLabels.forEach(label => {
+                const originalTop = parseInt(label.style.top);
+                // Keep labels visible by adjusting for scroll offset
+                if (originalTop - scrollTop >= 0 && originalTop - scrollTop <= mapContainer.clientHeight) {
+                    label.style.opacity = '1';
+                } else {
+                    label.style.opacity = '0.3';
+                }
+            });
+        }
+        
+        // Generate coordinate labels for X and Y axes based on settlement positions
         function generateCoordinateLabels() {
             const xCoordinatesContainer = document.getElementById('mapXCoordinates');
             const yCoordinatesContainer = document.getElementById('mapYCoordinates');
@@ -204,8 +238,30 @@ if (empty($mapData)) {
             xCoordinatesContainer.innerHTML = '';
             yCoordinatesContainer.innerHTML = '';
             
-            // Generate X-axis labels (top) - range from -20 to 20, show every 5
-            for (let x = -20; x <= 20; x += 5) {
+            // Get all settlements to determine coordinate range
+            const settlements = document.querySelectorAll('.settlement-icon');
+            let minX = 0, maxX = 0, minY = 0, maxY = 0;
+            
+            // Find the range of settlement coordinates
+            settlements.forEach(settlement => {
+                const x = parseInt(settlement.dataset.x) || 0;
+                const y = parseInt(settlement.dataset.y) || 0;
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
+            });
+            
+            // Expand range to show some extra space around settlements
+            const padding = 10;
+            minX = Math.max(-20, minX - padding);
+            maxX = Math.min(20, maxX + padding);
+            minY = Math.max(-20, minY - padding);
+            maxY = Math.min(20, maxY + padding);
+            
+            // Generate X-axis labels (top) - show key coordinates with settlements plus some extras
+            const xStep = Math.max(1, Math.ceil((maxX - minX) / 15)); // Adaptive step size
+            for (let x = minX; x <= maxX; x += xStep) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label x-label';
                 label.textContent = x;
@@ -215,8 +271,9 @@ if (empty($mapData)) {
                 xCoordinatesContainer.appendChild(label);
             }
             
-            // Generate Y-axis labels (left) - range from 20 to -20 (inverted), show every 5
-            for (let y = 20; y >= -20; y -= 5) {
+            // Generate Y-axis labels (left) - show key coordinates with settlements plus some extras
+            const yStep = Math.max(1, Math.ceil((maxY - minY) / 15)); // Adaptive step size
+            for (let y = maxY; y >= minY; y -= yStep) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label y-label';
                 label.textContent = y;
@@ -280,6 +337,9 @@ if (empty($mapData)) {
             
             mapContainer.scrollLeft = (gridRect.width - containerRect.width) / 2;
             mapContainer.scrollTop = (gridRect.height - containerRect.height) / 2;
+            
+            // Update coordinate labels after centering
+            setTimeout(updateCoordinateLabelsPosition, 100);
         }
         
         // Zoom functionality
@@ -333,7 +393,12 @@ if (empty($mapData)) {
             const walkY = (y - startY) * 2;
             mapContainer.scrollLeft = scrollLeft - walkX;
             mapContainer.scrollTop = scrollTop - walkY;
+            // Update coordinate labels during panning
+            updateCoordinateLabelsPosition();
         });
+        
+        // Update coordinate labels when scrolling
+        mapContainer.addEventListener('scroll', updateCoordinateLabelsPosition);
         
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initializeMap);
