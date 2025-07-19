@@ -60,7 +60,7 @@ CREATE TABLE BuildingConfig (
     costWood FLOAT NOT NULL DEFAULT 100,
     costStone FLOAT NOT NULL DEFAULT 100,
     costOre FLOAT NOT NULL DEFAULT 100,
-    settlers INT NOT NULL DEFAULT 1,
+    settlers FLOAT NOT NULL DEFAULT 1.0,
     productionRate FLOAT NOT NULL DEFAULT 5.0,
     buildTime INT NOT NULL DEFAULT 30,
     PRIMARY KEY (buildingType, level)
@@ -81,9 +81,10 @@ CREATE TABLE BuildingQueue (
     queueId INT AUTO_INCREMENT PRIMARY KEY,
     settlementId INT NOT NULL,
     buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
-    level INT NOT NULL,
     startTime DATETIME NOT NULL,
     endTime DATETIME NOT NULL,
+    isActive BOOLEAN NOT NULL DEFAULT FALSE,
+    level INT NOT NULL DEFAULT 0,
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
 );
 
@@ -483,11 +484,12 @@ BEGIN
 END //
 DELIMITER ;
 
--- Activate events
-ALTER EVENT UpdateResources ENABLE;
-ALTER EVENT ProcessBuildingQueue ENABLE;
-ALTER EVENT ProcessMilitaryTrainingQueue ENABLE;
-ALTER EVENT ProcessResearchQueue ENABLE;
+-- Activate events (disabled for now to avoid conflicts during initialization)
+-- These will be enabled after all initialization is complete
+-- ALTER EVENT UpdateResources ENABLE;
+-- ALTER EVENT ProcessBuildingQueue ENABLE;
+-- ALTER EVENT ProcessMilitaryTrainingQueue ENABLE;
+-- ALTER EVENT ProcessResearchQueue ENABLE;
 
 -- Database initialization complete
 SELECT 'Browsergame database initialized with organized structure!' AS status;
