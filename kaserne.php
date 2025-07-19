@@ -39,7 +39,7 @@
                     <th>End Time</th>
                 </tr>
             </thead>
-            <tbody id="buildingQueueBody">
+            <tbody id="militaryTrainingQueueBody">
                 <!-- Queue items will be populated by JavaScript -->
             </tbody>
         </table>
@@ -409,7 +409,7 @@
         
         // Update military training queue display
         function updateMilitaryQueue(queue) {
-            const tbody = document.getElementById('buildingQueueBody');
+            const tbody = document.getElementById('militaryTrainingQueueBody');
             tbody.innerHTML = '';
             
             if (queue.length === 0) {
