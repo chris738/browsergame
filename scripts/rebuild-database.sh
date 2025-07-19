@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SQL_FILE="$SCRIPT_DIR/../sql/../sql/database.sql"
+SQL_FILE="$SCRIPT_DIR/../sql/database.sql"
 INIT_PLAYER_SQL="$SCRIPT_DIR/../sql/init-player.sql"
 
 # Logging functions
