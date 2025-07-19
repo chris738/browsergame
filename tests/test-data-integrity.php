@@ -4,6 +4,8 @@
  * Runs comprehensive checks to ensure all SQL data is correct and consistent
  */
 
+// Change to parent directory to find php files
+chdir(__DIR__ . '/..');
 require_once 'php/database.php';
 
 class SQLDataIntegrityChecker {

@@ -4,6 +4,8 @@
  * to ensure proper handling of SQL data reading failures
  */
 
+// Change to parent directory to find php files
+chdir(__DIR__ . '/..');
 require_once 'php/database.php';
 
 class ErrorScenarioTest {

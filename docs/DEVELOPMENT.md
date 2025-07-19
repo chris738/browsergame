@@ -144,9 +144,9 @@ curl "http://localhost:8080/php/market-backend.php?action=status&settlementId=1"
 #### Using Test Scripts
 ```bash
 # Run built-in validation tests
-php test-validation.php
-php test-data-integrity.php
-php test-web-interface.php
+php tests/test-validation.php
+php tests/test-data-integrity.php
+php tests/test-web-interface.php
 ```
 
 ### 4. Database Development
@@ -271,10 +271,10 @@ curl http://localhost:8080/php/backend.php?settlementId=1
 # Visit http://localhost:8080/admin.php
 
 # 4. Database integrity test
-php test-data-integrity.php
+php tests/test-data-integrity.php
 
 # 5. Web interface test
-php test-web-interface.php
+php tests/test-web-interface.php
 ```
 
 ## 🐛 Debugging

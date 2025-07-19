@@ -137,10 +137,10 @@ echo "   - Added Kaserne to all ENUM definitions\n";
 echo "   - Added SettlementSettlers view creation\n";
 echo "   - Added Kaserne building configuration data\n\n";
 
-echo "2. test-barracks-upgrade.php (new)\n";
+echo "2. tests/test-barracks-upgrade.php (new)\n";
 echo "   - Comprehensive test suite for barracks functionality\n\n";
 
-echo "3. test-web-interface.php (new)\n";
+echo "3. tests/test-web-interface.php (new)\n";
 echo "   - Web interface simulation test\n\n";
 
 echo "=== Technical Details ===\n";

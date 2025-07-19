@@ -4,6 +4,8 @@
  * This script tests various scenarios to ensure all SQL data is read correctly
  */
 
+// Change to parent directory to find php files
+chdir(__DIR__ . '/..');
 require_once 'php/database.php';
 
 class SQLDataReadingTest {

@@ -222,8 +222,23 @@ browsergame/
 ├── docs/                  # Documentation
 │   ├── README.md          # Comprehensive guide (German)
 │   ├── INSTALLATION.md    # Installation troubleshooting
-│   └── ADMIN_README.md    # Admin panel documentation
-└── test-*.php            # Test scripts for validation
+│   ├── ADMIN_README.md    # Admin panel documentation
+│   ├── GAME_MECHANICS.md  # Complete gameplay mechanics
+│   ├── DEVELOPMENT.md     # Development and contribution guide
+│   ├── API_DOCUMENTATION.md # REST API endpoints
+│   ├── FRESH-START.md     # Environment reset documentation
+│   ├── DATABASE_REBUILD.md # Database management
+│   ├── RESET.md           # Reset options
+│   └── PRODUCTION_DEPLOYMENT.md # Production deployment
+└── tests/                 # Test scripts for validation
+    ├── test-admin-login.php     # Admin panel authentication tests
+    ├── test-advanced-sql.php    # Advanced SQL functionality tests
+    ├── test-barracks-upgrade.php # Military system tests
+    ├── test-data-integrity.php  # Database integrity tests
+    ├── test-error-scenarios.php # Error handling tests
+    ├── test-sql-data-reading.php # SQL data access tests
+    ├── test-validation.php      # Input validation tests
+    └── test-web-interface.php   # Web interface tests
 ```
 
 ## 🔒 Security Notice

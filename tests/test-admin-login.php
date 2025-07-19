@@ -5,9 +5,12 @@
  * This script helps verify that the admin login functionality is working
  * after a new installation of the browsergame.
  * 
- * Run this script via command line: php test-admin-login.php
- * Or access it via browser: http://localhost/browsergame/test-admin-login.php
+ * Run this script via command line: php tests/test-admin-login.php
+ * Or access it via browser: http://localhost/browsergame/tests/test-admin-login.php
  */
+
+// Change to parent directory to find php files
+chdir(__DIR__ . '/..');
 
 echo "=== Browsergame Admin Login Test ===\n\n";
 

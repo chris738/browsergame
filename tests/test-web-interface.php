@@ -4,6 +4,8 @@
  * This simulates what happens when a user clicks the upgrade button
  */
 
+// Change to parent directory to find php files
+chdir(__DIR__ . '/..');
 require_once 'php/database.php';
 require_once 'php/backend.php';
 
