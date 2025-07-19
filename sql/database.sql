@@ -1002,14 +1002,28 @@ ALTER EVENT ProcessResearchQueue ENABLE;
 -- Run database validation
 CALL ValidateDatabase();
 
--- Automatic initialization if database is empty
-SET @player_count = (SELECT COUNT(*) FROM Spieler);
-IF @player_count = 0 THEN
-    CALL InitializeGameDatabase();
-    SELECT 'Database automatically initialized with admin player' AS auto_init_status;
-ELSE
-    SELECT 'Database already contains data, skipping auto-initialization' AS auto_init_status;
-END IF;
+-- Safe conditional initialization procedure
+DROP PROCEDURE IF EXISTS SafeInitializeDatabase;
+
+DELIMITER //
+CREATE PROCEDURE SafeInitializeDatabase()
+BEGIN
+    DECLARE player_count INT DEFAULT 0;
+    
+    -- Check if database is empty
+    SET player_count = (SELECT COUNT(*) FROM Spieler);
+    
+    IF player_count = 0 THEN
+        CALL InitializeGameDatabase();
+        SELECT 'Database automatically initialized with admin player' AS auto_init_status;
+    ELSE
+        SELECT 'Database already contains data, skipping auto-initialization' AS auto_init_status;
+    END IF;
+END //
+DELIMITER ;
+
+-- Call safe initialization
+CALL SafeInitializeDatabase();
 
 -- Database initialization complete
 SELECT 'Browsergame database initialized with modular structure!' AS status,
