@@ -86,7 +86,7 @@ CREATE TABLE BuildingQueue (
 CREATE TABLE Buildings (
     settlementId INT NOT NULL,
     buildingType ENUM('Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Rathaus', 'Markt', 'Kaserne') NOT NULL,
-    level INT NOT NULL DEFAULT 1,
+    level INT NOT NULL DEFAULT 0,
     visable boolean NOT NULL DEFAULT false,
     FOREIGN KEY (settlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
     PRIMARY KEY (settlementId, buildingType)
@@ -444,10 +444,7 @@ BEGIN
         (newSettlementId, 'Holzfäller', 1, true),
         (newSettlementId, 'Steinbruch', 1, true),
         (newSettlementId, 'Erzbergwerk', 1, true),
-        (newSettlementId, 'Lager', 1, true),
-        (newSettlementId, 'Farm', 1, true),
-        (newSettlementId, 'Markt', 1, true),
-        (newSettlementId, 'Kaserne', 1, true);
+        (newSettlementId, 'Lager', 1, true);
 END //
 
 DELIMITER ;
