@@ -94,6 +94,7 @@
                     <option value="resource_buy">Resource Purchases</option>
                 </select>
                 <button onclick="refreshOffers()"><?= EmojiConfig::getUIEmoji('refresh') ?> Refresh</button>
+                <button id="bulkAcceptBtn" onclick="bulkAcceptTrades()" style="display: none;" class="bulk-accept-btn">Accept Selected Trades</button>
             </div>
             <div id="offersList" class="offers-table">
                 <!-- Trade offers will be loaded here -->

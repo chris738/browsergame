@@ -2,6 +2,35 @@
 
 let marketLevel = 0;
 
+// Show status message instead of alert
+function showStatusMessage(message, type = 'info') {
+    const existingMessage = document.getElementById('statusMessage');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    const messageElement = document.createElement('div');
+    messageElement.id = 'statusMessage';
+    messageElement.className = `status-message status-${type}`;
+    messageElement.textContent = message;
+    
+    // Insert at the top of the market interface
+    const marketInterface = document.getElementById('marketInterface');
+    if (marketInterface) {
+        marketInterface.insertBefore(messageElement, marketInterface.firstChild);
+    } else {
+        // Fallback to body if market interface not found
+        document.body.insertBefore(messageElement, document.body.firstChild);
+    }
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (messageElement && messageElement.parentNode) {
+            messageElement.remove();
+        }
+    }, 5000);
+}
+
 // Check if player has a market and what level
 function checkMarketAccess() {
     fetch(`php/backend.php?settlementId=${settlementId}&buildingType=Markt`)
@@ -121,7 +150,7 @@ function loadMarketData() {
 function createTradeOffer() {
     // Check if we have a current player ID (ownership validation)
     if (!window.currentPlayerId) {
-        alert('Unable to determine current player. Please refresh the page.');
+        showStatusMessage('Unable to determine current player. Please refresh the page.', 'error');
         return;
     }
     
@@ -133,7 +162,7 @@ function createTradeOffer() {
             
             // Check if current player owns this settlement
             if (window.currentPlayerId !== settlementOwnerId) {
-                alert('You can only create trade offers from your own settlement. Switch to your settlement first.');
+                showStatusMessage('You can only create trade offers from your own settlement. Switch to your settlement first.', 'warning');
                 return;
             }
             
@@ -142,7 +171,7 @@ function createTradeOffer() {
         })
         .catch(error => {
             console.error('Error checking settlement ownership:', error);
-            alert('Unable to verify settlement ownership.');
+            showStatusMessage('Unable to verify settlement ownership.', 'error');
         });
 }
 
@@ -165,12 +194,12 @@ function proceedWithTradeOffer() {
     const totalRequested = requestWood + requestStone + requestOre + requestGold;
     
     if (totalOffered === 0) {
-        alert('You must offer something!');
+        showStatusMessage('You must offer something!', 'warning');
         return;
     }
     
     if (totalRequested === 0) {
-        alert('You must request something in return!');
+        showStatusMessage('You must request something in return!', 'warning');
         return;
     }
 
@@ -197,16 +226,16 @@ function proceedWithTradeOffer() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Trade offer created successfully!');
+            showStatusMessage('Trade offer created successfully!', 'success');
             clearOfferForm();
             loadMarketData();
         } else {
-            alert(data.message || 'Failed to create offer');
+            showStatusMessage(data.message || 'Failed to create offer', 'error');
         }
     })
     .catch(error => {
         console.error('Error creating offer:', error);
-        alert('An error occurred while creating the offer.');
+        showStatusMessage('An error occurred while creating the offer.', 'error');
     });
 }
 
@@ -265,7 +294,7 @@ function loadMyOffers() {
 
 // Load trade history
 function loadTradeHistory() {
-    fetch(`php/market-backend.php?settlementId=${settlementId}&getHistory=true`)
+    fetch(`php/market-backend.php?settlementId=${settlementId}&getHistory=true&limit=10`)
         .then(response => response.json())
         .then(data => {
             const historyList = document.getElementById('tradeHistory');
@@ -306,10 +335,21 @@ function createOfferHTML(offer, isMyOffer) {
     
     const actionButton = isMyOffer 
         ? `<button class="cancel-offer-btn" onclick="cancelOffer(${offer.offerId})">Cancel</button>`
-        : `<button class="accept-offer-btn" onclick="acceptOffer(${offer.offerId})">Accept Trade</button>`;
+        : `<div class="trade-actions-container">
+            <div class="bulk-select-container">
+                <input type="checkbox" id="offer_${offer.offerId}" class="offer-checkbox" onchange="updateBulkAcceptButton()">
+                <label for="offer_${offer.offerId}">Select</label>
+            </div>
+            ${remainingTrades > 1 ? `
+            <div class="quantity-container">
+                <label for="quantity_${offer.offerId}">Quantity:</label>
+                <input type="number" id="quantity_${offer.offerId}" min="1" max="${remainingTrades}" value="1" class="quantity-input">
+            </div>` : ''}
+            <button class="accept-offer-btn" onclick="acceptOffer(${offer.offerId})">Accept Trade</button>
+           </div>`;
 
     return `
-        <div class="offer-item">
+        <div class="offer-item" data-offer-id="${offer.offerId}">
             <div class="offer-header">
                 <div>
                     <span class="offer-type-badge">${offerTypeNames[offer.offerType]}</span>
@@ -366,10 +406,6 @@ function createHistoryHTML(trade) {
 
 // Accept a trade offer
 function acceptOffer(offerId) {
-    if (!confirm('Are you sure you want to accept this trade offer?')) {
-        return;
-    }
-
     fetch(`php/market-backend.php?settlementId=${settlementId}`, {
         method: 'POST',
         headers: {
@@ -380,26 +416,22 @@ function acceptOffer(offerId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Trade completed successfully!');
+            showStatusMessage('Trade completed successfully!', 'success');
             loadMarketData();
             // Update resources display
             fetchResources(settlementId);
         } else {
-            alert(data.message || 'Failed to complete trade');
+            showStatusMessage(data.message || 'Failed to complete trade', 'error');
         }
     })
     .catch(error => {
         console.error('Error accepting offer:', error);
-        alert('An error occurred while completing the trade.');
+        showStatusMessage('An error occurred while completing the trade.', 'error');
     });
 }
 
 // Cancel a trade offer
 function cancelOffer(offerId) {
-    if (!confirm('Are you sure you want to cancel this offer?')) {
-        return;
-    }
-
     fetch(`php/market-backend.php?settlementId=${settlementId}`, {
         method: 'POST',
         headers: {
@@ -410,15 +442,92 @@ function cancelOffer(offerId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Offer cancelled successfully!');
+            showStatusMessage('Offer cancelled successfully!', 'success');
             loadMarketData();
         } else {
-            alert(data.message || 'Failed to cancel offer');
+            showStatusMessage(data.message || 'Failed to cancel offer', 'error');
         }
     })
     .catch(error => {
         console.error('Error cancelling offer:', error);
-        alert('An error occurred while cancelling the offer.');
+        showStatusMessage('An error occurred while cancelling the offer.', 'error');
+    });
+}
+
+// Update bulk accept button visibility
+function updateBulkAcceptButton() {
+    const checkboxes = document.querySelectorAll('.offer-checkbox:checked');
+    const bulkAcceptBtn = document.getElementById('bulkAcceptBtn');
+    
+    if (checkboxes.length > 0) {
+        bulkAcceptBtn.style.display = 'inline-block';
+        bulkAcceptBtn.textContent = `Accept ${checkboxes.length} Selected Trade${checkboxes.length > 1 ? 's' : ''}`;
+    } else {
+        bulkAcceptBtn.style.display = 'none';
+    }
+}
+
+// Bulk accept trades
+function bulkAcceptTrades() {
+    const checkboxes = document.querySelectorAll('.offer-checkbox:checked');
+    
+    if (checkboxes.length === 0) {
+        showStatusMessage('No trades selected.', 'warning');
+        return;
+    }
+    
+    const trades = [];
+    checkboxes.forEach(checkbox => {
+        const offerId = checkbox.id.replace('offer_', '');
+        const quantityInput = document.getElementById(`quantity_${offerId}`);
+        const quantity = quantityInput ? parseInt(quantityInput.value) || 1 : 1;
+        
+        // Add multiple entries for quantity > 1
+        for (let i = 0; i < quantity; i++) {
+            trades.push({ offerId: parseInt(offerId) });
+        }
+    });
+    
+    showStatusMessage(`Processing ${trades.length} trade${trades.length > 1 ? 's' : ''}...`, 'info');
+    
+    // Process trades sequentially to avoid conflicts
+    processBulkTrades(trades, 0);
+}
+
+// Process bulk trades sequentially
+function processBulkTrades(trades, index) {
+    if (index >= trades.length) {
+        showStatusMessage(`All trades completed successfully!`, 'success');
+        loadMarketData();
+        fetchResources(settlementId);
+        return;
+    }
+    
+    const trade = trades[index];
+    
+    fetch(`php/market-backend.php?settlementId=${settlementId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'acceptOffer', offerId: trade.offerId }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Continue with next trade
+            setTimeout(() => processBulkTrades(trades, index + 1), 100);
+        } else {
+            showStatusMessage(`Trade ${index + 1} failed: ${data.message}`, 'error');
+            // Continue with remaining trades even if one fails
+            setTimeout(() => processBulkTrades(trades, index + 1), 100);
+        }
+    })
+    .catch(error => {
+        console.error('Error in bulk trade:', error);
+        showStatusMessage(`Trade ${index + 1} failed due to network error.`, 'error');
+        // Continue with remaining trades even if one fails
+        setTimeout(() => processBulkTrades(trades, index + 1), 100);
     });
 }
 
