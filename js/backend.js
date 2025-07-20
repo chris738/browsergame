@@ -495,6 +495,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchResources(settlementId);
     setInterval(() => fetchResources(settlementId), 1000);
     
+    // Update resource production rates every 5 seconds
+    getRegen(settlementId);
+    setInterval(() => getRegen(settlementId), 5000);
+    
     // Fetch player info and update every 5 seconds
     fetchPlayerInfo(settlementId);
     setInterval(() => fetchPlayerInfo(settlementId), 5000);
