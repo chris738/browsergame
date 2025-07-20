@@ -35,6 +35,7 @@ services:
       - ./sql/schema-fixes.sql:/docker-entrypoint-initdb.d/08-schema-fixes.sql
       - ./sql/init-player.sql:/docker-entrypoint-initdb.d/09-init-player.sql
       - ./sql/enable-events.sql:/docker-entrypoint-initdb.d/10-enable-events.sql
+      - ./sql/fix-resource-generation.sql:/docker-entrypoint-initdb.d/11-fix-resource-generation.sql
       - ./docker/mariadb.cnf:/etc/mysql/conf.d/browsergame.cnf
       - db_data:/var/lib/mysql
     networks:
