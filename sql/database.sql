@@ -791,7 +791,7 @@ BEGIN
                 JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Holzfäller'
             ),
-            (SELECT COALESCE(SUM(bc.productionRate), 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager')
+            (SELECT COALESCE(bc.productionRate, 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager' ORDER BY b2.level DESC LIMIT 1)
         ),
         stone = LEAST(
             stone + (
@@ -800,7 +800,7 @@ BEGIN
                 JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Steinbruch'
             ),
-            (SELECT COALESCE(SUM(bc.productionRate), 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager')
+            (SELECT COALESCE(bc.productionRate, 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager' ORDER BY b2.level DESC LIMIT 1)
         ),
         ore = LEAST(
             ore + (
@@ -809,7 +809,7 @@ BEGIN
                 JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
                 WHERE b.settlementId = s.settlementId AND b.buildingType = 'Erzbergwerk'
             ),
-            (SELECT COALESCE(SUM(bc.productionRate), 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager')
+            (SELECT COALESCE(bc.productionRate, 10000) FROM Buildings b2 JOIN BuildingConfig bc2 ON b2.buildingType = bc2.buildingType AND b2.level = bc2.level WHERE b2.settlementId = s.settlementId AND b2.buildingType = 'Lager' ORDER BY b2.level DESC LIMIT 1)
         );
 END //
 DELIMITER ;
