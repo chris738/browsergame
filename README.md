@@ -32,11 +32,20 @@ The game runs at **http://localhost:8080** with automatic resource generation.
 
 ## 📄 Documentation
 
-- [Installation Guide](docs/INSTALLATION.md) - Setup troubleshooting
-- [Game Mechanics](docs/GAME_MECHANICS.md) - Gameplay documentation  
-- [Admin Guide](docs/ADMIN_README.md) - Admin panel usage
-- [Development Guide](docs/DEVELOPMENT.md) - Contributing guide
-- [API Documentation](docs/API_DOCUMENTATION.md) - REST endpoints
+### Quick Access
+- [**📋 Complete Documentation Index**](docs/INDEX.md) - All documentation organized by topic
+- [**🤖 AI Context & Architecture**](docs/copilot-readme.md) - Complete project structure for developers and AI assistants
+
+### Essential Guides
+- [**Installation Guide**](docs/INSTALLATION.md) - Setup and troubleshooting
+- [**Game Mechanics**](docs/GAME_MECHANICS.md) - Complete gameplay documentation  
+- [**Admin Guide**](docs/ADMIN_README.md) - Admin panel usage and management
+- [**Development Guide**](docs/DEVELOPMENT.md) - Contributing and development setup
+- [**API Documentation**](docs/API_DOCUMENTATION.md) - REST endpoints and integration
+
+### Database & System
+- [**Database Management**](docs/DATABASE_REBUILD.md) - Database rebuild and management scripts
+- [**Fresh Start Guide**](docs/FRESH-START.md) - Complete environment reset procedures
 
 ## 🔒 Security Notice
 

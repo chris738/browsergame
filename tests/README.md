@@ -11,13 +11,50 @@ tests/
 ├── run-tests.php                # Main test runner
 ├── phptest.php                  # PHP configuration tests
 ├── dbtest.php                   # Database connectivity tests
+│
+├── 🧪 CORE FUNCTIONALITY TESTS
 ├── test-admin-login.php         # Admin login functionality tests
 ├── test-advanced-sql.php        # Advanced SQL operations tests
-├── test-barracks-upgrade.php    # Building upgrade tests
+├── test-barracks-upgrade.php    # Building upgrade tests  
+├── test-battle-calculations.php # Battle system calculations
+├── test-battle-integration.php  # Battle system integration
+├── test-battle-system.php       # Complete battle system
 ├── test-data-integrity.php      # Data integrity validation tests
 ├── test-error-scenarios.php     # Error handling tests
 ├── test-sql-data-reading.php    # SQL data reading tests
 ├── test-validation.php          # Input validation tests
+├── test-web-interface.php       # Web interface tests
+│
+├── 🔍 SYSTEM VALIDATION & VERIFICATION
+├── test-enhanced-views.php      # Database views functionality (moved from root)
+├── test-events.sh               # Event system testing (moved from root)  
+├── final-validation-script.sh   # Complete system validation (moved from root)
+├── final-validation.php         # Final system validation (moved from root)
+├── final-verification.php       # System verification (moved from root)
+├── validate-sql.sh              # SQL validation script (moved from root)
+└── verify-sql-organization.php  # SQL organization verification
+```
+
+## ✨ Recent Project Reorganization
+
+As part of the project cleanup (December 2024), several test and validation files were moved from the project root to this organized `tests/` directory:
+
+### Files Moved from Root → `tests/`
+- `test-enhanced-views.php` - Database views testing
+- `test-events.sh` - Event system testing  
+- `final-validation-script.sh` - Complete system validation
+- `final-validation.php` - Final system validation
+- `final-verification.php` - System verification
+- `validate-sql.sh` - SQL validation script
+
+### Benefits of Organization
+- ✅ **Cleaner Root Directory** - Development and validation files properly organized
+- ✅ **Logical Grouping** - All tests in one location
+- ✅ **Easier Maintenance** - Clear separation of concerns
+- ✅ **Better CI/CD** - Easier to run all tests from single directory
+- ✅ **Preserved Functionality** - All file references updated, no breaking changes
+
+All existing scripts and references have been updated to reflect the new file locations.
 ├── test-web-interface.php       # Web interface tests
 └── results/                     # Test results (auto-generated)
 ```
