@@ -13,6 +13,7 @@ require_once __DIR__ . '/database/repositories/MapRepository.php';
 require_once __DIR__ . '/database/repositories/AdminRepository.php';
 require_once __DIR__ . '/database/repositories/TradingRepository.php';
 require_once __DIR__ . '/database/repositories/MilitaryRepository.php';
+require_once __DIR__ . '/database/repositories/BattleRepository.php';
 
 class Database implements DatabaseInterface {
     private $connection;
@@ -24,6 +25,7 @@ class Database implements DatabaseInterface {
     private $adminRepo;
     private $tradingRepo;
     private $militaryRepo;
+    private $battleRepo;
     private $connectionFailed = false;
 
     public function __construct() {
@@ -46,6 +48,7 @@ class Database implements DatabaseInterface {
         $this->adminRepo = new AdminRepository($conn, $this->connectionFailed);
         $this->tradingRepo = new TradingRepository($conn, $this->connectionFailed);
         $this->militaryRepo = new MilitaryRepository($conn, $this->connectionFailed);
+        $this->battleRepo = new BattleRepository($conn, $this->connectionFailed);
         
         // Initialize schema if connected
         if (!$this->connectionFailed) {
@@ -247,6 +250,96 @@ class Database implements DatabaseInterface {
 
     public function startResearch($settlementId, $unitType) {
         return $this->militaryRepo->startResearch($settlementId, $unitType);
+    }
+
+    // Battle methods
+    public function getSettlementMilitaryPower($settlementId) {
+        return $this->battleRepo->getSettlementMilitaryPower($settlementId);
+    }
+
+    public function attackSettlement($attackerSettlementId, $defenderSettlementId, $units) {
+        if ($this->connectionFailed) {
+            return ['success' => false, 'message' => 'Database connection failed'];
+        }
+
+        try {
+            // Validate that attacker has enough units
+            $attackerUnits = $this->getMilitaryUnits($attackerSettlementId);
+            foreach ($units as $unitType => $count) {
+                if ($count > $attackerUnits[$unitType]) {
+                    return ['success' => false, 'message' => "Not enough $unitType units"];
+                }
+            }
+
+            // Get military power for both sides
+            $attackerPower = $this->battleRepo->getSettlementMilitaryPower($attackerSettlementId);
+            $defenderPower = $this->battleRepo->getSettlementMilitaryPower($defenderSettlementId);
+
+            // Calculate battle outcome
+            $battleResult = $this->battleRepo->calculateBattle($attackerPower, $defenderPower);
+
+            // Calculate unit losses
+            $attackerLosses = [];
+            $defenderLosses = [];
+            
+            foreach ($attackerPower['units'] as $unitType => $count) {
+                if ($count > 0) {
+                    $attackerLosses[$unitType] = (int)($count * $battleResult['attackerLossRate']);
+                }
+            }
+            
+            foreach ($defenderPower['units'] as $unitType => $count) {
+                if ($count > 0) {
+                    $defenderLosses[$unitType] = (int)($count * $battleResult['defenderLossRate']);
+                }
+            }
+
+            // Apply unit losses
+            $this->battleRepo->applyUnitLosses($attackerSettlementId, $attackerLosses);
+            $this->battleRepo->applyUnitLosses($defenderSettlementId, $defenderLosses);
+
+            // Calculate resource plunder if attacker wins
+            $resourcesPlundered = ['wood' => 0, 'stone' => 0, 'ore' => 0];
+            if ($battleResult['winner'] === 'attacker') {
+                $resourcesPlundered = $this->battleRepo->calculateResourcePlunder($defenderSettlementId, $battleResult);
+                $this->battleRepo->transferResources($defenderSettlementId, $attackerSettlementId, $resourcesPlundered);
+            }
+
+            // Record battle
+            $battleData = [
+                'attackerUnitsTotal' => $attackerPower['units'],
+                'defenderUnitsTotal' => $defenderPower['units'],
+                'attackerUnitsLost' => $attackerLosses,
+                'defenderUnitsLost' => $defenderLosses,
+                'winner' => $battleResult['winner'],
+                'resourcesPlundered' => $resourcesPlundered,
+                'battleResult' => $battleResult
+            ];
+
+            $battleId = $this->battleRepo->recordBattle($attackerSettlementId, $defenderSettlementId, $battleData);
+
+            return [
+                'success' => true,
+                'battleId' => $battleId,
+                'winner' => $battleResult['winner'],
+                'attackerLosses' => $attackerLosses,
+                'defenderLosses' => $defenderLosses,
+                'resourcesPlundered' => $resourcesPlundered,
+                'battleResult' => $battleResult
+            ];
+
+        } catch (Exception $e) {
+            error_log("Error in attackSettlement: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Battle failed: ' . $e->getMessage()];
+        }
+    }
+
+    public function getRecentBattles($settlementId, $limit = 10) {
+        return $this->battleRepo->getRecentBattles($settlementId, $limit);
+    }
+
+    public function getAttackableSettlements($attackerSettlementId) {
+        return $this->battleRepo->getAttackableSettlements($attackerSettlementId);
     }
 }
 
