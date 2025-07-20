@@ -560,7 +560,7 @@
                 
                 if (costElement) {
                     const timeInMinutes = Math.floor(config.researchTime / 60);
-                    costElement.textContent = `${getResourceEmoji('wood')} ${config.researchCostWood} ${getResourceEmoji('stone')} ${config.researchCostStone} ${getResourceEmoji('ore')} ${config.researchCostOre} ${getUIEmoji('time')} ${timeInMinutes}min`;
+                    costElement.textContent = `${getResourceEmoji('wood')} ${config.costWood} ${getResourceEmoji('stone')} ${config.costStone} ${getResourceEmoji('ore')} ${config.costOre} ${getUIEmoji('time')} ${timeInMinutes}min`;
                     
                     if (config.prerequisiteUnit) {
                         costElement.innerHTML += `<br><small>${getUIEmoji('status') || '📋'} Requires: ${config.prerequisiteUnit.charAt(0).toUpperCase() + config.prerequisiteUnit.slice(1)}</small>`;
@@ -569,9 +569,9 @@
                 
                 // Store research costs as data attributes on the button for validation
                 if (researchBtn) {
-                    researchBtn.setAttribute('data-cost-wood', config.researchCostWood);
-                    researchBtn.setAttribute('data-cost-stone', config.researchCostStone);
-                    researchBtn.setAttribute('data-cost-ore', config.researchCostOre);
+                    researchBtn.setAttribute('data-cost-wood', config.costWood);
+                    researchBtn.setAttribute('data-cost-stone', config.costStone);
+                    researchBtn.setAttribute('data-cost-ore', config.costOre);
                     researchBtn.setAttribute('data-prerequisite', config.prerequisiteUnit || '');
                 }
             });
