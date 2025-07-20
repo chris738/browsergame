@@ -59,6 +59,10 @@ const EMOJI_CONFIG = {
         markt: {
             emoji: '⚖️',
             title: 'Market - Enables trading with other players'
+        },
+        kaserne: {
+            emoji: '⚔️',
+            title: 'Barracks - Trains military units and provides defense'
         }
     },
     
