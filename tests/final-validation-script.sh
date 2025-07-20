@@ -192,7 +192,7 @@ echo
 echo "6️⃣  Documentation Check"
 echo "========================="
 
-DOCS=("DATABASE_EXECUTION_ORDER.md" "enhanced-views-examples.php" "validate-sql.sh" "test-enhanced-views.php")
+DOCS=("docs/DATABASE_EXECUTION_ORDER.md" "docs/examples/enhanced-views-examples.php" "tests/validate-sql.sh" "tests/test-enhanced-views.php")
 DOCS_OK=true
 
 for doc in "${DOCS[@]}"; do
@@ -279,8 +279,8 @@ echo
 echo "🚀 Ready for deployment and testing!"
 echo "   Use: docker-compose up -d (for Docker setup)"
 echo "   Or: mysql -u root -p < sql/database.sql (for manual setup)"
-echo "   Then: php test-enhanced-views.php (to test views)"
-echo "   Or: php enhanced-views-examples.php (to see examples)"
+echo "   Then: php tests/test-enhanced-views.php (to test views)"
+echo "   Or: php docs/examples/enhanced-views-examples.php (to see examples)"
 
 echo
 echo "======================================================"

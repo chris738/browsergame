@@ -36,9 +36,15 @@ database.local.php
 *.bak
 *.backup
 database_backup_*
+*.sql.backup
 
 # System files
 *.pid
+
+# Development artifacts
+debug.log
+error.log
+*.debug
 
 # Test files (development only)
 test_*.php
@@ -58,3 +64,15 @@ phpunit.phar
 
 # Environment files for testing
 .env.test
+
+# Node.js (if used for build tools)  
+node_modules/
+package-lock.json
+*.tgz
+
+# Additional OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db

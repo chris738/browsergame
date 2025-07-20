@@ -21,9 +21,7 @@ This document provides comprehensive context for AI assistants working on this b
 
 ```
 browsergame/
-├── README.md                    # Minimal project overview
-├── copilot-readme.md           # THIS FILE - AI context & structure
-├── fresh-start.sh              # Complete environment reset script
+├── README.md                    # Minimal project overview  
 ├── docker-compose.yml          # Docker orchestration
 │
 ├── 🌐 FRONTEND FILES
@@ -93,25 +91,37 @@ browsergame/
 │
 ├── 📚 DOCUMENTATION
 ├── docs/
-│   ├── INSTALLATION.md        # Setup troubleshooting
-│   ├── GAME_MECHANICS.md      # Complete gameplay mechanics  
-│   ├── ADMIN_README.md        # Admin panel usage
-│   ├── DEVELOPMENT.md         # Contributing guidelines
-│   ├── API_DOCUMENTATION.md   # REST endpoint reference
-│   ├── FRESH-START.md         # Environment reset guide
-│   ├── DATABASE_REBUILD.md    # Database management
-│   └── PRODUCTION_DEPLOYMENT.md # Production setup
+│   ├── copilot-readme.md        # THIS FILE - AI context & structure
+│   ├── INSTALLATION.md          # Setup troubleshooting
+│   ├── GAME_MECHANICS.md        # Complete gameplay mechanics  
+│   ├── ADMIN_README.md          # Admin panel usage
+│   ├── DEVELOPMENT.md           # Contributing guidelines
+│   ├── API_DOCUMENTATION.md     # REST endpoint reference
+│   ├── FRESH-START.md           # Environment reset guide
+│   ├── DATABASE_REBUILD.md      # Database management docs
+│   ├── DATABASE_EXECUTION_ORDER.md # Database setup order
+│   ├── BUGFIX_RESOURCE_GENERATION.md # Resource system fix docs
+│   ├── INTEGRATION_SUMMARY.md   # Integration documentation
+│   ├── PRODUCTION_DEPLOYMENT.md # Production setup
+│   └── examples/
+│       └── enhanced-views-examples.php # Database views examples
 │
 └── 🧪 TESTING
 └── tests/
     ├── test-admin-login.php      # Admin authentication
-    ├── test-advanced-sql.php     # SQL functionality
+    ├── test-advanced-sql.php     # SQL functionality  
     ├── test-barracks-upgrade.php # Military system
     ├── test-data-integrity.php   # Database integrity
     ├── test-error-scenarios.php  # Error handling
     ├── test-sql-data-reading.php # Data access
     ├── test-validation.php       # Input validation
-    └── test-web-interface.php    # UI functionality
+    ├── test-web-interface.php    # UI functionality
+    ├── test-enhanced-views.php   # Database views testing
+    ├── test-events.sh            # Event system testing
+    ├── final-validation-script.sh # Complete validation
+    ├── final-validation.php     # Final system validation
+    ├── final-verification.php   # System verification
+    └── validate-sql.sh          # SQL validation script
 ```
 
 ## 🎯 Domain Logic Organization
