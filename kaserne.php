@@ -496,12 +496,17 @@
         
         // Research System Functions
         function loadResearchData(settlementId) {
+            let researchStatus = {};
+            
             // Load research status
             fetch(`../php/backend.php?settlementId=${settlementId}&getUnitResearch=true`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.unitResearch && data.unitResearch.research) {
-                        updateUnitAvailability(data.unitResearch.research);
+                        researchStatus = data.unitResearch.research;
+                        updateUnitAvailability(researchStatus);
+                        // Update research button states if we have resources data
+                        updateResearchValidation(settlementId);
                     }
                 })
                 .catch(error => console.error('Error loading unit research:', error));
@@ -522,15 +527,37 @@
                 .then(data => {
                     if (data.researchConfig && data.researchConfig.config) {
                         updateResearchCosts(data.researchConfig.config);
+                        // Update research validation after costs are loaded
+                        setTimeout(() => updateResearchValidation(settlementId), 100);
                     }
                 })
                 .catch(error => console.error('Error loading research config:', error));
+        }
+        
+        function updateResearchValidation(settlementId) {
+            // Fetch current resources and research status to update validation
+            Promise.all([
+                fetch(`../php/backend.php?settlementId=${settlementId}`).then(r => r.json()),
+                fetch(`../php/backend.php?settlementId=${settlementId}&getUnitResearch=true`).then(r => r.json())
+            ]).then(([resourcesData, researchData]) => {
+                const resources = resourcesData.resources?.resources;
+                const researchStatus = researchData.unitResearch?.research;
+                
+                if (resources) {
+                    updateResearchCostColors(resources);
+                    updateResearchButtonStates(resources, researchStatus);
+                }
+            }).catch(error => {
+                console.error('Error updating research validation:', error);
+            });
         }
         
         function updateResearchCosts(researchConfig) {
             // Update research cost displays in unit cards
             researchConfig.forEach(config => {
                 const costElement = document.getElementById(`${config.unitType}-research-cost`);
+                const researchBtn = document.getElementById(`research-btn-${config.unitType}`);
+                
                 if (costElement) {
                     const timeInMinutes = Math.floor(config.researchTime / 60);
                     costElement.textContent = `${getResourceEmoji('wood')} ${config.researchCostWood} ${getResourceEmoji('stone')} ${config.researchCostStone} ${getResourceEmoji('ore')} ${config.researchCostOre} ${getUIEmoji('time')} ${timeInMinutes}min`;
@@ -539,6 +566,76 @@
                         costElement.innerHTML += `<br><small>${getUIEmoji('status') || '📋'} Requires: ${config.prerequisiteUnit.charAt(0).toUpperCase() + config.prerequisiteUnit.slice(1)}</small>`;
                     }
                 }
+                
+                // Store research costs as data attributes on the button for validation
+                if (researchBtn) {
+                    researchBtn.setAttribute('data-cost-wood', config.researchCostWood);
+                    researchBtn.setAttribute('data-cost-stone', config.researchCostStone);
+                    researchBtn.setAttribute('data-cost-ore', config.researchCostOre);
+                    researchBtn.setAttribute('data-prerequisite', config.prerequisiteUnit || '');
+                }
+            });
+        }
+        
+        function updateResearchButtonStates(resources, researchStatus) {
+            // Find all research buttons and check if they can be enabled
+            const researchButtons = document.querySelectorAll('.research-unit-btn');
+            
+            researchButtons.forEach(button => {
+                if (button.style.display === 'none') {
+                    return; // Skip hidden buttons (already researched units)
+                }
+                
+                const costWood = parseInt(button.getAttribute('data-cost-wood')) || 0;
+                const costStone = parseInt(button.getAttribute('data-cost-stone')) || 0;
+                const costOre = parseInt(button.getAttribute('data-cost-ore')) || 0;
+                const prerequisite = button.getAttribute('data-prerequisite') || '';
+                
+                // Check if all resources are sufficient
+                const hasResources = resources.wood >= costWood &&
+                                   resources.stone >= costStone &&
+                                   resources.ore >= costOre;
+                
+                // Check prerequisite if it exists
+                const hasPrerequisite = !prerequisite || (researchStatus && researchStatus[prerequisite]);
+                
+                if (hasResources && hasPrerequisite) {
+                    button.disabled = false;
+                    button.classList.remove('insufficient-resources');
+                } else {
+                    button.disabled = true;
+                    button.classList.add('insufficient-resources');
+                }
+            });
+        }
+        
+        function updateResearchCostColors(resources) {
+            // Update colors for research cost displays
+            const resourceTypes = ['wood', 'stone', 'ore'];
+            
+            resourceTypes.forEach(resourceType => {
+                // Find all research cost elements
+                const costElements = document.querySelectorAll('[id$="-research-cost"]');
+                
+                costElements.forEach(element => {
+                    const unitType = element.id.replace('-research-cost', '');
+                    const researchBtn = document.getElementById(`research-btn-${unitType}`);
+                    
+                    if (researchBtn) {
+                        const costValue = parseInt(researchBtn.getAttribute(`data-cost-${resourceType}`)) || 0;
+                        const available = resources[resourceType] || 0;
+                        
+                        // Extract the cost text for this resource type and update color
+                        const costText = element.textContent;
+                        if (costText.includes(costValue.toString())) {
+                            if (available < costValue) {
+                                element.classList.add('insufficient');
+                            } else {
+                                element.classList.remove('insufficient');
+                            }
+                        }
+                    }
+                });
             });
         }
         
@@ -658,6 +755,13 @@
         }
         
         function startResearch(unitType, settlementId) {
+            // First check if button is disabled (insufficient resources)
+            const researchBtn = document.getElementById(`research-btn-${unitType}`);
+            if (researchBtn && researchBtn.disabled) {
+                alert('Not enough resources for research. Please gather more resources first.');
+                return;
+            }
+            
             fetch(`../php/backend.php?settlementId=${settlementId}`, {
                 method: 'POST',
                 headers: {
@@ -693,7 +797,10 @@
             if (settlementId) {
                 loadMilitaryData(settlementId);
                 // Refresh military data every 5 seconds
-                setInterval(() => loadMilitaryData(settlementId), 5000);
+                setInterval(() => {
+                    loadMilitaryData(settlementId);
+                    updateResearchValidation(settlementId); // Update research validation periodically
+                }, 5000);
             } else {
                 // Fallback: Initialize with zeros if no settlement ID
                 document.getElementById('guards-count').textContent = '0';
