@@ -451,6 +451,9 @@ if (empty($mapData)) {
                         <a href="market.php?settlementId=<?= $currentSettlementId ?>" class="action-button">
                             ⚖️ Visit Market
                         </a>
+                        <a href="battle.php?settlementId=<?= $currentSettlementId ?>&target=${settlementId}" class="action-button battle">
+                            ⚔️ Attack Settlement
+                        </a>
                     </div>
                 `;
             }

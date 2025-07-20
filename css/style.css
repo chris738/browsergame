@@ -55,12 +55,7 @@ body {
     padding-top: 90px;
 }
 
-/* Adjust padding on small screens where fallback row is shown */
-@media (max-width: 900px) {
-    body {
-        padding-top: 130px;
-    }
-}
+/* Navigation remains consistent - no extra padding needed */
 
 .navigation {
     background-color: var(--nav-bg);
@@ -109,16 +104,7 @@ body {
     padding: 8px;
 }
 
-/* Show fallback row on small screens */
-@media (max-width: 900px) {
-    .nav-tabs-inline {
-        display: none !important;
-    }
-    
-    .nav-tabs-fallback {
-        display: flex !important;
-    }
-}
+/* Navigation tabs always stay inline - removed responsive fallback */
 
 .settlement-name-compact {
     color: var(--nav-text);
