@@ -52,10 +52,10 @@ echo
 
 # Test 5: Documentation
 echo "Test 5: Documentation"
-if [[ -f "DATABASE_REBUILD.md" ]]; then
-    echo "✓ DATABASE_REBUILD.md found"
+if [[ -f "../docs/DATABASE_REBUILD.md" ]]; then
+    echo "✓ DATABASE_REBUILD.md found in docs/"
 else
-    echo "✗ DATABASE_REBUILD.md not found"
+    echo "✗ DATABASE_REBUILD.md not found in docs/"
     exit 1
 fi
 echo
@@ -68,4 +68,4 @@ echo "  ./quick-rebuild-db.sh      - Quick rebuild (no confirmation)"
 echo "  ./test-rebuild-scripts.sh  - This test script"
 echo
 echo "Documentation:"
-echo "  DATABASE_REBUILD.md        - Comprehensive documentation"
+echo "  ../docs/DATABASE_REBUILD.md - Comprehensive documentation"

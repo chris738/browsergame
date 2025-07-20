@@ -28,7 +28,7 @@ The game runs at **http://localhost:8080** with automatic resource generation.
 
 ## 📖 For Developers & AI Assistants
 
-**→ See [copilot-readme.md](copilot-readme.md)** for complete project structure, architecture details, and development context.
+**→ See [docs/copilot-readme.md](docs/copilot-readme.md)** for complete project structure, architecture details, and development context.
 
 ## 📄 Documentation
 
