@@ -15,12 +15,13 @@ SELECT
     p.name AS playerName,
     p.gold AS playerGold,
     p.punkte AS playerPoints,
-    -- Add storage capacity from Lager building
+    -- Add storage capacity from Lager building (use highest level if multiple exist)
     COALESCE(
         (SELECT bc.productionRate 
          FROM Buildings b 
          JOIN BuildingConfig bc ON b.buildingType = bc.buildingType AND b.level = bc.level
          WHERE b.settlementId = s.settlementId AND b.buildingType = 'Lager'
+         ORDER BY b.level DESC
          LIMIT 1), 10000
     ) AS storageCapacity,
     -- Add resource production rates

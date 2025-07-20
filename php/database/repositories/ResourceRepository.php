@@ -26,7 +26,7 @@ class ResourceRepository {
                 'wood' => 5000,        // Sufficient for building upgrades including Kaserne
                 'stone' => 5000,       // Sufficient for building upgrades including Kaserne  
                 'ore' => 5000,         // Sufficient for building upgrades including Kaserne
-                'storageCapacity' => 10000,
+                'storageCapacity' => 12100, // Simulate upgraded Lager level 3 (not hardcoded to 10k)
                 'maxSettlers' => 100,
                 'freeSettlers' => 50   // Sufficient for settler requirements
             ];
