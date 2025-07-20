@@ -79,7 +79,7 @@
                 <div class="unit-stats">
                     <p><strong>Defense:</strong> +2 per unit</p>
                     <p><strong>Cost:</strong> 50<script>document.write(getResourceEmoji('wood'))</script> 30<script>document.write(getResourceEmoji('stone'))</script> 20<script>document.write(getResourceEmoji('ore'))</script> 1<script>document.write(getResourceEmoji('settlers'))</script></p>
-                    <p><strong>Training Time:</strong> 2m per unit</p>
+                    <p><strong>Training Time:</strong> 30s per unit</p>
                 </div>
                 <div class="unit-count">
                     <span>Available: <span id="guards-count">0</span></span>
@@ -89,7 +89,7 @@
                 <div class="unit-research-info" id="research-info-guards" style="display: none;">
                     <div class="research-costs-mini">
                         <h5>Research Required:</h5>
-                        <p id="guards-research-cost"><script>document.write(getResourceEmoji('wood'))</script> 100 <script>document.write(getResourceEmoji('stone'))</script> 50 <script>document.write(getResourceEmoji('ore'))</script> 30 <script>document.write(getUIEmoji('time'))</script> 5min</p>
+                        <p id="guards-research-cost"><script>document.write(getResourceEmoji('wood'))</script> 100 <script>document.write(getResourceEmoji('stone'))</script> 50 <script>document.write(getResourceEmoji('ore'))</script> 30 <script>document.write(getUIEmoji('time'))</script> 1min</p>
                     </div>
                 </div>
                 
@@ -116,7 +116,7 @@
                 <div class="unit-stats">
                     <p><strong>Attack:</strong> +3 per unit</p>
                     <p><strong>Cost:</strong> 80<script>document.write(getResourceEmoji('wood'))</script> 60<script>document.write(getResourceEmoji('stone'))</script> 40<script>document.write(getResourceEmoji('ore'))</script> 1<script>document.write(getResourceEmoji('settlers'))</script></p>
-                    <p><strong>Training Time:</strong> 3m per unit</p>
+                    <p><strong>Training Time:</strong> 45s per unit</p>
                 </div>
                 <div class="unit-count">
                     <span>Available: <span id="soldiers-count">0</span></span>
@@ -126,7 +126,7 @@
                 <div class="unit-research-info" id="research-info-soldiers" style="display: none;">
                     <div class="research-costs-mini">
                         <h5>Research Required:</h5>
-                        <p id="soldiers-research-cost"><script>document.write(getResourceEmoji('wood'))</script> 150 <script>document.write(getResourceEmoji('stone'))</script> 100 <script>document.write(getResourceEmoji('ore'))</script> 50 <script>document.write(getUIEmoji('time'))</script> 8min</p>
+                        <p id="soldiers-research-cost"><script>document.write(getResourceEmoji('wood'))</script> 150 <script>document.write(getResourceEmoji('stone'))</script> 100 <script>document.write(getResourceEmoji('ore'))</script> 50 <script>document.write(getUIEmoji('time'))</script> 2min</p>
                     </div>
                 </div>
                 
@@ -153,7 +153,7 @@
                 <div class="unit-stats">
                     <p><strong>Ranged Attack:</strong> +4 per unit</p>
                     <p><strong>Cost:</strong> 100<script>document.write(getResourceEmoji('wood'))</script> 40<script>document.write(getResourceEmoji('stone'))</script> 60<script>document.write(getResourceEmoji('ore'))</script> 1<script>document.write(getResourceEmoji('settlers'))</script></p>
-                    <p><strong>Training Time:</strong> 4m per unit</p>
+                    <p><strong>Training Time:</strong> 1m per unit</p>
                 </div>
                 <div class="unit-count">
                     <span>Available: <span id="archers-count">0</span></span>
@@ -163,7 +163,7 @@
                 <div class="unit-research-info" id="research-info-archers" style="display: none;">
                     <div class="research-costs-mini">
                         <h5>Research Required:</h5>
-                        <p id="archers-research-cost"><script>document.write(getResourceEmoji('wood'))</script> 200 <script>document.write(getResourceEmoji('stone'))</script> 80 <script>document.write(getResourceEmoji('ore'))</script> 120 <script>document.write(getUIEmoji('time'))</script> 12min</p>
+                        <p id="archers-research-cost"><script>document.write(getResourceEmoji('wood'))</script> 200 <script>document.write(getResourceEmoji('stone'))</script> 80 <script>document.write(getResourceEmoji('ore'))</script> 120 <script>document.write(getUIEmoji('time'))</script> 3min</p>
                     </div>
                 </div>
                 
@@ -190,7 +190,7 @@
                 <div class="unit-stats">
                     <p><strong>Speed & Attack:</strong> +5 per unit</p>
                     <p><strong>Cost:</strong> 150<script>document.write(getResourceEmoji('wood'))</script> 100<script>document.write(getResourceEmoji('stone'))</script> 120<script>document.write(getResourceEmoji('ore'))</script> 1<script>document.write(getResourceEmoji('settlers'))</script></p>
-                    <p><strong>Training Time:</strong> 5m per unit</p>
+                    <p><strong>Training Time:</strong> 1m 30s per unit</p>
                 </div>
                 <div class="unit-count">
                     <span>Available: <span id="cavalry-count">0</span></span>
@@ -200,7 +200,7 @@
                 <div class="unit-research-info" id="research-info-cavalry" style="display: none;">
                     <div class="research-costs-mini">
                         <h5>Research Required:</h5>
-                        <p id="cavalry-research-cost"><script>document.write(getResourceEmoji('wood'))</script> 300 <script>document.write(getResourceEmoji('stone'))</script> 200 <script>document.write(getResourceEmoji('ore'))</script> 250 <script>document.write(getUIEmoji('time'))</script> 20min</p>
+                        <p id="cavalry-research-cost"><script>document.write(getResourceEmoji('wood'))</script> 300 <script>document.write(getResourceEmoji('stone'))</script> 200 <script>document.write(getResourceEmoji('ore'))</script> 250 <script>document.write(getUIEmoji('time'))</script> 5min</p>
                     </div>
                 </div>
                 
