@@ -23,86 +23,176 @@
 <body>
     <?php include 'php/navigation.php'; ?>
     
-    <div class="main-content">
-        <h2>⚔️ Battle Command Center</h2>
-        <p>Launch attacks against other settlements using your trained military units. Victory brings glory and resources!</p>
-    </div>
-    
-    <!-- Military Power Overview -->
-    <section class="buildings">
-        <h3>🏴‍☠️ Your Military Power</h3>
-        <div id="militaryPowerDisplay">
-            <p>Loading military information...</p>
+    <div class="battle-interface">
+        <!-- Header Section -->
+        <div class="battle-header">
+            <h2>⚔️ Battle Command Center</h2>
+            <p>Launch strategic attacks against other settlements using your trained military units. Victory brings glory and valuable resources!</p>
         </div>
-    </section>
-    
-    <!-- Attack Interface -->
-    <section class="buildings">
-        <h3>🎯 Launch Attack</h3>
-        <div class="attack-form">
-            <div class="form-group">
-                <label for="targetSelect">Select Target Settlement:</label>
-                <select id="targetSelect" onchange="updateTargetInfo()">
-                    <option value="">-- Choose a target --</option>
-                </select>
+        
+        <!-- Military Overview Cards -->
+        <div class="military-overview">
+            <div class="overview-card power-card">
+                <div class="card-header">
+                    <span class="card-icon">🏴‍☠️</span>
+                    <h3>Your Military Power</h3>
+                </div>
+                <div class="card-content" id="militaryPowerDisplay">
+                    <div class="loading-state">
+                        <span class="loading-icon">⏳</span>
+                        <p>Loading military information...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attack Planning Section -->
+        <div class="attack-section">
+            <div class="section-header">
+                <span class="section-icon">🎯</span>
+                <h3>Launch Attack</h3>
             </div>
             
-            <div id="targetInfo" style="display: none;">
-                <h4>Target Information</h4>
-                <div id="targetDetails"></div>
-            </div>
-            
-            <div class="unit-selection">
-                <h4>Select Units for Attack</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Unit Type</th>
-                            <th>Available</th>
-                            <th>Send to Battle</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><?= EmojiConfig::getUnitEmoji('guards') ?> Guards</td>
-                            <td><span id="availableGuards">0</span></td>
-                            <td><input type="number" id="attackGuards" min="0" max="0" value="0" onchange="validateUnitSelection()"></td>
-                        </tr>
-                        <tr>
-                            <td><?= EmojiConfig::getUnitEmoji('soldiers') ?> Soldiers</td>
-                            <td><span id="availableSoldiers">0</span></td>
-                            <td><input type="number" id="attackSoldiers" min="0" max="0" value="0" onchange="validateUnitSelection()"></td>
-                        </tr>
-                        <tr>
-                            <td><?= EmojiConfig::getUnitEmoji('archers') ?> Archers</td>
-                            <td><span id="availableArchers">0</span></td>
-                            <td><input type="number" id="attackArchers" min="0" max="0" value="0" onchange="validateUnitSelection()"></td>
-                        </tr>
-                        <tr>
-                            <td><?= EmojiConfig::getUnitEmoji('cavalry') ?> Cavalry</td>
-                            <td><span id="availableCavalry">0</span></td>
-                            <td><input type="number" id="attackCavalry" min="0" max="0" value="0" onchange="validateUnitSelection()"></td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <div class="attack-summary">
-                    <p><strong>Total Attack Power:</strong> <span id="totalAttackPower">0</span></p>
-                    <p><strong>Total Units Selected:</strong> <span id="totalUnitsSelected">0</span></p>
+            <!-- Target Selection -->
+            <div class="target-selection">
+                <div class="form-group">
+                    <label for="targetSelect">
+                        <span class="label-icon">🏛️</span>
+                        Select Target Settlement
+                    </label>
+                    <select id="targetSelect" onchange="updateTargetInfo()" class="target-select">
+                        <option value="">-- Choose your target --</option>
+                    </select>
                 </div>
                 
-                <button id="launchAttackBtn" onclick="launchAttack()" disabled>Launch Attack</button>
+                <div id="targetInfo" class="target-info" style="display: none;">
+                    <div class="info-header">
+                        <span class="info-icon">ℹ️</span>
+                        <h4>Target Information</h4>
+                    </div>
+                    <div id="targetDetails" class="target-details"></div>
+                </div>
+            </div>
+            
+            <!-- Unit Selection -->
+            <div class="unit-selection">
+                <div class="selection-header">
+                    <span class="selection-icon">⚔️</span>
+                    <h4>Select Units for Attack</h4>
+                </div>
+                
+                <div class="units-grid">
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('guards') ?></span>
+                            <span class="unit-name">Guards</span>
+                        </div>
+                        <div class="unit-stats">
+                            <div class="stat">
+                                <span class="stat-label">Available:</span>
+                                <span class="stat-value" id="availableGuards">0</span>
+                            </div>
+                            <div class="unit-input">
+                                <label>Send to Battle:</label>
+                                <input type="number" id="attackGuards" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('soldiers') ?></span>
+                            <span class="unit-name">Soldiers</span>
+                        </div>
+                        <div class="unit-stats">
+                            <div class="stat">
+                                <span class="stat-label">Available:</span>
+                                <span class="stat-value" id="availableSoldiers">0</span>
+                            </div>
+                            <div class="unit-input">
+                                <label>Send to Battle:</label>
+                                <input type="number" id="attackSoldiers" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('archers') ?></span>
+                            <span class="unit-name">Archers</span>
+                        </div>
+                        <div class="unit-stats">
+                            <div class="stat">
+                                <span class="stat-label">Available:</span>
+                                <span class="stat-value" id="availableArchers">0</span>
+                            </div>
+                            <div class="unit-input">
+                                <label>Send to Battle:</label>
+                                <input type="number" id="attackArchers" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="unit-card">
+                        <div class="unit-header">
+                            <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('cavalry') ?></span>
+                            <span class="unit-name">Cavalry</span>
+                        </div>
+                        <div class="unit-stats">
+                            <div class="stat">
+                                <span class="stat-label">Available:</span>
+                                <span class="stat-value" id="availableCavalry">0</span>
+                            </div>
+                            <div class="unit-input">
+                                <label>Send to Battle:</label>
+                                <input type="number" id="attackCavalry" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Attack Summary -->
+                <div class="attack-summary">
+                    <div class="summary-stats">
+                        <div class="summary-item">
+                            <span class="summary-icon">💪</span>
+                            <div class="summary-content">
+                                <span class="summary-label">Total Attack Power</span>
+                                <span class="summary-value" id="totalAttackPower">0</span>
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-icon">👥</span>
+                            <div class="summary-content">
+                                <span class="summary-label">Units Selected</span>
+                                <span class="summary-value" id="totalUnitsSelected">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="launchAttackBtn" onclick="launchAttack()" class="launch-attack-btn" disabled>
+                        <span class="btn-icon">🚀</span>
+                        Launch Attack
+                    </button>
+                </div>
             </div>
         </div>
-    </section>
-    
-    <!-- Battle History -->
-    <section class="buildings">
-        <h3>📜 Recent Battles</h3>
-        <div id="battleHistory">
-            <p>Loading battle history...</p>
+        
+        <!-- Battle History Section -->
+        <div class="history-section">
+            <div class="section-header">
+                <span class="section-icon">📜</span>
+                <h3>Recent Battles</h3>
+            </div>
+            
+            <div id="battleHistory" class="battle-history">
+                <div class="loading-state">
+                    <span class="loading-icon">⏳</span>
+                    <p>Loading battle history...</p>
+                </div>
+            </div>
         </div>
-    </section>
+    </div>
 
 <script>
 let currentSettlementId = '<?= htmlspecialchars($settlementId) ?>';
