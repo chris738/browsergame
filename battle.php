@@ -5,6 +5,7 @@
     // Process incoming requests
     $method = $_SERVER['REQUEST_METHOD'];
     $settlementId = $_GET['settlementId'] ?? null;
+    $targetSettlementId = $_GET['target'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -105,6 +106,7 @@
 
 <script>
 let currentSettlementId = '<?= htmlspecialchars($settlementId) ?>';
+let preselectedTargetId = '<?= htmlspecialchars($targetSettlementId) ?>';
 let availableUnits = {guards: 0, soldiers: 0, archers: 0, cavalry: 0};
 let attackableSettlements = [];
 let militaryPower = {};
@@ -196,8 +198,19 @@ function updateTargetSelect() {
         const option = document.createElement('option');
         option.value = settlement.settlementId;
         option.textContent = `${settlement.settlementName} (${settlement.coordinateX}, ${settlement.coordinateY})`;
+        
+        // Pre-select target if specified in URL
+        if (preselectedTargetId && settlement.settlementId == preselectedTargetId) {
+            option.selected = true;
+        }
+        
         select.appendChild(option);
     });
+    
+    // If a target was pre-selected, update the target info
+    if (preselectedTargetId && select.value) {
+        updateTargetInfo();
+    }
 }
 
 function updateTargetInfo() {
