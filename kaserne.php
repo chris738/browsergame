@@ -34,7 +34,7 @@
             <thead>
                 <tr>
                     <th>Unit</th>
-                    <th>Level</th>
+                    <th>Quantity</th>
                     <th>Progress</th>
                     <th>End Time</th>
                 </tr>
@@ -53,6 +53,7 @@
                 <thead>
                     <tr>
                         <th>Unit</th>
+                        <th>Quantity</th>
                         <th>Progress</th>
                         <th>End Time</th>
                     </tr>
@@ -515,9 +516,9 @@
             fetch(`../php/backend.php?settlementId=${settlementId}&getResearchQueue=true`)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.researchQueue && data.researchQueue.queue) {
-                        updateResearchQueue(data.researchQueue.queue);
-                    }
+                    const queue = (data.researchQueue && data.researchQueue.queue) ? data.researchQueue.queue : [];
+                    updateResearchQueue(queue);
+                    updateResearchButtonStates(queue);
                 })
                 .catch(error => console.error('Error loading research queue:', error));
                 
@@ -649,10 +650,12 @@
                 const researchBtn = document.getElementById(`research-btn-${unitType}`);
                 const trainBtn = document.getElementById(`train-btn-${unitType}`);
                 const trainingControls = document.getElementById(`training-controls-${unitType}`);
+                const unitStats = card?.querySelector('.unit-stats');
+                const unitCount = card?.querySelector('.unit-count');
                 
                 if (card && statusMini && researchInfo && researchBtn && trainBtn) {
                     if (isResearched) {
-                        // Unit is researched - show training controls
+                        // Unit is researched - show training controls and stats
                         card.classList.remove('unit-needs-research');
                         card.classList.add('unit-researched');
                         statusMini.textContent = '✅';
@@ -663,8 +666,12 @@
                         trainBtn.disabled = false;
                         trainBtn.textContent = 'Train';
                         trainBtn.classList.remove('btn-disabled');
+                        
+                        // Show unit stats and count when researched
+                        if (unitStats) unitStats.style.display = 'block';
+                        if (unitCount) unitCount.style.display = 'block';
                     } else {
-                        // Unit needs research - show research controls  
+                        // Unit needs research - hide stats and show research controls  
                         card.classList.add('unit-needs-research');
                         card.classList.remove('unit-researched');
                         statusMini.textContent = '🔬';
@@ -675,6 +682,10 @@
                         trainBtn.disabled = true;
                         trainBtn.textContent = 'Research Required';
                         trainBtn.classList.add('btn-disabled');
+                        
+                        // Hide unit stats and count when not researched
+                        if (unitStats) unitStats.style.display = 'none';
+                        if (unitCount) unitCount.style.display = 'none';
                     }
                 }
             });
@@ -703,8 +714,12 @@
                 const unitCell = row.insertCell(0);
                 unitCell.textContent = item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1);
                 
+                // Quantity (for research, this is always 1)
+                const quantityCell = row.insertCell(1);
+                quantityCell.textContent = '1 unit';
+                
                 // Progress
-                const progressCell = row.insertCell(1);
+                const progressCell = row.insertCell(2);
                 const progressBar = document.createElement('div');
                 progressBar.className = 'progress-bar';
                 progressBar.style.width = '100%';
@@ -733,7 +748,7 @@
                 progressCell.appendChild(progressBar);
                 
                 // End time
-                const timeCell = row.insertCell(2);
+                const timeCell = row.insertCell(3);
                 const endTime = new Date(item.endTime);
                 timeCell.textContent = endTime.toLocaleString();
                 
@@ -750,6 +765,115 @@
                         remainingDiv.textContent = `(${minutes}m remaining)`;
                     }
                     timeCell.appendChild(remainingDiv);
+                }
+            });
+        }
+        
+        function updateResearchButtonStates(researchQueue) {
+            // Transform research buttons into progress bars when research is active
+            const allUnitTypes = ['guards', 'soldiers', 'archers', 'cavalry'];
+            
+            // Ensure researchQueue is an array
+            if (!Array.isArray(researchQueue)) {
+                researchQueue = [];
+            }
+            
+            allUnitTypes.forEach(unitType => {
+                const researchBtn = document.getElementById(`research-btn-${unitType}`);
+                const researchInfo = document.getElementById(`research-info-${unitType}`);
+                
+                if (!researchBtn || !researchInfo) return;
+                
+                // Check if this unit is currently being researched
+                const activeResearch = researchQueue.find(item => item.unitType === unitType);
+                
+                if (activeResearch) {
+                    // Transform button into progress bar
+                    researchBtn.style.display = 'none';
+                    
+                    // Create or update progress bar in the research info section
+                    let progressContainer = document.getElementById(`research-progress-${unitType}`);
+                    if (!progressContainer) {
+                        progressContainer = document.createElement('div');
+                        progressContainer.id = `research-progress-${unitType}`;
+                        progressContainer.className = 'research-progress-container';
+                        progressContainer.style.marginTop = '10px';
+                        
+                        const progressLabel = document.createElement('div');
+                        progressLabel.textContent = 'Research in Progress';
+                        progressLabel.style.fontSize = '13px';
+                        progressLabel.style.fontWeight = 'bold';
+                        progressLabel.style.marginBottom = '5px';
+                        progressLabel.style.color = '#3498db';
+                        
+                        const progressBar = document.createElement('div');
+                        progressBar.className = 'progress-bar-container';
+                        progressBar.style.width = '100%';
+                        progressBar.style.backgroundColor = '#e0e0e0';
+                        progressBar.style.borderRadius = '4px';
+                        progressBar.style.height = '25px';
+                        progressBar.style.position = 'relative';
+                        progressBar.style.border = '1px solid #ccc';
+                        
+                        const progressFill = document.createElement('div');
+                        progressFill.className = 'progress-fill';
+                        progressFill.style.backgroundColor = '#3498db';
+                        progressFill.style.height = '100%';
+                        progressFill.style.borderRadius = '4px';
+                        progressFill.style.transition = 'width 0.3s ease';
+                        
+                        const progressText = document.createElement('span');
+                        progressText.className = 'progress-text';
+                        progressText.style.position = 'absolute';
+                        progressText.style.left = '50%';
+                        progressText.style.top = '50%';
+                        progressText.style.transform = 'translate(-50%, -50%)';
+                        progressText.style.fontSize = '12px';
+                        progressText.style.fontWeight = 'bold';
+                        progressText.style.color = 'white';
+                        progressText.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)';
+                        
+                        progressBar.appendChild(progressFill);
+                        progressBar.appendChild(progressText);
+                        progressContainer.appendChild(progressLabel);
+                        progressContainer.appendChild(progressBar);
+                        
+                        researchInfo.appendChild(progressContainer);
+                    }
+                    
+                    // Update progress bar
+                    const progressFill = progressContainer.querySelector('.progress-fill');
+                    const progressText = progressContainer.querySelector('.progress-text');
+                    const percentage = Math.max(0, Math.min(100, activeResearch.completionPercentage || 0));
+                    
+                    if (progressFill) {
+                        progressFill.style.width = `${percentage}%`;
+                    }
+                    if (progressText) {
+                        progressText.textContent = `${Math.round(percentage)}%`;
+                    }
+                } else {
+                    // Remove progress bar if research is not active
+                    const progressContainer = document.getElementById(`research-progress-${unitType}`);
+                    if (progressContainer) {
+                        progressContainer.remove();
+                    }
+                    
+                    // Check if unit is already researched to determine button visibility
+                    const currentSettlementId = new URLSearchParams(window.location.search).get('settlementId');
+                    if (currentSettlementId) {
+                        fetch(`../php/backend.php?settlementId=${currentSettlementId}&getUnitResearch=true`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.unitResearch && data.unitResearch.research) {
+                                    const isResearched = data.unitResearch.research[unitType];
+                                    if (!isResearched) {
+                                        researchBtn.style.display = 'block';
+                                    }
+                                }
+                            })
+                            .catch(error => console.error('Error checking research status:', error));
+                    }
                 }
             });
         }
