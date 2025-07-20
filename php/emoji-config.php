@@ -67,6 +67,26 @@ class EmojiConfig {
         ]
     ];
     
+    // Military unit emoji configuration
+    public static $units = [
+        'guards' => [
+            'emoji' => '🛡️',
+            'title' => 'Guards - Basic defensive units'
+        ],
+        'soldiers' => [
+            'emoji' => '⚔️',
+            'title' => 'Soldiers - Primary melee combat units'
+        ],
+        'archers' => [
+            'emoji' => '🏹',
+            'title' => 'Archers - Ranged combat specialists'
+        ],
+        'cavalry' => [
+            'emoji' => '🐎',
+            'title' => 'Cavalry - Fast, powerful melee units'
+        ]
+    ];
+    
     // UI and interface emojis
     public static $ui = [
         'player' => '👤',
@@ -96,6 +116,20 @@ class EmojiConfig {
      */
     public static function getBuildingEmoji($buildingType) {
         return self::$buildings[$buildingType]['emoji'] ?? '🏗️';
+    }
+    
+    /**
+     * Get unit emoji
+     */
+    public static function getUnitEmoji($unitType) {
+        return self::$units[$unitType]['emoji'] ?? '⚔️';
+    }
+    
+    /**
+     * Get unit title
+     */
+    public static function getUnitTitle($unitType) {
+        return self::$units[$unitType]['title'] ?? $unitType;
     }
     
     /**
