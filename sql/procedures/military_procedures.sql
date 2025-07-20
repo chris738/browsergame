@@ -15,7 +15,7 @@ BEGIN
     DECLARE researchCostWood FLOAT;
     DECLARE researchCostStone FLOAT;
     DECLARE researchCostOre FLOAT;
-    DECLARE researchTime INT;
+    DECLARE researchTimeDuration INT;
     DECLARE prerequisiteUnit ENUM('guards', 'soldiers', 'archers', 'cavalry');
     DECLARE prerequisiteResearched BOOLEAN DEFAULT FALSE;
     DECLARE alreadyResearched BOOLEAN DEFAULT FALSE;
@@ -43,8 +43,8 @@ BEGIN
     END IF;
 
     -- Get research configuration
-    SELECT researchCostWood, researchCostStone, researchCostOre, researchTime, prerequisiteUnit INTO 
-        researchCostWood, researchCostStone, researchCostOre, researchTime, prerequisiteUnit
+    SELECT costWood, costStone, costOre, researchTime, prerequisiteUnit INTO 
+        researchCostWood, researchCostStone, researchCostOre, researchTimeDuration, prerequisiteUnit
     FROM ResearchConfig
     WHERE unitType = inUnitType;
 
@@ -83,7 +83,7 @@ BEGIN
             inSettlementId,
             inUnitType,
             lastEndTime,
-            DATE_ADD(lastEndTime, INTERVAL researchTime SECOND),
+            DATE_ADD(lastEndTime, INTERVAL researchTimeDuration SECOND),
             FALSE
         );
 

@@ -17,9 +17,10 @@ CREATE TABLE IF NOT EXISTS UnitResearch (
 -- Table: ResearchConfig - Configuration for research costs and times
 CREATE TABLE IF NOT EXISTS ResearchConfig (
     unitType ENUM('guards', 'soldiers', 'archers', 'cavalry') NOT NULL,
-    researchCostWood FLOAT NOT NULL,
-    researchCostStone FLOAT NOT NULL,
-    researchCostOre FLOAT NOT NULL,
+    costWood FLOAT NOT NULL,
+    costStone FLOAT NOT NULL,
+    costOre FLOAT NOT NULL,
+    costGold INT NOT NULL DEFAULT 0,
     researchTime INT NOT NULL, -- in seconds
     prerequisiteUnit ENUM('guards', 'soldiers', 'archers', 'cavalry') NULL, -- unit that must be researched first
     PRIMARY KEY (unitType)
