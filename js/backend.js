@@ -65,34 +65,17 @@ function updateBuildingButtonStates(resources) {
 }
 
 function updateTabVisibility() {
-    // Check if Market building exists and has level > 0
-    const marketLevelElement = document.getElementById('markt');
-    const marketLevel = marketLevelElement ? parseInt(marketLevelElement.textContent) || 0 : 0;
-    
-    // Check if Barracks building exists and has level > 0
-    const barrackLevelElement = document.getElementById('kaserne');
-    const barrackLevel = barrackLevelElement ? parseInt(barrackLevelElement.textContent) || 0 : 0;
-    
-    // Find the Trade and Military tab links
+    // Always show all navigation tabs for consistent navigation
     const tradeTab = document.querySelector('a[href*="market.php"]');
     const militaryTab = document.querySelector('a[href*="kaserne.php"]');
     
-    // Show/hide Trade tab based on Market building level
+    // Ensure Trade and Military tabs are always visible
     if (tradeTab) {
-        if (marketLevel > 0) {
-            tradeTab.style.display = '';
-        } else {
-            tradeTab.style.display = 'none';
-        }
+        tradeTab.style.display = '';
     }
     
-    // Show/hide Military tab based on Barracks building level
     if (militaryTab) {
-        if (barrackLevel > 0) {
-            militaryTab.style.display = '';
-        } else {
-            militaryTab.style.display = 'none';
-        }
+        militaryTab.style.display = '';
     }
 }
 

@@ -23,65 +23,45 @@
 <body>
     <?php include 'php/navigation.php'; ?>
     
-    <div class="battle-interface">
-        <!-- Header Section -->
-        <div class="battle-header">
-            <h2>⚔️ Battle Command Center</h2>
-            <p>Launch strategic attacks against other settlements using your trained military units. Victory brings glory and valuable resources!</p>
-        </div>
-        
-        <!-- Military Overview Cards -->
-        <div class="military-overview">
-            <div class="overview-card power-card">
-                <div class="card-header">
-                    <span class="card-icon">🏴‍☠️</span>
-                    <h3>Your Military Power</h3>
-                </div>
-                <div class="card-content" id="militaryPowerDisplay">
-                    <div class="loading-state">
-                        <span class="loading-icon">⏳</span>
-                        <p>Loading military information...</p>
-                    </div>
-                </div>
+    <div class="main-content">
+        <h2><?= EmojiConfig::getBuildingEmoji('kaserne') ?> Battle - Command Center</h2>
+        <p>Launch strategic attacks against other settlements using your trained military units. Victory brings glory and valuable resources!</p>
+    </div>
+    
+    <!-- Military Power Overview Section -->
+    <section class="buildings">
+        <h3>🏴‍☠️ Your Military Power</h3>
+        <div id="militaryPowerDisplay">
+            <div class="loading-state">
+                <span class="loading-icon">⏳</span>
+                <p>Loading military information...</p>
             </div>
         </div>
+    </section>
+    
+    <!-- Attack Planning Section -->
+    <section class="buildings">
+        <h3>🎯 Launch Attack</h3>
         
-        <!-- Attack Planning Section -->
-        <div class="attack-section">
-            <div class="section-header">
-                <span class="section-icon">🎯</span>
-                <h3>Launch Attack</h3>
-            </div>
-            
-            <!-- Target Selection -->
-            <div class="target-selection">
-                <div class="form-group">
-                    <label for="targetSelect">
-                        <span class="label-icon">🏛️</span>
-                        Select Target Settlement
-                    </label>
-                    <select id="targetSelect" onchange="updateTargetInfo()" class="target-select">
-                        <option value="">-- Choose your target --</option>
-                    </select>
-                </div>
-                
-                <div id="targetInfo" class="target-info" style="display: none;">
-                    <div class="info-header">
-                        <span class="info-icon">ℹ️</span>
-                        <h4>Target Information</h4>
-                    </div>
-                    <div id="targetDetails" class="target-details"></div>
-                </div>
-            </div>
-            
-            <!-- Unit Selection -->
-            <div class="unit-selection">
-                <div class="selection-header">
-                    <span class="selection-icon">⚔️</span>
-                    <h4>Select Units for Attack</h4>
-                </div>
-                
-                <div class="units-grid">
+        <!-- Target Selection -->
+        <div class="form-group">
+            <label for="targetSelect">
+                <span class="label-icon">🏛️</span>
+                Select Target Settlement
+            </label>
+            <select id="targetSelect" onchange="updateTargetInfo()" class="target-select">
+                <option value="">-- Choose your target --</option>
+            </select>
+        </div>
+        
+        <div id="targetInfo" class="target-info" style="display: none;">
+            <h4>ℹ️ Target Information</h4>
+            <div id="targetDetails" class="target-details"></div>
+        </div>
+        
+        <!-- Unit Selection -->
+        <h4>⚔️ Select Units for Attack</h4>
+        <div class="units-grid">
                     <div class="unit-card">
                         <div class="unit-header">
                             <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('guards') ?></span>
@@ -175,24 +155,19 @@
                         Launch Attack
                     </button>
                 </div>
+        </div>
+    </section>
+    
+    <!-- Battle History Section -->
+    <section class="buildings">
+        <h3>📜 Recent Battles</h3>
+        <div id="battleHistory" class="battle-history">
+            <div class="loading-state">
+                <span class="loading-icon">⏳</span>
+                <p>Loading battle history...</p>
             </div>
         </div>
-        
-        <!-- Battle History Section -->
-        <div class="history-section">
-            <div class="section-header">
-                <span class="section-icon">📜</span>
-                <h3>Recent Battles</h3>
-            </div>
-            
-            <div id="battleHistory" class="battle-history">
-                <div class="loading-state">
-                    <span class="loading-icon">⏳</span>
-                    <p>Loading battle history...</p>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
 <script>
 let currentSettlementId = '<?= htmlspecialchars($settlementId) ?>';
