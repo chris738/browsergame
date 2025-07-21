@@ -14,11 +14,35 @@ class BattleRepository {
      */
     public function getSettlementMilitaryPower($settlementId) {
         if ($this->connectionFailed) {
+            // Provide demo data for testing when database is unavailable
+            $demoUnits = [
+                'guards' => 5,
+                'soldiers' => 8, 
+                'archers' => 6,
+                'cavalry' => 3
+            ];
+            
+            // Unit stats: [attack, defense, ranged]
+            $unitStats = [
+                'guards' => [0, 2, 0],
+                'soldiers' => [3, 2, 0],
+                'archers' => [2, 1, 4],
+                'cavalry' => [5, 2, 0]
+            ];
+            
+            $totalAttack = $totalDefense = $totalRanged = 0;
+            foreach ($demoUnits as $unitType => $count) {
+                $stats = $unitStats[$unitType];
+                $totalAttack += $count * $stats[0];
+                $totalDefense += $count * $stats[1];
+                $totalRanged += $count * $stats[2];
+            }
+            
             return [
-                'totalAttack' => 0,
-                'totalDefense' => 0,
-                'totalRanged' => 0,
-                'units' => ['guards' => 0, 'soldiers' => 0, 'archers' => 0, 'cavalry' => 0]
+                'totalAttack' => $totalAttack,
+                'totalDefense' => $totalDefense,
+                'totalRanged' => $totalRanged,
+                'units' => $demoUnits
             ];
         }
 
@@ -282,7 +306,29 @@ class BattleRepository {
      */
     public function getRecentBattles($settlementId, $limit = 10) {
         if ($this->connectionFailed) {
-            return [];
+            // Provide demo battle history for testing
+            $demoBattles = [
+                [
+                    'battleId' => 1,
+                    'attackerSettlementId' => $settlementId,
+                    'defenderSettlementId' => 2,
+                    'battleTime' => date('Y-m-d H:i:s', time() - 3600), // 1 hour ago
+                    'winner' => 'attacker',
+                    'attackerName' => 'Your Settlement',
+                    'defenderName' => 'Enemy Village'
+                ],
+                [
+                    'battleId' => 2,
+                    'attackerSettlementId' => 3,
+                    'defenderSettlementId' => $settlementId,
+                    'battleTime' => date('Y-m-d H:i:s', time() - 7200), // 2 hours ago
+                    'winner' => 'defender',
+                    'attackerName' => 'Rival Town',
+                    'defenderName' => 'Your Settlement'
+                ]
+            ];
+            
+            return array_slice($demoBattles, 0, $limit);
         }
 
         try {
@@ -310,7 +356,32 @@ class BattleRepository {
      */
     public function getAttackableSettlements($attackerSettlementId) {
         if ($this->connectionFailed) {
-            return [];
+            // Provide demo settlement data for testing
+            $demoSettlements = [
+                [
+                    'settlementId' => 2,
+                    'settlementName' => 'Enemy Village',
+                    'coordinateX' => 1,
+                    'coordinateY' => 2
+                ],
+                [
+                    'settlementId' => 3,
+                    'settlementName' => 'Rival Town',
+                    'coordinateX' => -1,
+                    'coordinateY' => 1
+                ],
+                [
+                    'settlementId' => 4,
+                    'settlementName' => 'Hostile Camp',
+                    'coordinateX' => 2,
+                    'coordinateY' => -1
+                ]
+            ];
+            
+            // Filter out attacker's own settlement
+            return array_filter($demoSettlements, function($settlement) use ($attackerSettlementId) {
+                return $settlement['settlementId'] != $attackerSettlementId;
+            });
         }
 
         try {

@@ -258,11 +258,16 @@ class Database implements DatabaseInterface {
     }
 
     public function attackSettlement($attackerSettlementId, $defenderSettlementId, $units) {
-        if ($this->connectionFailed) {
-            return ['success' => false, 'message' => 'Database connection failed'];
-        }
-
         try {
+            // Get military power for both sides (repositories handle database fallback)
+            $attackerPower = $this->battleRepo->getSettlementMilitaryPower($attackerSettlementId);
+            $defenderPower = $this->battleRepo->getSettlementMilitaryPower($defenderSettlementId);
+
+            // If connection failed, use demo battle calculation
+            if ($this->connectionFailed) {
+                return $this->simulateDemoBattle($attackerSettlementId, $defenderSettlementId, $units, $attackerPower, $defenderPower);
+            }
+
             // Validate that attacker has enough units
             $attackerUnits = $this->getMilitaryUnits($attackerSettlementId);
             foreach ($units as $unitType => $count) {
@@ -270,10 +275,6 @@ class Database implements DatabaseInterface {
                     return ['success' => false, 'message' => "Not enough $unitType units"];
                 }
             }
-
-            // Get military power for both sides
-            $attackerPower = $this->battleRepo->getSettlementMilitaryPower($attackerSettlementId);
-            $defenderPower = $this->battleRepo->getSettlementMilitaryPower($defenderSettlementId);
 
             // Calculate battle outcome
             $battleResult = $this->battleRepo->calculateBattle($attackerPower, $defenderPower);
@@ -332,6 +333,49 @@ class Database implements DatabaseInterface {
             error_log("Error in attackSettlement: " . $e->getMessage());
             return ['success' => false, 'message' => 'Battle failed: ' . $e->getMessage()];
         }
+    }
+
+    private function simulateDemoBattle($attackerSettlementId, $defenderSettlementId, $units, $attackerPower, $defenderPower) {
+        // Calculate battle outcome using demo data
+        $battleResult = $this->battleRepo->calculateBattle($attackerPower, $defenderPower);
+        
+        // Calculate unit losses based on the units sent in the attack
+        $attackerLosses = [];
+        foreach ($units as $unitType => $count) {
+            if ($count > 0) {
+                // Apply loss rate to units sent in attack
+                $attackerLosses[$unitType] = (int)($count * $battleResult['attackerLossRate']);
+            }
+        }
+        
+        // Simulate defender losses (they lose some units too)
+        $defenderLosses = [];
+        foreach ($defenderPower['units'] as $unitType => $count) {
+            if ($count > 0) {
+                $defenderLosses[$unitType] = (int)($count * $battleResult['defenderLossRate']);
+            }
+        }
+
+        // Calculate resource plunder if attacker wins
+        $resourcesPlundered = ['wood' => 0, 'stone' => 0, 'ore' => 0];
+        if ($battleResult['winner'] === 'attacker') {
+            // Demo plunder amounts
+            $resourcesPlundered = [
+                'wood' => mt_rand(100, 500),
+                'stone' => mt_rand(50, 300),
+                'ore' => mt_rand(25, 150)
+            ];
+        }
+
+        return [
+            'success' => true,
+            'battleId' => 'demo_' . time(),
+            'winner' => $battleResult['winner'],
+            'attackerLosses' => $attackerLosses,
+            'defenderLosses' => $defenderLosses,
+            'resourcesPlundered' => $resourcesPlundered,
+            'battleResult' => $battleResult
+        ];
     }
 
     public function getRecentBattles($settlementId, $limit = 10) {

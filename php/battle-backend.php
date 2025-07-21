@@ -14,10 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 $database = new Database();
 
-if (!$database->isConnected()) {
-    echo json_encode(['success' => false, 'message' => 'Database connection failed']);
-    exit;
-}
+// Remove the early database connection check - let repositories handle fallback data
+// if (!$database->isConnected()) {
+//     echo json_encode(['success' => false, 'message' => 'Database connection failed']);
+//     exit;
+// }
 
 $method = $_SERVER['REQUEST_METHOD'];
 $action = $_GET['action'] ?? '';

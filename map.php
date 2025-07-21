@@ -10,36 +10,32 @@ $mapData = [];
 $currentPlayerId = null;
 
 try {
-    // Check if database is connected
-    if ($database->isConnected()) {
-        // Get the current player ID from the selected settlement
-        $currentSettlement = $database->getAllSettlements();
-        foreach ($currentSettlement as $settlement) {
-            if ($settlement['settlementId'] == $currentSettlementId) {
-                $currentPlayerId = $settlement['playerId'] ?? null;
-                break;
-            }
+    // Get all settlements - the repository will handle database fallback  
+    $allSettlements = $database->getAllSettlements();
+    
+    // Get the current player ID from the selected settlement
+    foreach ($allSettlements as $settlement) {
+        if ($settlement['settlementId'] == $currentSettlementId) {
+            $currentPlayerId = $settlement['playerId'] ?? null;
+            break;
         }
-        
-        // Get all settlements with their coordinates and player information
-        $allSettlements = $database->getAllSettlements();
-        foreach ($allSettlements as $settlement) {
-            if (isset($settlement['xCoordinate']) && isset($settlement['yCoordinate'])) {
-                $mapData[] = [
-                    'settlementId' => $settlement['settlementId'],
-                    'xCoordinate' => $settlement['xCoordinate'],
-                    'yCoordinate' => $settlement['yCoordinate'],
-                    'name' => $settlement['name'],
-                    'playerId' => $settlement['playerId'] ?? null,
-                    'playerName' => $settlement['playerName'] ?? 'Unknown'
-                ];
-            }
+    }
+    
+    // Process settlements with their coordinates and player information
+    foreach ($allSettlements as $settlement) {
+        if (isset($settlement['xCoordinate']) && isset($settlement['yCoordinate'])) {
+            $mapData[] = [
+                'settlementId' => $settlement['settlementId'],
+                'xCoordinate' => $settlement['xCoordinate'],
+                'yCoordinate' => $settlement['yCoordinate'],
+                'name' => $settlement['name'],
+                'playerId' => $settlement['playerId'] ?? null,
+                'playerName' => $settlement['playerName'] ?? 'Unknown'
+            ];
         }
-    } else {
-        throw new Exception("Database not connected");
     }
 } catch (Exception $e) {
-    // Fallback to demo settlement when database fails - showing only the current settlement
+    // Fallback if something goes wrong
     error_log("Map data fetch failed: " . $e->getMessage());
     $currentPlayerId = 1; // Demo player ID
     $mapData = [
