@@ -2747,3 +2747,184 @@ button {
     border-color: #555;
     color: var(--text-color);
 }
+
+/* Battle Page Specific Styles */
+.battle-result.victory {
+    background-color: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid;
+}
+
+.battle-result.defeat {
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    color: #721c24;
+    padding: 15px;
+    border-radius: 4px;
+    border: 1px solid;
+}
+
+.target-selection-cell {
+    padding: 20px;
+    text-align: center;
+    background-color: var(--resource-bg);
+}
+
+.target-selection-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.select-from-map-btn-primary {
+    background: var(--nav-active);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s;
+    font-weight: bold;
+}
+
+.select-from-map-btn-primary:hover {
+    background: var(--button-hover);
+}
+
+.select-from-map-btn-primary .btn-icon {
+    font-size: 18px;
+}
+
+.selection-instruction {
+    margin: 0;
+    color: var(--text-color);
+    opacity: 0.8;
+    font-size: 14px;
+}
+
+.clear-target-btn {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.clear-target-btn:hover {
+    background: #c82333;
+}
+
+.unit-count-input {
+    width: 80px;
+    padding: 6px;
+    border: 1px solid var(--card-border);
+    border-radius: 4px;
+    text-align: center;
+    background-color: var(--card-bg);
+    color: var(--text-color);
+}
+
+.unit-icon {
+    font-size: 18px;
+    margin-right: 8px;
+}
+
+.unit-name {
+    font-weight: bold;
+}
+
+.attack-summary {
+    background-color: var(--resource-bg);
+    padding: 20px;
+    border-radius: 6px;
+    margin-top: 20px;
+    border: 1px solid var(--card-border);
+}
+
+.summary-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.summary-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+}
+
+.summary-icon {
+    font-size: 24px;
+}
+
+.summary-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.summary-label {
+    font-size: 14px;
+    color: var(--text-color);
+    opacity: 0.8;
+}
+
+.summary-value {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.launch-attack-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 auto;
+    transition: background-color 0.3s;
+}
+
+.launch-attack-btn:hover:not(:disabled) {
+    background-color: #c82333;
+}
+
+.launch-attack-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.launch-attack-btn .btn-icon {
+    font-size: 18px;
+}
+
+.victory {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.defeat {
+    color: #dc3545;
+    font-weight: bold;
+}
