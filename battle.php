@@ -39,128 +39,132 @@
         </div>
     </section>
     
+    <!-- Target Selection Section -->
+    <section class="buildings">
+        <h3>🎯 Target Selection</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Target Settlement</th>
+                    <th>Coordinates</th>
+                    <th>Owner</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr id="targetSelectionRow">
+                    <td colspan="4" class="target-selection-cell">
+                        <div class="target-selection-content">
+                            <button onclick="selectFromMap()" class="select-from-map-btn-primary">
+                                <span class="btn-icon">🗺️</span>
+                                Select Target from Map
+                            </button>
+                            <p class="selection-instruction">Click to open the map and select an enemy settlement to attack</p>
+                        </div>
+                    </td>
+                </tr>
+                <tr id="selectedTargetRow" style="display: none;">
+                    <td id="selectedTargetName">-</td>
+                    <td id="selectedTargetCoords">-</td>
+                    <td id="selectedTargetOwner">-</td>
+                    <td>
+                        <button onclick="clearTarget()" class="clear-target-btn">
+                            ❌ Clear Selection
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+    
     <!-- Attack Planning Section -->
     <section class="buildings">
-        <h3>🎯 Launch Attack</h3>
-        
-        <!-- Target Selection -->
-        <div class="form-group">
-            <label for="targetSelect">
-                <span class="label-icon">🏛️</span>
-                Select Target Settlement
-            </label>
-            <div class="target-selection-container">
-                <select id="targetSelect" onchange="updateTargetInfo()" class="target-select">
-                    <option value="">-- Choose your target --</option>
-                </select>
-                <button onclick="selectFromMap()" class="select-from-map-btn">
-                    <span class="btn-icon">🗺️</span>
-                    Select from Map
-                </button>
-            </div>
-        </div>
-        
-        <div id="targetInfo" class="target-info" style="display: none;">
-            <h4>ℹ️ Target Information</h4>
-            <div id="targetDetails" class="target-details"></div>
-        </div>
+        <h3>⚔️ Launch Attack</h3>
         
         <!-- Unit Selection -->
-        <h4>⚔️ Select Units for Attack</h4>
-        <div class="units-grid">
-                    <div class="unit-card">
-                        <div class="unit-header">
-                            <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('guards') ?></span>
-                            <span class="unit-name">Guards</span>
-                        </div>
-                        <div class="unit-stats">
-                            <div class="stat">
-                                <span class="stat-label">Available:</span>
-                                <span class="stat-value" id="availableGuards">0</span>
-                            </div>
-                            <div class="unit-input">
-                                <label>Send to Battle:</label>
-                                <input type="number" id="attackGuards" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="unit-card">
-                        <div class="unit-header">
-                            <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('soldiers') ?></span>
-                            <span class="unit-name">Soldiers</span>
-                        </div>
-                        <div class="unit-stats">
-                            <div class="stat">
-                                <span class="stat-label">Available:</span>
-                                <span class="stat-value" id="availableSoldiers">0</span>
-                            </div>
-                            <div class="unit-input">
-                                <label>Send to Battle:</label>
-                                <input type="number" id="attackSoldiers" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="unit-card">
-                        <div class="unit-header">
-                            <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('archers') ?></span>
-                            <span class="unit-name">Archers</span>
-                        </div>
-                        <div class="unit-stats">
-                            <div class="stat">
-                                <span class="stat-label">Available:</span>
-                                <span class="stat-value" id="availableArchers">0</span>
-                            </div>
-                            <div class="unit-input">
-                                <label>Send to Battle:</label>
-                                <input type="number" id="attackArchers" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="unit-card">
-                        <div class="unit-header">
-                            <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('cavalry') ?></span>
-                            <span class="unit-name">Cavalry</span>
-                        </div>
-                        <div class="unit-stats">
-                            <div class="stat">
-                                <span class="stat-label">Available:</span>
-                                <span class="stat-value" id="availableCavalry">0</span>
-                            </div>
-                            <div class="unit-input">
-                                <label>Send to Battle:</label>
-                                <input type="number" id="attackCavalry" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Unit Type</th>
+                    <th>Available</th>
+                    <th>Send to Battle</th>
+                    <th>Attack Power</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('guards') ?></span>
+                        <span class="unit-name">Guards</span>
+                    </td>
+                    <td><span id="availableGuards">0</span></td>
+                    <td>
+                        <input type="number" id="attackGuards" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
+                    </td>
+                    <td><span id="guardsAttackPower">0</span></td>
+                </tr>
                 
-                <!-- Attack Summary -->
-                <div class="attack-summary">
-                    <div class="summary-stats">
-                        <div class="summary-item">
-                            <span class="summary-icon">💪</span>
-                            <div class="summary-content">
-                                <span class="summary-label">Total Attack Power</span>
-                                <span class="summary-value" id="totalAttackPower">0</span>
-                            </div>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-icon">👥</span>
-                            <div class="summary-content">
-                                <span class="summary-label">Units Selected</span>
-                                <span class="summary-value" id="totalUnitsSelected">0</span>
-                            </div>
-                        </div>
+                <tr>
+                    <td>
+                        <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('soldiers') ?></span>
+                        <span class="unit-name">Soldiers</span>
+                    </td>
+                    <td><span id="availableSoldiers">0</span></td>
+                    <td>
+                        <input type="number" id="attackSoldiers" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
+                    </td>
+                    <td><span id="soldiersAttackPower">0</span></td>
+                </tr>
+                
+                <tr>
+                    <td>
+                        <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('archers') ?></span>
+                        <span class="unit-name">Archers</span>
+                    </td>
+                    <td><span id="availableArchers">0</span></td>
+                    <td>
+                        <input type="number" id="attackArchers" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
+                    </td>
+                    <td><span id="archersAttackPower">0</span></td>
+                </tr>
+                
+                <tr>
+                    <td>
+                        <span class="unit-icon"><?= EmojiConfig::getUnitEmoji('cavalry') ?></span>
+                        <span class="unit-name">Cavalry</span>
+                    </td>
+                    <td><span id="availableCavalry">0</span></td>
+                    <td>
+                        <input type="number" id="attackCavalry" min="0" max="0" value="0" onchange="validateUnitSelection()" class="unit-count-input">
+                    </td>
+                    <td><span id="cavalryAttackPower">0</span></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!-- Attack Summary -->
+        <div class="attack-summary">
+            <div class="summary-stats">
+                <div class="summary-item">
+                    <span class="summary-icon">💪</span>
+                    <div class="summary-content">
+                        <span class="summary-label">Total Attack Power</span>
+                        <span class="summary-value" id="totalAttackPower">0</span>
                     </div>
-                    
-                    <button id="launchAttackBtn" onclick="launchAttack()" class="launch-attack-btn" disabled>
-                        <span class="btn-icon">🚀</span>
-                        Launch Attack
-                    </button>
                 </div>
+                <div class="summary-item">
+                    <span class="summary-icon">👥</span>
+                    <div class="summary-content">
+                        <span class="summary-label">Units Selected</span>
+                        <span class="summary-value" id="totalUnitsSelected">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="launchAttackBtn" onclick="launchAttack()" class="launch-attack-btn" disabled>
+                <span class="btn-icon">🚀</span>
+                Launch Attack
+            </button>
         </div>
     </section>
     
@@ -181,6 +185,7 @@ let preselectedTargetId = '<?= htmlspecialchars($targetSettlementId) ?>';
 let availableUnits = {guards: 0, soldiers: 0, archers: 0, cavalry: 0};
 let attackableSettlements = [];
 let militaryPower = {};
+let selectedTarget = null;
 
 // Load initial data
 document.addEventListener('DOMContentLoaded', function() {
@@ -188,6 +193,17 @@ document.addEventListener('DOMContentLoaded', function() {
         loadMilitaryPower();
         loadAttackableSettlements();
         loadBattleHistory();
+        
+        // If a target was preselected from URL, handle it
+        if (preselectedTargetId) {
+            // Wait for settlements to load, then select the target
+            setTimeout(() => {
+                const target = attackableSettlements.find(s => s.settlementId == preselectedTargetId);
+                if (target) {
+                    selectTarget(target);
+                }
+            }, 1000);
+        }
     }
 });
 
@@ -251,7 +267,7 @@ function loadAttackableSettlements() {
         .then(data => {
             if (data.success) {
                 attackableSettlements = data.settlements;
-                updateTargetSelect();
+                // No need to update dropdown since we removed it
             } else {
                 console.error('Failed to load attackable settlements:', data.message);
             }
@@ -261,46 +277,29 @@ function loadAttackableSettlements() {
         });
 }
 
-function updateTargetSelect() {
-    const select = document.getElementById('targetSelect');
-    select.innerHTML = '<option value="">-- Choose a target --</option>';
+function selectTarget(target) {
+    selectedTarget = target;
     
-    attackableSettlements.forEach(settlement => {
-        const option = document.createElement('option');
-        option.value = settlement.settlementId;
-        option.textContent = `${settlement.settlementName} (${settlement.coordinateX}, ${settlement.coordinateY})`;
-        
-        // Pre-select target if specified in URL
-        if (preselectedTargetId && settlement.settlementId == preselectedTargetId) {
-            option.selected = true;
-        }
-        
-        select.appendChild(option);
-    });
+    // Update the UI to show selected target
+    document.getElementById('targetSelectionRow').style.display = 'none';
+    document.getElementById('selectedTargetRow').style.display = '';
+    document.getElementById('selectedTargetName').textContent = target.settlementName;
+    document.getElementById('selectedTargetCoords').textContent = `(${target.coordinateX}, ${target.coordinateY})`;
+    document.getElementById('selectedTargetOwner').textContent = target.playerName || 'Unknown';
     
-    // If a target was pre-selected, update the target info
-    if (preselectedTargetId && select.value) {
-        updateTargetInfo();
-    }
+    // Re-validate unit selection to enable/disable launch button
+    validateUnitSelection();
 }
 
-function updateTargetInfo() {
-    const targetId = document.getElementById('targetSelect').value;
-    const targetInfo = document.getElementById('targetInfo');
+function clearTarget() {
+    selectedTarget = null;
     
-    if (targetId) {
-        const target = attackableSettlements.find(s => s.settlementId == targetId);
-        if (target) {
-            document.getElementById('targetDetails').innerHTML = `
-                <p><strong>Settlement:</strong> ${target.settlementName}</p>
-                <p><strong>Coordinates:</strong> (${target.coordinateX}, ${target.coordinateY})</p>
-                <p><em>Gather intelligence before attacking!</em></p>
-            `;
-            targetInfo.style.display = 'block';
-        }
-    } else {
-        targetInfo.style.display = 'none';
-    }
+    // Update the UI to show selection prompt
+    document.getElementById('targetSelectionRow').style.display = '';
+    document.getElementById('selectedTargetRow').style.display = 'none';
+    
+    // Re-validate unit selection to disable launch button
+    validateUnitSelection();
 }
 
 function validateUnitSelection() {
@@ -312,17 +311,27 @@ function validateUnitSelection() {
     const totalUnits = guards + soldiers + archers + cavalry;
     const totalAttackPower = (guards * 0) + (soldiers * 3) + (archers * 4) + (cavalry * 5); // Simplified calculation
     
+    // Update individual unit power displays
+    document.getElementById('guardsAttackPower').textContent = guards * 0;
+    document.getElementById('soldiersAttackPower').textContent = soldiers * 3;
+    document.getElementById('archersAttackPower').textContent = archers * 4;
+    document.getElementById('cavalryAttackPower').textContent = cavalry * 5;
+    
     document.getElementById('totalUnitsSelected').textContent = totalUnits;
     document.getElementById('totalAttackPower').textContent = totalAttackPower;
     
-    const targetSelected = document.getElementById('targetSelect').value !== '';
+    const targetSelected = selectedTarget !== null;
     const unitsSelected = totalUnits > 0;
     
     document.getElementById('launchAttackBtn').disabled = !(targetSelected && unitsSelected);
 }
 
 function launchAttack() {
-    const targetId = document.getElementById('targetSelect').value;
+    if (!selectedTarget) {
+        alert('Please select a target settlement from the map');
+        return;
+    }
+    
     const units = {
         guards: parseInt(document.getElementById('attackGuards').value) || 0,
         soldiers: parseInt(document.getElementById('attackSoldiers').value) || 0,
@@ -330,18 +339,13 @@ function launchAttack() {
         cavalry: parseInt(document.getElementById('attackCavalry').value) || 0
     };
     
-    if (!targetId) {
-        alert('Please select a target settlement');
-        return;
-    }
-    
     const totalUnits = Object.values(units).reduce((a, b) => a + b, 0);
     if (totalUnits === 0) {
         alert('Please select units for the attack');
         return;
     }
     
-    if (!confirm(`Are you sure you want to attack with ${totalUnits} units? This action cannot be undone!`)) {
+    if (!confirm(`Are you sure you want to attack ${selectedTarget.settlementName} at (${selectedTarget.coordinateX}, ${selectedTarget.coordinateY}) with ${totalUnits} units? This action cannot be undone!`)) {
         return;
     }
     
@@ -355,7 +359,7 @@ function launchAttack() {
         },
         body: JSON.stringify({
             attackerSettlementId: currentSettlementId,
-            defenderSettlementId: targetId,
+            defenderSettlementId: selectedTarget.settlementId,
             units: units
         })
     })
@@ -426,12 +430,13 @@ function showBattleResult(battleData) {
 }
 
 function resetAttackForm() {
-    document.getElementById('targetSelect').value = '';
+    selectedTarget = null;
+    document.getElementById('targetSelectionRow').style.display = '';
+    document.getElementById('selectedTargetRow').style.display = 'none';
     document.getElementById('attackGuards').value = 0;
     document.getElementById('attackSoldiers').value = 0;
     document.getElementById('attackArchers').value = 0;
     document.getElementById('attackCavalry').value = 0;
-    document.getElementById('targetInfo').style.display = 'none';
     document.getElementById('launchAttackBtn').disabled = true;
     document.getElementById('launchAttackBtn').textContent = 'Launch Attack';
     validateUnitSelection();
@@ -488,133 +493,7 @@ function selectFromMap() {
 }
 </script>
 
-<style>
-.battle-result.victory {
-    background-color: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
-}
 
-.battle-result.defeat {
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
-    color: #721c24;
-}
-
-.attack-form {
-    max-width: 600px;
-}
-
-.target-selection-container {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-}
-
-.target-selection-container .target-select {
-    flex: 1;
-}
-
-.select-from-map-btn {
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    white-space: nowrap;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    height: 34px; /* Match select height */
-}
-
-.select-from-map-btn:hover {
-    background: #0056b3;
-}
-
-.select-from-map-btn .btn-icon {
-    font-size: 16px;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.form-group select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.unit-selection table {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.unit-selection input[type="number"] {
-    width: 80px;
-    padding: 4px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.attack-summary {
-    background-color: #f8f9fa;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 15px;
-}
-
-.power-stats {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 10px;
-}
-
-.power-stats .stat {
-    flex: 1;
-}
-
-.power-stats .stat label {
-    font-weight: bold;
-}
-
-.victory {
-    color: #28a745;
-}
-
-.defeat {
-    color: #dc3545;
-}
-
-#launchAttackBtn {
-    background-color: #dc3545;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-#launchAttackBtn:hover:not(:disabled) {
-    background-color: #c82333;
-}
-
-#launchAttackBtn:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
-}
-</style>
 
 </body>
 </html>
