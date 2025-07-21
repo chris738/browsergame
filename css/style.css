@@ -2672,3 +2672,78 @@ button {
         justify-content: center;
     }
 }
+
+/* Target Selection Mode Styles */
+.target-selection-mode-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.target-selection-mode-header h2 {
+    margin: 0 0 10px 0;
+    font-size: 24px;
+}
+
+.target-selection-mode-header p {
+    margin: 0 0 15px 0;
+    opacity: 0.9;
+}
+
+.selection-mode-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.cancel-selection-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+.cancel-selection-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.action-button.select-target {
+    background: #28a745;
+    color: white;
+    font-weight: bold;
+}
+
+.action-button.select-target:hover {
+    background: #1e7e34;
+}
+
+.action-button.cancel {
+    background: #6c757d;
+    color: white;
+}
+
+.action-button.cancel:hover {
+    background: #545b62;
+}
+
+.target-selection-message {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 4px;
+    padding: 15px;
+    margin-top: 15px;
+    text-align: center;
+}
+
+[data-theme="dark"] .target-selection-message {
+    background: #2d2d2d;
+    border-color: #555;
+    color: var(--text-color);
+}

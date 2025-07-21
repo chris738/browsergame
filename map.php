@@ -4,6 +4,10 @@ require_once 'php/database.php';
 // Get the current settlement ID from URL parameter
 $currentSettlementId = $_GET['settlementId'] ?? 1;
 
+// Check if we're in target selection mode
+$isSelectTargetMode = isset($_GET['mode']) && $_GET['mode'] === 'selectTarget';
+$returnTo = $_GET['returnTo'] ?? null;
+
 // Initialize database and fetch real settlement data
 $database = new Database();
 $mapData = [];
@@ -79,8 +83,22 @@ if (empty($mapData)) {
     <?php include 'php/navigation.php'; ?>
     
     <main class="main-content">
+        <?php if ($isSelectTargetMode): ?>
+        <div class="target-selection-mode-header">
+            <h2>🎯 Select Target for Attack</h2>
+            <p>Click on an enemy settlement (red dot) to select it as your attack target.</p>
+            <div class="selection-mode-controls">
+                <?php if ($returnTo === 'battle'): ?>
+                    <a href="battle.php?settlementId=<?= $currentSettlementId ?>" class="cancel-selection-btn">
+                        ← Cancel and Return to Battle
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php else: ?>
         <h2>Map View</h2>
         <p>Here you can see nearby settlements:</p>
+        <?php endif; ?>
         
         <div class="map-controls">
             <button id="zoomIn" class="map-btn">🔍 Zoom In</button>
@@ -410,74 +428,155 @@ if (empty($mapData)) {
             const xCoord = settlementElement.dataset.x;
             const yCoord = settlementElement.dataset.y;
             
+            // Check if we're in target selection mode
+            const isSelectTargetMode = <?= json_encode($isSelectTargetMode) ?>;
+            const currentSettlementId = <?= json_encode($currentSettlementId) ?>;
+            const returnTo = <?= json_encode($returnTo) ?>;
+            
             const title = document.getElementById('settlementInfoTitle');
             const content = document.getElementById('settlementInfoContent');
             const panel = document.getElementById('settlementInfoPanel');
             const overlay = document.getElementById('settlementInfoOverlay');
             
-            title.textContent = `${settlementName} - Settlement Information`;
-            
-            let statusText, statusClass;
-            if (isCurrent) {
-                statusText = 'Selected Settlement';
-                statusClass = 'own-settlement';
-            } else if (isOwn) {
-                statusText = 'Your Settlement';
-                statusClass = 'own-settlement';
-            } else {
-                statusText = 'Foreign Settlement';
-                statusClass = 'foreign-settlement';
-            }
-            
-            let actionsHtml = '';
-            if (isOwn) {
-                actionsHtml = `
+            if (isSelectTargetMode && !isOwn) {
+                // In target selection mode, show selection option for enemy settlements
+                title.textContent = `🎯 Select Target: ${settlementName}`;
+                
+                content.innerHTML = `
+                    <div class="settlement-basic-info">
+                        <h4>${settlementName}</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">👤 Owner:</span>
+                                <span class="info-value">${playerName}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🗺️ Location:</span>
+                                <span class="info-value">(${xCoord}, ${yCoord})</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">ℹ️ Status:</span>
+                                <span class="info-value foreign-settlement">Attack Target</span>
+                            </div>
+                        </div>
+                    </div>
                     <div class="actions">
-                        <a href="index.php?settlementId=${settlementId}" class="action-button manage">
-                            🏛️ Manage Buildings
-                        </a>
-                        <a href="market.php?settlementId=${settlementId}" class="action-button">
-                            ⚖️ Visit Market
-                        </a>
+                        <button onclick="selectThisTarget(${settlementId})" class="action-button select-target">
+                            🎯 Select This Target
+                        </button>
+                        <button onclick="closeSettlementInfo()" class="action-button cancel">
+                            ❌ Cancel
+                        </button>
+                    </div>
+                `;
+            } else if (isSelectTargetMode && isOwn) {
+                // In target selection mode, show message for own settlements
+                title.textContent = `${settlementName} - Your Settlement`;
+                
+                content.innerHTML = `
+                    <div class="settlement-basic-info">
+                        <h4>${settlementName}</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">👤 Owner:</span>
+                                <span class="info-value">${playerName}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🗺️ Location:</span>
+                                <span class="info-value">(${xCoord}, ${yCoord})</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">ℹ️ Status:</span>
+                                <span class="info-value own-settlement">Your Settlement</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="target-selection-message">
+                        <p>⚠️ You cannot attack your own settlements. Please select an enemy settlement (red dot).</p>
+                        <button onclick="closeSettlementInfo()" class="action-button cancel">
+                            ❌ Close
+                        </button>
                     </div>
                 `;
             } else {
-                actionsHtml = `
-                    <div class="actions">
-                        <a href="market.php?settlementId=<?= $currentSettlementId ?>" class="action-button">
-                            ⚖️ Visit Market
-                        </a>
-                        <a href="battle.php?settlementId=<?= $currentSettlementId ?>&target=${settlementId}" class="action-button battle">
-                            ⚔️ Attack Settlement
-                        </a>
+                // Normal mode - existing functionality
+                title.textContent = `${settlementName} - Settlement Information`;
+                
+                let statusText, statusClass;
+                if (isCurrent) {
+                    statusText = 'Selected Settlement';
+                    statusClass = 'own-settlement';
+                } else if (isOwn) {
+                    statusText = 'Your Settlement';
+                    statusClass = 'own-settlement';
+                } else {
+                    statusText = 'Foreign Settlement';
+                    statusClass = 'foreign-settlement';
+                }
+                
+                let actionsHtml = '';
+                if (isOwn) {
+                    actionsHtml = `
+                        <div class="actions">
+                            <a href="index.php?settlementId=${settlementId}" class="action-button manage">
+                                🏛️ Manage Buildings
+                            </a>
+                            <a href="market.php?settlementId=${settlementId}" class="action-button">
+                                ⚖️ Visit Market
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    actionsHtml = `
+                        <div class="actions">
+                            <a href="market.php?settlementId=${currentSettlementId}" class="action-button">
+                                ⚖️ Visit Market
+                            </a>
+                            <a href="battle.php?settlementId=${currentSettlementId}&target=${settlementId}" class="action-button battle">
+                                ⚔️ Attack Settlement
+                            </a>
+                        </div>
+                    `;
+                }
+                
+                content.innerHTML = `
+                    <div class="settlement-basic-info">
+                        <h4>${settlementName}</h4>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">👤 Owner:</span>
+                                <span class="info-value">${playerName}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">🗺️ Location:</span>
+                                <span class="info-value">(${xCoord}, ${yCoord})</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">ℹ️ Status:</span>
+                                <span class="info-value ${statusClass}">${statusText}</span>
+                            </div>
+                        </div>
                     </div>
+                    ${actionsHtml}
                 `;
             }
-            
-            content.innerHTML = `
-                <div class="settlement-basic-info">
-                    <h4>${settlementName}</h4>
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <span class="info-label">👤 Owner:</span>
-                            <span class="info-value">${playerName}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">🗺️ Location:</span>
-                            <span class="info-value">(${xCoord}, ${yCoord})</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">ℹ️ Status:</span>
-                            <span class="info-value ${statusClass}">${statusText}</span>
-                        </div>
-                    </div>
-                </div>
-                ${actionsHtml}
-            `;
             
             // Show the panel
             panel.classList.add('show');
             overlay.classList.add('show');
+        }
+        
+        function selectThisTarget(targetSettlementId) {
+            // Navigate back to battle page with selected target
+            const currentSettlementId = <?= json_encode($currentSettlementId) ?>;
+            const returnTo = <?= json_encode($returnTo) ?>;
+            
+            if (returnTo === 'battle') {
+                window.location.href = `battle.php?settlementId=${currentSettlementId}&target=${targetSettlementId}`;
+            } else {
+                // Fallback - just close the panel
+                closeSettlementInfo();
+            }
         }
         
         function closeSettlementInfo() {

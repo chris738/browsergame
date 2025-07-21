@@ -49,9 +49,15 @@
                 <span class="label-icon">🏛️</span>
                 Select Target Settlement
             </label>
-            <select id="targetSelect" onchange="updateTargetInfo()" class="target-select">
-                <option value="">-- Choose your target --</option>
-            </select>
+            <div class="target-selection-container">
+                <select id="targetSelect" onchange="updateTargetInfo()" class="target-select">
+                    <option value="">-- Choose your target --</option>
+                </select>
+                <button onclick="selectFromMap()" class="select-from-map-btn">
+                    <span class="btn-icon">🗺️</span>
+                    Select from Map
+                </button>
+            </div>
         </div>
         
         <div id="targetInfo" class="target-info" style="display: none;">
@@ -474,6 +480,12 @@ function updateBattleHistory(battles) {
     html += '</tbody></table>';
     container.innerHTML = html;
 }
+
+function selectFromMap() {
+    // Navigate to map with special parameter to indicate we're selecting a target
+    const mapUrl = `map.php?settlementId=${currentSettlementId}&mode=selectTarget&returnTo=battle`;
+    window.location.href = mapUrl;
+}
 </script>
 
 <style>
@@ -491,6 +503,39 @@ function updateBattleHistory(battles) {
 
 .attack-form {
     max-width: 600px;
+}
+
+.target-selection-container {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.target-selection-container .target-select {
+    flex: 1;
+}
+
+.select-from-map-btn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 34px; /* Match select height */
+}
+
+.select-from-map-btn:hover {
+    background: #0056b3;
+}
+
+.select-from-map-btn .btn-icon {
+    font-size: 16px;
 }
 
 .form-group {
