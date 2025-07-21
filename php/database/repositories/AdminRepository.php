@@ -50,7 +50,53 @@ class AdminRepository {
 
     public function getAllSettlements() {
         if ($this->connectionFailed) {
-            return [];
+            // Provide demo settlement data with proper coordinates
+            return [
+                [
+                    'settlementId' => 1,
+                    'name' => 'Test Settlement',
+                    'wood' => 5000,
+                    'stone' => 5000,
+                    'ore' => 5000,
+                    'playerId' => 1,
+                    'playerName' => 'TestPlayer',
+                    'xCoordinate' => 0,
+                    'yCoordinate' => 0
+                ],
+                [
+                    'settlementId' => 2,
+                    'name' => 'Enemy Village',
+                    'wood' => 3000,
+                    'stone' => 3000,
+                    'ore' => 3000,
+                    'playerId' => 2,
+                    'playerName' => 'Player2',
+                    'xCoordinate' => 1,
+                    'yCoordinate' => 2
+                ],
+                [
+                    'settlementId' => 3,
+                    'name' => 'Rival Town',
+                    'wood' => 4000,
+                    'stone' => 4000,
+                    'ore' => 4000,
+                    'playerId' => 3,
+                    'playerName' => 'Player3',
+                    'xCoordinate' => -1,
+                    'yCoordinate' => 1
+                ],
+                [
+                    'settlementId' => 4,
+                    'name' => 'Hostile Camp',
+                    'wood' => 2500,
+                    'stone' => 2500,
+                    'ore' => 2500,
+                    'playerId' => 4,
+                    'playerName' => 'Player4',
+                    'xCoordinate' => 2,
+                    'yCoordinate' => -1
+                ]
+            ];
         }
         
         $sql = "
