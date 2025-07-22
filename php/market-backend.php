@@ -122,7 +122,7 @@ function getMyTradeOffers($database, $settlementId) {
     }
 }
 
-// Accept a trade offer
+// Accept a trade offer - now uses travel time instead of immediate execution
 function acceptTradeOffer($database, $settlementId, $offerId) {
     try {
         $database->getConnection()->beginTransaction();
@@ -168,67 +168,84 @@ function acceptTradeOffer($database, $settlementId, $offerId) {
             return ['success' => false, 'message' => 'The offering player no longer has the required resources.'];
         }
 
-        // Execute the trade
-        // Update offering player's resources
+        // Remove resources from accepting player immediately (they send their part)
         $sql = "UPDATE Settlement SET 
-                wood = wood - ? + ?,
-                stone = stone - ? + ?,
-                ore = ore - ? + ?
+                wood = wood - ?,
+                stone = stone - ?,
+                ore = ore - ?
                 WHERE settlementId = ?";
         $stmt = $database->getConnection()->prepare($sql);
         $stmt->execute([
-            $offer['offerWood'], $offer['requestWood'],
-            $offer['offerStone'], $offer['requestStone'],
-            $offer['offerOre'], $offer['requestOre'],
-            $offer['fromSettlementId']
+            $offer['requestWood'], $offer['requestStone'], $offer['requestOre'], $settlementId
         ]);
 
-        // Update accepting player's resources
+        // Remove resources from offering player immediately (they send their part)
         $sql = "UPDATE Settlement SET 
-                wood = wood + ? - ?,
-                stone = stone + ? - ?,
-                ore = ore + ? - ?
+                wood = wood - ?,
+                stone = stone - ?,
+                ore = ore - ?
                 WHERE settlementId = ?";
         $stmt = $database->getConnection()->prepare($sql);
         $stmt->execute([
-            $offer['offerWood'], $offer['requestWood'],
-            $offer['offerStone'], $offer['requestStone'],
-            $offer['offerOre'], $offer['requestOre'],
-            $settlementId
+            $offer['offerWood'], $offer['offerStone'], $offer['offerOre'], $offer['fromSettlementId']
         ]);
 
-        // Handle gold transactions
-        if ($offer['offerGold'] > 0 || $offer['requestGold'] > 0) {
-            // Update offering player's gold
+        // Handle gold removal immediately
+        if ($offer['requestGold'] > 0) {
             $sql = "UPDATE Spieler p 
                     INNER JOIN Settlement s ON p.playerId = s.playerId 
-                    SET p.gold = p.gold - ? + ?
+                    SET p.gold = p.gold - ?
                     WHERE s.settlementId = ?";
             $stmt = $database->getConnection()->prepare($sql);
-            $stmt->execute([$offer['offerGold'], $offer['requestGold'], $offer['fromSettlementId']]);
-
-            // Update accepting player's gold
-            $sql = "UPDATE Spieler p 
-                    INNER JOIN Settlement s ON p.playerId = s.playerId 
-                    SET p.gold = p.gold + ? - ?
-                    WHERE s.settlementId = ?";
-            $stmt = $database->getConnection()->prepare($sql);
-            $stmt->execute([$offer['offerGold'], $offer['requestGold'], $settlementId]);
+            $stmt->execute([$offer['requestGold'], $settlementId]);
         }
 
-        // Record the transaction
-        $sql = "INSERT INTO TradeTransactions (offerId, fromSettlementId, toSettlementId, 
-                tradedWood, tradedStone, tradedOre, tradedGold,
-                receivedWood, receivedStone, receivedOre, receivedGold) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        $stmt = $database->getConnection()->prepare($sql);
-        $stmt->execute([
-            $offerId,
-            $offer['fromSettlementId'],
-            $settlementId,
-            $offer['offerWood'], $offer['offerStone'], $offer['offerOre'], $offer['offerGold'],
-            $offer['requestWood'], $offer['requestStone'], $offer['requestOre'], $offer['requestGold']
-        ]);
+        if ($offer['offerGold'] > 0) {
+            $sql = "UPDATE Spieler p 
+                    INNER JOIN Settlement s ON p.playerId = s.playerId 
+                    SET p.gold = p.gold - ?
+                    WHERE s.settlementId = ?";
+            $stmt = $database->getConnection()->prepare($sql);
+            $stmt->execute([$offer['offerGold'], $offer['fromSettlementId']]);
+        }
+
+        // Start travel for both sides of the trade
+        $resourcesFromOfferer = [
+            'wood' => $offer['offerWood'],
+            'stone' => $offer['offerStone'],
+            'ore' => $offer['offerOre'],
+            'gold' => $offer['offerGold']
+        ];
+
+        $resourcesFromAccepter = [
+            'wood' => $offer['requestWood'],
+            'stone' => $offer['requestStone'],
+            'ore' => $offer['requestOre'],
+            'gold' => $offer['requestGold']
+        ];
+
+        // Start travel from offerer to accepter
+        $travel1 = $database->startTradeTravel(
+            $offer['fromSettlementId'], 
+            $settlementId, 
+            $resourcesFromOfferer, 
+            $offer['offerType'], 
+            $offerId
+        );
+
+        // Start travel from accepter to offerer  
+        $travel2 = $database->startTradeTravel(
+            $settlementId, 
+            $offer['fromSettlementId'], 
+            $resourcesFromAccepter, 
+            $offer['offerType'], 
+            $offerId
+        );
+
+        if (!$travel1['success'] || !$travel2['success']) {
+            $database->getConnection()->rollback();
+            return ['success' => false, 'message' => 'Failed to start trade travel'];
+        }
 
         // Update the offer's trade count
         $sql = "UPDATE TradeOffers SET currentTrades = currentTrades + 1 WHERE offerId = ?";
@@ -243,7 +260,17 @@ function acceptTradeOffer($database, $settlementId, $offerId) {
         }
 
         $database->getConnection()->commit();
-        return ['success' => true, 'message' => 'Trade completed successfully!'];
+        
+        $avgTravelTime = ($travel1['travelTimeSeconds'] + $travel2['travelTimeSeconds']) / 2;
+        
+        return [
+            'success' => true, 
+            'message' => 'Trade started! Resources are traveling. Average arrival time: ' . round($avgTravelTime) . ' seconds',
+            'travelTime1' => $travel1['travelTimeSeconds'],
+            'travelTime2' => $travel2['travelTimeSeconds'],
+            'arrivalTime1' => $travel1['arrivalTime'],
+            'arrivalTime2' => $travel2['arrivalTime']
+        ];
 
     } catch (Exception $e) {
         $database->getConnection()->rollback();
@@ -498,6 +525,9 @@ try {
                 ];
             }
             
+            echo json_encode($result);
+        } elseif (isset($_GET['getTravelingTrades'])) {
+            $result = ['success' => true, 'trades' => $database->getTravelingTrades($settlementId)];
             echo json_encode($result);
         } else {
             echo json_encode(['success' => false, 'message' => 'Invalid request.']);

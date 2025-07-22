@@ -59,6 +59,16 @@ try {
                     echo json_encode(['success' => true, 'battles' => $battles]);
                     break;
                     
+                case 'getTravelingArmies':
+                    if (!$settlementId) {
+                        echo json_encode(['success' => false, 'message' => 'Settlement ID required']);
+                        exit;
+                    }
+                    
+                    $armies = $database->getTravelingArmies($settlementId);
+                    echo json_encode(['success' => true, 'armies' => $armies]);
+                    break;
+                    
                 default:
                     echo json_encode(['success' => false, 'message' => 'Unknown action']);
             }
@@ -97,7 +107,17 @@ try {
                         exit;
                     }
                     
-                    $result = $database->attackSettlement($attackerSettlementId, $defenderSettlementId, $attackUnits);
+                    // Validate that attacker has enough units
+                    $attackerUnits = $database->getMilitaryUnits($attackerSettlementId);
+                    foreach ($attackUnits as $unitType => $count) {
+                        if ($count > 0 && $count > $attackerUnits[$unitType]) {
+                            echo json_encode(['success' => false, 'message' => "Not enough $unitType units. Available: {$attackerUnits[$unitType]}, Requested: $count"]);
+                            exit;
+                        }
+                    }
+                    
+                    // Start military travel instead of immediate attack
+                    $result = $database->startMilitaryTravel($attackerSettlementId, $defenderSettlementId, $attackUnits);
                     echo json_encode($result);
                     break;
                     

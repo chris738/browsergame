@@ -131,6 +131,31 @@ try {
                 echo json_encode(['success' => true, 'analytics' => $analytics]);
                 break;
                 
+            case 'getTravelConfig':
+                $tradeSpeed = $database->getTravelConfig('trade');
+                $militarySpeed = $database->getTravelConfig('military');
+                echo json_encode([
+                    'success' => true, 
+                    'tradeSpeed' => $tradeSpeed, 
+                    'militarySpeed' => $militarySpeed
+                ]);
+                break;
+                
+            case 'getMilitaryUnitConfig':
+                $units = $database->getMilitaryUnitConfig();
+                echo json_encode(['success' => true, 'units' => $units]);
+                break;
+                
+            case 'getAllTravelingArmies':
+                $armies = $database->getAllTravelingArmies();
+                echo json_encode(['success' => true, 'armies' => $armies]);
+                break;
+                
+            case 'getAllTravelingTrades':
+                $trades = $database->getAllTravelingTrades();
+                echo json_encode(['success' => true, 'trades' => $trades]);
+                break;
+                
             default:
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid action']);
@@ -324,6 +349,51 @@ try {
                     http_response_code(500);
                     echo json_encode(['error' => 'Failed to delete building config']);
                 }
+                break;
+                
+            case 'updateTravelConfig':
+                $travelType = $input['travelType'] ?? '';
+                $baseSpeed = $input['baseSpeed'] ?? 0;
+                
+                if (empty($travelType) || $baseSpeed <= 0) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Travel type and base speed are required']);
+                    break;
+                }
+                
+                $success = $database->updateTravelConfig($travelType, $baseSpeed);
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Travel config updated successfully']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Failed to update travel config']);
+                }
+                break;
+                
+            case 'updateMilitaryUnitConfig':
+                $unitType = $input['unitType'] ?? '';
+                $level = $input['level'] ?? 0;
+                $field = $input['field'] ?? '';
+                $value = $input['value'] ?? 0;
+                
+                if (empty($unitType) || $level <= 0 || empty($field)) {
+                    http_response_code(400);
+                    echo json_encode(['error' => 'Unit type, level, field and value are required']);
+                    break;
+                }
+                
+                $success = $database->updateMilitaryUnitConfig($unitType, $level, $field, $value);
+                if ($success) {
+                    echo json_encode(['success' => true, 'message' => 'Military unit config updated successfully']);
+                } else {
+                    http_response_code(500);
+                    echo json_encode(['error' => 'Failed to update military unit config']);
+                }
+                break;
+                
+            case 'processArrivals':
+                $result = $database->processArrivals();
+                echo json_encode(['success' => true, 'processed' => $result['processed']]);
                 break;
                 
             default:
