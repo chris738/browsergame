@@ -105,7 +105,7 @@ function fetchResources(settlementId) {
         // Let client manager handle resources, but still fetch occasionally for accuracy
         const lastSync = window.clientProgressManager.lastServerSync;
         const now = Date.now();
-        if (now - lastSync > 30000) { // Force sync every 30 seconds
+        if (now - lastSync > 120000) { // Force sync every 2 minutes instead of 30 seconds
             window.clientProgressManager.forceSyncWithServer();
         }
         return;
@@ -258,131 +258,123 @@ function fetchResourcesForColorUpdate(settlementId) {
         .catch(error => console.error('Error fetching resources for color update:', error));
 }
 
-function fetchBuildings(settlementId) {
-    // First fetch the building types dynamically
-    fetch(`../php/backend.php?getBuildingTypes=true`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.buildingTypes && data.buildingTypes.buildingTypes) {
-                const buildingTypes = data.buildingTypes.buildingTypes.map(b => b.name);
-                fetchBuildingData(settlementId, buildingTypes);
-            } else {
-                // Fallback to default building types from centralized configuration
-                const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
-                    window.getDefaultBuildingTypes().map(b => b.buildingType) :
-                    ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Markt', 'Kaserne'];
-                fetchBuildingData(settlementId, defaultBuildingTypes);
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching building types:', error);
+async function fetchBuildings(settlementId) {
+    try {
+        // First fetch the building types dynamically
+        const response = await fetch(`../php/backend.php?getBuildingTypes=true`);
+        const data = await response.json();
+        
+        let buildingTypes;
+        if (data.buildingTypes && data.buildingTypes.buildingTypes) {
+            buildingTypes = data.buildingTypes.buildingTypes.map(b => b.name);
+        } else {
             // Fallback to default building types from centralized configuration
-            const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
+            buildingTypes = window.getDefaultBuildingTypes ? 
                 window.getDefaultBuildingTypes().map(b => b.buildingType) :
                 ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Markt', 'Kaserne'];
-            fetchBuildingData(settlementId, defaultBuildingTypes);
-        });
+        }
+        
+        await fetchBuildingData(settlementId, buildingTypes);
+    } catch (error) {
+        console.error('Error fetching building types:', error);
+        // Fallback to default building types from centralized configuration
+        const defaultBuildingTypes = window.getDefaultBuildingTypes ? 
+            window.getDefaultBuildingTypes().map(b => b.buildingType) :
+            ['Rathaus', 'Holzfäller', 'Steinbruch', 'Erzbergwerk', 'Lager', 'Farm', 'Markt', 'Kaserne'];
+        await fetchBuildingData(settlementId, defaultBuildingTypes);
+    }
 }
 
-function fetchBuildingData(settlementId, buildingTypes) {
+async function fetchBuildingData(settlementId, buildingTypes) {
     let completedRequests = 0;
+    
+    // Process buildings sequentially to avoid request bursts
+    for (const buildingType of buildingTypes) {
+        try {
+            const response = await fetch(`../php/backend.php?settlementId=${settlementId}&buildingType=${buildingType}`);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                console.error(`Backend error for ${buildingType}:`, data.error);
+                throw new Error(data.error);
+            }
+            
+            if (data.building) {
+                const buildingId = buildingType.toLowerCase();
+                const levelElement = document.getElementById(`${buildingId}`);
+                const woodElement = document.getElementById(`${buildingId}KostenHolz`);
+                const stoneElement = document.getElementById(`${buildingId}KostenStein`);
+                const oreElement = document.getElementById(`${buildingId}KostenErz`);
+                const settlersElement = document.getElementById(`${buildingId}KostenSiedler`);
+                const timeElement = document.getElementById(`${buildingId}Bauzeit`);
+                const buttonElement = document.getElementById(`${buildingId}upgradeButton`);
 
-    buildingTypes.forEach((buildingType, index) => {
-        // Add a small delay to prevent overwhelming the database with concurrent requests
-        setTimeout(() => {
-            fetch(`../php/backend.php?settlementId=${settlementId}&buildingType=${buildingType}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        console.error(`Backend error for ${buildingType}:`, data.error);
-                        throw new Error(data.error);
-                    }
+                if (levelElement) levelElement.textContent = data.building.level;
+                if (woodElement) woodElement.textContent = `${formatNumberWithDots(data.building.costWood)} 🪵`;
+                if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} 🧱`;
+                if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} 🪨`;
+                if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} 👥`;
+                if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s ⏱️`;
+                
+                // Update button text based on current level (Build vs Upgrade)
+                // Hide button if building is at max level (10)
+                if (buttonElement) {
+                    const isFirstBuild = data.building.level === 0;
+                    const isMaxLevel = data.building.level >= 10;
                     
-                    if (data.building) {
-                        const buildingId = buildingType.toLowerCase();
-                        const levelElement = document.getElementById(`${buildingId}`);
-                        const woodElement = document.getElementById(`${buildingId}KostenHolz`);
-                        const stoneElement = document.getElementById(`${buildingId}KostenStein`);
-                        const oreElement = document.getElementById(`${buildingId}KostenErz`);
-                        const settlersElement = document.getElementById(`${buildingId}KostenSiedler`);
-                        const timeElement = document.getElementById(`${buildingId}Bauzeit`);
-                        const buttonElement = document.getElementById(`${buildingId}upgradeButton`);
-
-                        if (levelElement) levelElement.textContent = data.building.level;
-                        if (woodElement) woodElement.textContent = `${formatNumberWithDots(data.building.costWood)} 🪵`;
-                        if (stoneElement) stoneElement.textContent = `${formatNumberWithDots(data.building.costStone)} 🧱`;
-                        if (oreElement) oreElement.textContent = `${formatNumberWithDots(data.building.costOre)} 🪨`;
-                        if (settlersElement) settlersElement.textContent = `${formatNumberWithDots(data.building.costSettlers)} 👥`;
-                        if (timeElement) timeElement.textContent = `${formatNumberWithDots(data.building.buildTime)}s ⏱️`;
-                        
-                        // Update button text based on current level (Build vs Upgrade)
-                        // Hide button if building is at max level (10)
-                        if (buttonElement) {
-                            const isFirstBuild = data.building.level === 0;
-                            const isMaxLevel = data.building.level >= 10;
-                            
-                            if (isMaxLevel) {
-                                buttonElement.style.display = 'none';
-                            } else {
-                                buttonElement.style.display = '';
-                                buttonElement.textContent = isFirstBuild 
-                                    ? 'Build' 
-                                    : `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
-                            }
-                        }
-                        
-                        // Store building data for later cost checking
-                        if (buttonElement) {
-                            buttonElement.setAttribute('data-cost-wood', data.building.costWood);
-                            buttonElement.setAttribute('data-cost-stone', data.building.costStone);
-                            buttonElement.setAttribute('data-cost-ore', data.building.costOre);
-                            buttonElement.setAttribute('data-cost-settlers', data.building.costSettlers);
-                        }
+                    if (isMaxLevel) {
+                        buttonElement.style.display = 'none';
                     } else {
-                        console.warn(`No building data returned for ${buildingType}, response:`, data);
-                        // If building data is missing, ensure level shows 0 explicitly
-                        const buildingId = buildingType.toLowerCase();
-                        const levelElement = document.getElementById(`${buildingId}`);
-                        if (levelElement) {
-                            levelElement.textContent = '0';
-                        }
+                        buttonElement.style.display = '';
+                        buttonElement.textContent = isFirstBuild 
+                            ? 'Build' 
+                            : `Upgrade to ${formatNumberWithDots(data.building.nextLevel)}`;
                     }
-                    
-                    // Only call getRegen and update cost colors once when all building requests are complete
-                    completedRequests++;
-                    if (completedRequests === buildingTypes.length) {
-                        getRegen(settlementId);
-                        // Trigger cost color update after all buildings are loaded
-                        fetchResourcesForColorUpdate(settlementId);
-                        // Update tab visibility based on building levels
-                        updateTabVisibility();
-                    }
-                })
-                .catch(error => {
-                    console.error(`Error fetching data for ${buildingType}:`, error);
-                    // On error, ensure the building level shows 0 instead of staying empty
-                    const buildingId = buildingType.toLowerCase();
-                    const levelElement = document.getElementById(`${buildingId}`);
-                    if (levelElement) {
-                        levelElement.textContent = '0';
-                    }
-                    
-                    completedRequests++;
-                    if (completedRequests === buildingTypes.length) {
-                        getRegen(settlementId);
-                        // Trigger cost color update after all buildings are loaded
-                        fetchResourcesForColorUpdate(settlementId);
-                        // Update tab visibility based on building levels
-                        updateTabVisibility();
-                    }
-                });
-        }, index * 100); // 100ms delay between each request
-    });
+                }
+                
+                // Store building data for later cost checking
+                if (buttonElement) {
+                    buttonElement.setAttribute('data-cost-wood', data.building.costWood);
+                    buttonElement.setAttribute('data-cost-stone', data.building.costStone);
+                    buttonElement.setAttribute('data-cost-ore', data.building.costOre);
+                    buttonElement.setAttribute('data-cost-settlers', data.building.costSettlers);
+                }
+            } else {
+                console.warn(`No building data returned for ${buildingType}, response:`, data);
+                // If building data is missing, ensure level shows 0 explicitly
+                const buildingId = buildingType.toLowerCase();
+                const levelElement = document.getElementById(`${buildingId}`);
+                if (levelElement) {
+                    levelElement.textContent = '0';
+                }
+            }
+            
+            completedRequests++;
+        } catch (error) {
+            console.error(`Error fetching data for ${buildingType}:`, error);
+            // On error, ensure the building level shows 0 instead of staying empty
+            const buildingId = buildingType.toLowerCase();
+            const levelElement = document.getElementById(`${buildingId}`);
+            if (levelElement) {
+                levelElement.textContent = '0';
+            }
+            
+            completedRequests++;
+        }
+        
+        // Small delay to prevent overwhelming the server, but much smaller than before
+        await new Promise(resolve => setTimeout(resolve, 50));
+    }
+    
+    // Call final updates only once, after all building requests are complete
+    getRegen(settlementId);
+    fetchResourcesForColorUpdate(settlementId);
+    updateTabVisibility();
 }
 
 function upgradeBuilding(buildingType, settlementId) {
@@ -553,16 +545,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     getRegen(settlementId);
     fetchPlayerInfo(settlementId);
     fetchAllPlayers();
-    fetchBuildings(settlementId);
+    await fetchBuildings(settlementId);
 
     // Set up optimized intervals based on whether client progress manager is available
     if (window.clientProgressManager) {
         console.log('Using optimized client-side progress system');
         
-        // Reduced server polling when using client-side calculations
+        // Much more conservative server polling when using client-side calculations
         // Only sync occasionally to ensure data accuracy
-        setInterval(() => fetchPlayerInfo(settlementId), 30000); // Every 30 seconds
-        setInterval(() => fetchBuildings(settlementId), 60000); // Every 60 seconds
+        setInterval(() => fetchPlayerInfo(settlementId), 60000); // Every 60 seconds
+        setInterval(() => fetchBuildings(settlementId), 180000); // Every 3 minutes
         
         // Client progress manager handles resources and queue updates
     } else {
