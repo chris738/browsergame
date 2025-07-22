@@ -765,10 +765,10 @@ INSERT INTO MilitaryUnitConfig (unitType, level, costWood, costStone, costOre, c
 
 -- Research configuration
 INSERT INTO ResearchConfig (unitType, costWood, costStone, costOre, costGold, researchTime, prerequisiteUnit) VALUES
-('guards', 200, 150, 100, 50, 1800, NULL),
-('soldiers', 400, 300, 200, 100, 3600, 'guards'),
-('archers', 350, 250, 150, 75, 2700, 'guards'),
-('cavalry', 600, 400, 300, 200, 5400, 'soldiers');
+('guards', 200, 150, 100, 50, 60, NULL),
+('soldiers', 400, 300, 200, 100, 120, 'guards'),
+('archers', 350, 250, 150, 75, 90, 'guards'),
+('cavalry', 600, 400, 300, 200, 180, 'soldiers');
 
 -- ====================================
 -- DATABASE EVENTS

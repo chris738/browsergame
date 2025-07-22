@@ -180,8 +180,8 @@
     </section>
 
 <script>
-let currentSettlementId = '<?= htmlspecialchars($settlementId) ?>';
-let preselectedTargetId = '<?= htmlspecialchars($targetSettlementId) ?>';
+let currentSettlementId = '<?= htmlspecialchars($settlementId ?? '1') ?>';
+let preselectedTargetId = '<?= htmlspecialchars($targetSettlementId ?? '') ?>';
 let availableUnits = {guards: 0, soldiers: 0, archers: 0, cavalry: 0};
 let attackableSettlements = [];
 let militaryPower = {};

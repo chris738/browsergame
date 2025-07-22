@@ -385,10 +385,12 @@ class BattleRepository {
         }
 
         try {
-            $sql = "SELECT settlementId, settlementName, coordinateX, coordinateY
-                    FROM Settlement 
-                    WHERE settlementId != ? 
-                    ORDER BY settlementName";
+            $sql = "SELECT s.settlementId, s.name as settlementName, m.xCoordinate as coordinateX, m.yCoordinate as coordinateY, p.name as playerName
+                    FROM Settlement s
+                    LEFT JOIN Map m ON s.settlementId = m.settlementId
+                    LEFT JOIN Spieler p ON s.playerId = p.playerId
+                    WHERE s.settlementId != ? 
+                    ORDER BY s.name";
             
             $stmt = $this->conn->prepare($sql);
             $stmt->execute([$attackerSettlementId]);
