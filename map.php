@@ -284,7 +284,7 @@ if (empty($mapData)) {
         
         // Position settlements based on coordinates
         function positionSettlements() {
-            const settlements = document.querySelectorAll('.settlement-icon');
+            const settlements = document.querySelectorAll('#mapGrid .settlement-icon');
             const occupiedCells = new Set(); // Track occupied grid cells
             
             settlements.forEach(settlement => {
