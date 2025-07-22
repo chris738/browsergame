@@ -75,7 +75,7 @@ class TargetSelectionTest {
     private function testCSSContainsTargetSelectionStyles() {
         echo "Test 3: CSS contains target selection styles... ";
         
-        $cssContent = file_get_contents(__DIR__ . '/../css/style.css');
+        $cssContent = file_get_contents(__DIR__ . '/../css/main.css');
         $battleContent = file_get_contents(__DIR__ . '/../battle.php');
         
         // Check if main CSS contains the new styles

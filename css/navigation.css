@@ -1,0 +1,280 @@
+/* Navigation and General Layout Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    /* Reduced padding - navigation is more compact now */
+    padding-top: 90px;
+}
+
+/* Navigation remains consistent - no extra padding needed */
+
+.navigation {
+    background-color: var(--nav-bg);
+    padding: 0;
+    margin: 0;
+    border-bottom: 2px solid var(--nav-border);
+    display: flex;
+    flex-direction: column;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    /* Make navigation sticky */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Top row: Settlement name, tabs (inline), and user controls */
+.nav-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 15px;
+    background-color: var(--nav-bg);
+    border-bottom: 1px solid var(--nav-border);
+    min-height: 35px;
+    gap: 15px;
+}
+
+/* Inline tabs in top row */
+.nav-tabs-inline {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    justify-content: center;
+    padding: 4px 8px;
+    /* Ensure all tabs stay visible */
+    flex-wrap: wrap;
+    min-width: 0;
+    overflow: visible;
+}
+
+/* Hide fallback tabs row by default */
+.nav-tabs-fallback {
+    display: none !important;
+    gap: 4px;
+    justify-content: center;
+    padding: 8px;
+}
+
+/* Navigation tabs always stay inline - removed responsive fallback */
+
+.settlement-name-compact {
+    color: var(--nav-text);
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nav-user-compact {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.player-controls-compact {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.player-switcher {
+    background-color: var(--nav-bg);
+    border: 1px solid var(--nav-text);
+    color: var(--nav-text);
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.player-switcher:hover {
+    border-color: var(--nav-active);
+    background-color: var(--nav-hover);
+}
+
+.player-switcher option {
+    background-color: var(--nav-bg);
+    color: var(--nav-text);
+}
+
+.user-display-compact {
+    color: var(--nav-text);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 6px 10px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    white-space: nowrap;
+}
+
+.theme-toggle {
+    background: none;
+    border: 1px solid var(--nav-text);
+    color: var(--nav-text);
+    padding: 4px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.theme-toggle:hover {
+    background-color: var(--nav-hover);
+    border-color: var(--nav-active);
+    color: var(--nav-active);
+}
+
+/* Second row: Tab navigation */
+.nav-tabs-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    background-color: var(--nav-bg);
+    border-bottom: 1px solid var(--nav-border);
+    min-height: 48px;
+    padding: 4px 8px;
+}
+
+.nav-link {
+    color: var(--nav-text);
+    text-decoration: none;
+    padding: 10px 18px;
+    display: block;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    font-size: 13px;
+    border-radius: 6px 6px 0 0;
+    margin: 0 2px;
+    position: relative;
+}
+
+/* Inline tab links use consistent styling */
+.nav-tabs-inline .nav-link {
+    padding: 8px 12px;
+    font-size: 13px;
+    border-radius: 6px;
+    border-bottom: 3px solid transparent;
+    margin: 0 1px;
+    /* Ensure tabs don't shrink too much */
+    flex-shrink: 0;
+    min-width: fit-content;
+    white-space: nowrap;
+}
+
+.nav-tabs-inline .nav-link:hover,
+.nav-tabs-fallback .nav-link:hover {
+    background-color: var(--nav-hover);
+    color: var(--nav-active);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.nav-tabs-inline .nav-link.active,
+.nav-tabs-fallback .nav-link.active {
+    background-color: var(--nav-active);
+    color: white;
+    border-bottom-color: var(--nav-active);
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+}
+
+/* Third row: Resources in navbar */
+.nav-resources-row {
+    display: flex;
+    justify-content: space-around;
+    background-color: var(--card-bg);
+    padding: 6px 15px;
+    gap: 8px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    min-height: 35px;
+    align-items: center;
+}
+
+.nav-resources-row .resource {
+    background-color: var(--resource-bg);
+    padding: 4px 8px;
+    border: 1px solid var(--cost-box-border);
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    flex: 1;
+    max-width: 120px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.nav-resources-row .resource p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-color);
+}
+
+.nav-resources-row .resource-emoji {
+    font-size: 14px;
+    margin-right: 3px;
+    cursor: help;
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.nav-resources-row .resource-emoji:hover {
+    transform: scale(1.2);
+}
+
+.nav-resources-row div.resource p .regen {
+    font-size: 9px !important;
+    color: #66666698;
+    margin-left: 4px;
+}
+
+.logout-btn {
+    background-color: #e74c3c;
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    font-weight: 500;
+}
+
+.logout-btn:hover {
+    background-color: #c0392b;
+}
+
+.main-content {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.main-content h2 {
+    color: var(--text-color);
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.main-content p {
+    text-align: center;
+    color: var(--text-color);
+    opacity: 0.8;
+    margin-bottom: 20px;
+}
+
+.map-container {
+    text-align: center;
+}
