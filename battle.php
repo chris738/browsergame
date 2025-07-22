@@ -39,6 +39,17 @@
         </div>
     </section>
     
+    <!-- Traveling Armies Section -->
+    <section class="buildings">
+        <h3>⚔️ Armies in Transit</h3>
+        <div id="travelingArmiesDisplay">
+            <div class="loading-state">
+                <span class="loading-icon">⏳</span>
+                <p>Loading traveling armies...</p>
+            </div>
+        </div>
+    </section>
+    
     <!-- Target Selection Section -->
     <section class="buildings">
         <h3>🎯 Target Selection</h3>
@@ -193,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadMilitaryPower();
         loadAttackableSettlements();
         loadBattleHistory();
+        loadTravelingArmies();
         
         // If a target was preselected from URL, handle it
         if (preselectedTargetId) {
@@ -204,6 +216,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, 1000);
         }
+        
+        // Auto-refresh traveling armies every 30 seconds
+        setInterval(loadTravelingArmies, 30000);
     }
 });
 
@@ -486,12 +501,123 @@ function updateBattleHistory(battles) {
     container.innerHTML = html;
 }
 
+async function loadTravelingArmies() {
+    try {
+        const response = await fetch(`php/battle-backend.php?action=getTravelingArmies&settlementId=${currentSettlementId}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            displayTravelingArmies(data.armies);
+        } else {
+            console.error('Failed to load traveling armies:', data.message);
+        }
+    } catch (error) {
+        console.error('Error loading traveling armies:', error);
+    }
+}
+
+function displayTravelingArmies(armies) {
+    const container = document.getElementById('travelingArmiesDisplay');
+    
+    if (!armies || armies.length === 0) {
+        container.innerHTML = '<p>No armies currently traveling</p>';
+        return;
+    }
+    
+    let html = '<div class="travel-list">';
+    armies.forEach(army => {
+        const isOutgoing = army.attackerSettlementId == currentSettlementId;
+        const direction = isOutgoing ? 'Outgoing Attack' : 'Incoming Attack';
+        const targetName = isOutgoing ? army.defenderName : army.attackerName;
+        const timeRemaining = army.timeRemaining > 0 ? formatTime(army.timeRemaining) : 'Arrived';
+        
+        const unitSummary = [
+            army.guardsCount > 0 ? `G:${army.guardsCount}` : null,
+            army.soldiersCount > 0 ? `S:${army.soldiersCount}` : null,
+            army.archersCount > 0 ? `A:${army.archersCount}` : null,
+            army.cavalryCount > 0 ? `C:${army.cavalryCount}` : null
+        ].filter(u => u).join(', ');
+        
+        html += `
+            <div class="travel-item ${isOutgoing ? 'outgoing' : 'incoming'}">
+                <div class="travel-header">
+                    <strong>${direction}</strong>
+                    <span class="travel-time">${timeRemaining}</span>
+                </div>
+                <div class="travel-details">
+                    Target: <strong>${targetName || 'Unknown'}</strong><br>
+                    Units: ${unitSummary}<br>
+                    Distance: ${army.distance} blocks
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+function formatTime(seconds) {
+    if (seconds <= 0) return 'Arrived';
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${secs}s`;
+    } else {
+        return `${secs}s`;
+    }
+}
+
 function selectFromMap() {
     // Navigate to map with special parameter to indicate we're selecting a target
     const mapUrl = `map.php?settlementId=${currentSettlementId}&mode=selectTarget&returnTo=battle`;
     window.location.href = mapUrl;
 }
 </script>
+
+<style>
+.travel-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.travel-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--bg-secondary);
+}
+
+.travel-item.outgoing {
+    border-left: 4px solid #ff6b6b;
+}
+
+.travel-item.incoming {
+    border-left: 4px solid #ffa726;
+}
+
+.travel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.travel-time {
+    font-weight: bold;
+    color: #007bff;
+}
+
+.travel-details {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+</style>
 
 
 

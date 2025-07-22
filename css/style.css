@@ -1208,6 +1208,52 @@ button {
     text-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
 }
 
+/* Traveling Trades Styles */
+.traveling-trade-item {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    background: var(--bg-secondary);
+    transition: all 0.3s ease;
+}
+
+.traveling-trade-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.traveling-trade-item.outgoing {
+    border-left: 4px solid #28a745;
+}
+
+.traveling-trade-item.incoming {
+    border-left: 4px solid #007bff;
+}
+
+.trade-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.trade-direction {
+    color: var(--text-color);
+}
+
+.trade-time {
+    color: #007bff;
+    font-family: monospace;
+}
+
+.trade-details {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--text-secondary);
+}
+
 /* Responsive design for smaller screens */
 @media (max-width: 768px) {
     .trade-form-row {

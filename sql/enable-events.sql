@@ -6,5 +6,6 @@ ALTER EVENT UpdateResources ENABLE;
 ALTER EVENT ProcessBuildingQueue ENABLE;
 ALTER EVENT ProcessMilitaryTrainingQueue ENABLE;
 ALTER EVENT ProcessResearchQueue ENABLE;
+ALTER EVENT ProcessTravelArrivals ENABLE;
 
 SELECT 'Database events enabled successfully!' AS status;

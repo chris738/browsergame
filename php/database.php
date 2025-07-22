@@ -14,6 +14,7 @@ require_once __DIR__ . '/database/repositories/AdminRepository.php';
 require_once __DIR__ . '/database/repositories/TradingRepository.php';
 require_once __DIR__ . '/database/repositories/MilitaryRepository.php';
 require_once __DIR__ . '/database/repositories/BattleRepository.php';
+require_once __DIR__ . '/database/repositories/TravelRepository.php';
 
 class Database implements DatabaseInterface {
     private $connection;
@@ -26,6 +27,7 @@ class Database implements DatabaseInterface {
     private $tradingRepo;
     private $militaryRepo;
     private $battleRepo;
+    private $travelRepo;
     private $connectionFailed = false;
 
     public function __construct() {
@@ -49,6 +51,7 @@ class Database implements DatabaseInterface {
         $this->tradingRepo = new TradingRepository($conn, $this->connectionFailed);
         $this->militaryRepo = new MilitaryRepository($conn, $this->connectionFailed);
         $this->battleRepo = new BattleRepository($conn, $this->connectionFailed);
+        $this->travelRepo = new TravelRepository($conn, $this->connectionFailed);
         
         // Initialize schema if connected
         if (!$this->connectionFailed) {
@@ -384,6 +387,55 @@ class Database implements DatabaseInterface {
 
     public function getAttackableSettlements($attackerSettlementId) {
         return $this->battleRepo->getAttackableSettlements($attackerSettlementId);
+    }
+
+    // Travel methods
+    public function getTravelConfig($travelType) {
+        return $this->travelRepo->getTravelConfig($travelType);
+    }
+
+    public function updateTravelConfig($travelType, $baseSpeed) {
+        return $this->travelRepo->updateTravelConfig($travelType, $baseSpeed);
+    }
+
+    public function calculateDistance($fromSettlementId, $toSettlementId) {
+        return $this->travelRepo->calculateDistance($fromSettlementId, $toSettlementId);
+    }
+
+    public function startMilitaryTravel($attackerSettlementId, $defenderSettlementId, $units) {
+        return $this->travelRepo->startMilitaryTravel($attackerSettlementId, $defenderSettlementId, $units);
+    }
+
+    public function startTradeTravel($fromSettlementId, $toSettlementId, $resources, $tradeType, $offerId = null) {
+        return $this->travelRepo->startTradeTravel($fromSettlementId, $toSettlementId, $resources, $tradeType, $offerId);
+    }
+
+    public function getTravelingArmies($settlementId) {
+        return $this->travelRepo->getTravelingArmies($settlementId);
+    }
+
+    public function getTravelingTrades($settlementId) {
+        return $this->travelRepo->getTravelingTrades($settlementId);
+    }
+
+    public function processArrivals() {
+        return $this->travelRepo->processArrivals();
+    }
+
+    public function getAllTravelingArmies() {
+        return $this->travelRepo->getAllTravelingArmies();
+    }
+
+    public function getAllTravelingTrades() {
+        return $this->travelRepo->getAllTravelingTrades();
+    }
+
+    public function getMilitaryUnitConfig() {
+        return $this->travelRepo->getMilitaryUnitConfig();
+    }
+
+    public function updateMilitaryUnitConfig($unitType, $level, $field, $value) {
+        return $this->travelRepo->updateMilitaryUnitConfig($unitType, $level, $field, $value);
     }
 }
 
