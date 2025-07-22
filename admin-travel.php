@@ -98,7 +98,16 @@ $database = new Database();
             <div class="process-controls">
                 <button id="processArrivals" onclick="processArrivals()">Process All Arrivals Now</button>
                 <div id="processResult"></div>
-                <p><small>Note: Arrivals are normally processed automatically every 30 seconds. Use this button for manual processing during testing.</small></p>
+                <p><small>Note: Arrivals are automatically processed by the ProcessTravelArrivals event every 5 seconds. Use this button for manual processing during testing.</small></p>
+            </div>
+        </section>
+
+        <!-- Event System Status -->
+        <section class="admin-section">
+            <h3><?= EmojiConfig::getUIEmoji('time') ?> Event System Status</h3>
+            <div class="event-status">
+                <button onclick="checkEventStatus()">Check Event Status</button>
+                <div id="eventStatusResult"></div>
             </div>
         </section>
     </div>
@@ -322,6 +331,62 @@ $database = new Database();
             } catch (error) {
                 console.error('Error processing arrivals:', error);
                 resultDiv.innerHTML = 'Error processing arrivals';
+            } finally {
+                button.disabled = false;
+            }
+        }
+
+        async function checkEventStatus() {
+            const button = event.target;
+            const resultDiv = document.getElementById('eventStatusResult');
+            
+            button.disabled = true;
+            resultDiv.innerHTML = 'Checking event status...';
+            
+            try {
+                const response = await fetch('php/admin-backend.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'checkEventStatus'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    let statusHtml = '<div style="margin-top: 10px;">';
+                    
+                    // Event scheduler status
+                    statusHtml += '<h4>Event Scheduler</h4>';
+                    statusHtml += '<p>Status: ' + (data.scheduler_enabled ? '✅ Enabled' : '❌ Disabled') + '</p>';
+                    
+                    // Travel event status
+                    statusHtml += '<h4>ProcessTravelArrivals Event</h4>';
+                    if (data.travel_event) {
+                        statusHtml += '<p>Status: ' + (data.travel_event.status === 'ENABLED' ? '✅ Enabled' : '❌ Disabled') + '</p>';
+                        statusHtml += '<p>Schedule: ' + data.travel_event.schedule + '</p>';
+                        statusHtml += '<p>Last Executed: ' + (data.travel_event.last_executed || 'Never') + '</p>';
+                    } else {
+                        statusHtml += '<p>❌ Event not found</p>';
+                    }
+                    
+                    // Other events status
+                    statusHtml += '<h4>Other System Events</h4>';
+                    data.other_events.forEach(event => {
+                        statusHtml += '<p>' + event.name + ': ' + (event.status === 'ENABLED' ? '✅' : '❌') + ' ' + event.status + '</p>';
+                    });
+                    
+                    statusHtml += '</div>';
+                    resultDiv.innerHTML = statusHtml;
+                } else {
+                    resultDiv.innerHTML = 'Error: ' + data.message;
+                }
+            } catch (error) {
+                console.error('Error checking event status:', error);
+                resultDiv.innerHTML = 'Error checking event status';
             } finally {
                 button.disabled = false;
             }

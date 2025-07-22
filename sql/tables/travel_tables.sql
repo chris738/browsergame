@@ -105,6 +105,21 @@ CREATE TABLE IF NOT EXISTS TravelHistory (
     INDEX idx_completed (completedTime)
 );
 
+-- Table: BattleHistory - Track battle outcomes for travel arrivals
+CREATE TABLE IF NOT EXISTS BattleHistory (
+    battleId INT AUTO_INCREMENT PRIMARY KEY,
+    attackerSettlementId INT NOT NULL,
+    defenderSettlementId INT NOT NULL,
+    result ENUM('victory', 'defeat') NOT NULL,
+    battleTime DATETIME NOT NULL,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (attackerSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    FOREIGN KEY (defenderSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    INDEX idx_attacker (attackerSettlementId),
+    INDEX idx_defender (defenderSettlementId),
+    INDEX idx_battle_time (battleTime)
+);
+
 -- Insert default travel configuration
 INSERT IGNORE INTO TravelConfig (travelType, baseSpeed, description) VALUES
 ('trade', 5, 'Base travel speed for trades: 5 seconds per block distance'),

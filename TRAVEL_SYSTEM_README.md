@@ -26,8 +26,13 @@ This document describes the travel time system implementation for the browsergam
 ### PHP Components
 
 - **`TravelRepository`**: Handles all travel-related database operations
-- **`process-arrivals.php`**: Cron script for processing arrivals
+- **`ProcessTravelArrivals` Event**: MySQL event for automated processing of arrivals (every 5 seconds)
 - **`admin-travel.php`**: Admin interface for managing travel settings
+
+### Database Events
+
+- **`ProcessTravelArrivals`**: Automatically processes army and trade arrivals every 5 seconds
+- **Travel Procedures**: Stored procedures handle battle calculations and trade deliveries
 
 ### Frontend Updates
 
@@ -53,23 +58,14 @@ mysql -u browsergame -p browsergame < sql/tables/travel_tables.sql
 mysql -u browsergame -p browsergame < sql/data/military_travel_data.sql
 ```
 
-### 2. Cron Job Setup
+### 2. Event System
 
-Set up automatic processing of arrivals by adding a cron job:
+The travel system uses MySQL events for automated processing, similar to the building queue system. The `ProcessTravelArrivals` event runs every 5 seconds and automatically processes:
 
-```bash
-# Edit your crontab
-crontab -e
+- Army arrivals (executing battles and returning survivors)
+- Trade arrivals (delivering resources)
 
-# Add this line (replace /path/to/browsergame with actual path):
-*/1 * * * * cd /path/to/browsergame && php php/process-arrivals.php >> logs/travel-processor.log 2>&1
-```
-
-Alternatively, use the provided cron configuration:
-```bash
-# Copy the appropriate line from travel-cron.txt to your crontab
-cat travel-cron.txt
-```
+No additional setup is required - events are automatically enabled during database initialization.
 
 ### 3. Test the Installation
 
@@ -197,15 +193,13 @@ Minimum distance is 1 block (for same settlement trades/attacks).
 
 ## Performance Considerations
 
-### Cron Job Frequency
+### Event Processing
 
-- **Recommended**: Every 30 seconds (runs twice per minute)
-- **Alternative**: Every minute (simpler but less responsive)
-- **High Load**: Every 2 minutes (for servers with many travels)
+The system uses MySQL events to process arrivals every 5 seconds, providing optimal responsiveness while maintaining system efficiency.
 
 ### Database Optimization
 
-The system automatically cleans up completed travels to prevent database bloat. Consider adding these optimizations:
+The system automatically processes arrivals via database events. Consider adding these optimizations:
 
 1. **Index Optimization**: Ensure proper indexes on arrival times
 2. **Archive Old Data**: Move old travel history to archive tables
@@ -215,26 +209,33 @@ The system automatically cleans up completed travels to prevent database bloat. 
 
 ### Common Issues
 
-1. **Cron Job Not Running**
-   - Check cron service: `systemctl status cron`
-   - Verify crontab: `crontab -l`
-   - Check logs: `tail -f logs/travel-processor.log`
+1. **Events Not Running**
+   - Check event scheduler: `SHOW VARIABLES LIKE 'event_scheduler'`
+   - Enable if needed: `SET GLOBAL event_scheduler = ON`
+   - Check event status in admin panel
 
 2. **Arrivals Not Processing**
-   - Run manual processing: `php php/process-arrivals.php`
+   - Run manual processing via admin panel or: `CALL ProcessAllArrivals()`
    - Check database connectivity
    - Verify arrival times in database
+   - Check if ProcessTravelArrivals event is enabled
 
 3. **Frontend Not Updating**
    - Check browser console for JavaScript errors
    - Verify API endpoints are accessible
    - Clear browser cache
 
+### Event System Debugging
+
+- **Check Event Status**: Use the admin panel's "Check Event Status" button
+- **Manual Processing**: Use "Process All Arrivals Now" button for testing
+- **Database Events**: Query `information_schema.EVENTS` for event status
+
 ### Logs
 
-- **Travel Processor**: `logs/travel-processor.log`
 - **PHP Errors**: Check server error logs
 - **Database Errors**: Check MySQL error logs
+- **Event Execution**: Check MySQL general log for event execution
 
 ## Security Considerations
 

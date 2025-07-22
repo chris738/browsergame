@@ -1,8 +1,15 @@
 <?php
 /**
- * Travel Processor - Handles arrival of traveling armies and trades
- * This script should be run periodically (every 30 seconds recommended) via cron
- * Usage: php process-arrivals.php
+ * DEPRECATED: Travel Processor (Legacy Cron-based System)
+ * 
+ * This script is no longer needed as travel processing has been moved to MySQL events.
+ * The travel system now uses the ProcessTravelArrivals event that runs every 5 seconds,
+ * similar to other game systems like building queue processing.
+ * 
+ * For debugging purposes, this script can still be run manually to process arrivals,
+ * but it should not be used in production via cron jobs.
+ * 
+ * Usage: php process-arrivals.php (for manual testing only)
  */
 
 require_once __DIR__ . '/database.php';
