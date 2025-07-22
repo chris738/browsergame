@@ -25,7 +25,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
             <a href="admin-market.php" class="nav-link <?= ($current_page == 'admin-market') ? 'active' : '' ?>">
                 Trade
             </a>
-            <a href="admin-travel.php" class="nav-link <?= ($current_page == 'admin-travel') ? 'active' : '' ?>">
+            <a href="../admin-travel.php" class="nav-link <?= ($current_page == 'admin-travel') ? 'active' : '' ?>">
                 Travel
             </a>
             <a href="admin-map.php" class="nav-link <?= ($current_page == 'admin-map') ? 'active' : '' ?>">
@@ -51,7 +51,7 @@ $current_page = basename($_SERVER['PHP_SELF'], '.php');
         <a href="admin-market.php" class="nav-link <?= ($current_page == 'admin-market') ? 'active' : '' ?>">
             Trade
         </a>
-        <a href="admin-travel.php" class="nav-link <?= ($current_page == 'admin-travel') ? 'active' : '' ?>">
+        <a href="../admin-travel.php" class="nav-link <?= ($current_page == 'admin-travel') ? 'active' : '' ?>">
             Travel
         </a>
         <a href="admin-map.php" class="nav-link <?= ($current_page == 'admin-map') ? 'active' : '' ?>">

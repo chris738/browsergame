@@ -7,8 +7,8 @@ if (!isset($_SESSION['admin_logged_in']) || !$_SESSION['admin_logged_in']) {
     exit;
 }
 
-require_once '../php/database.php';
-require_once '../php/emoji-config.php';
+require_once 'php/database.php';
+require_once 'php/emoji-config.php';
 
 $database = new Database();
 ?>
@@ -19,13 +19,13 @@ $database = new Database();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Travel & Military Config - Admin Panel</title>
-    <link rel="stylesheet" href="../css/style.css">
-    <link rel="stylesheet" href="../css/admin.css">
-    <script src="../js/theme-switcher.js"></script>
-    <script src="../js/emoji-config.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/theme-switcher.js"></script>
+    <script src="js/emoji-config.js"></script>
 </head>
 <body>
-    <?php include '../php/admin-navigation.php'; ?>
+    <?php include 'php/admin-navigation.php'; ?>
     
     <div class="admin-content">
         <h2><?= EmojiConfig::getUIEmoji('clock') ?> Travel & Military Configuration</h2>
@@ -116,7 +116,7 @@ $database = new Database();
 
         async function loadTravelConfig() {
             try {
-                const response = await fetch('../php/admin-backend.php?action=getTravelConfig');
+                const response = await fetch('php/admin-backend.php?action=getTravelConfig');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -132,7 +132,7 @@ $database = new Database();
             const speed = document.getElementById(type + 'Speed').value;
             
             try {
-                const response = await fetch('../php/admin-backend.php', {
+                const response = await fetch('php/admin-backend.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -159,7 +159,7 @@ $database = new Database();
 
         async function loadUnitConfig() {
             try {
-                const response = await fetch('../php/admin-backend.php?action=getMilitaryUnitConfig');
+                const response = await fetch('php/admin-backend.php?action=getMilitaryUnitConfig');
                 const data = await response.json();
                 
                 if (data.success && data.units) {
@@ -198,7 +198,7 @@ $database = new Database();
             
             try {
                 for (const update of updates) {
-                    const response = await fetch('../php/admin-backend.php', {
+                    const response = await fetch('php/admin-backend.php', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -228,7 +228,7 @@ $database = new Database();
         async function loadTravelingStatus() {
             try {
                 // Load traveling armies
-                const armiesResponse = await fetch('../php/admin-backend.php?action=getAllTravelingArmies');
+                const armiesResponse = await fetch('php/admin-backend.php?action=getAllTravelingArmies');
                 const armiesData = await armiesResponse.json();
                 
                 if (armiesData.success) {
@@ -236,7 +236,7 @@ $database = new Database();
                 }
                 
                 // Load traveling trades
-                const tradesResponse = await fetch('../php/admin-backend.php?action=getAllTravelingTrades');
+                const tradesResponse = await fetch('php/admin-backend.php?action=getAllTravelingTrades');
                 const tradesData = await tradesResponse.json();
                 
                 if (tradesData.success) {
@@ -301,7 +301,7 @@ $database = new Database();
             resultDiv.innerHTML = 'Processing...';
             
             try {
-                const response = await fetch('../php/admin-backend.php', {
+                const response = await fetch('php/admin-backend.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
