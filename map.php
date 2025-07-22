@@ -229,14 +229,16 @@ if (empty($mapData)) {
             // For X coordinates (horizontal)
             const leftmostPixel = scrollLeft;
             const rightmostPixel = scrollLeft + mapContainer.clientWidth;
-            const leftmostCoord = Math.floor((leftmostPixel / cellSize) - coordinateOffset);
-            const rightmostCoord = Math.ceil((rightmostPixel / cellSize) - coordinateOffset);
+            // Account for the extra 20px offset in settlement positioning
+            const leftmostCoord = Math.floor(((leftmostPixel - 20) / cellSize) - coordinateOffset);
+            const rightmostCoord = Math.ceil(((rightmostPixel - 20) / cellSize) - coordinateOffset);
             
             // For Y coordinates (vertical) - Y axis is inverted
             const topmostPixel = scrollTop;
             const bottommostPixel = scrollTop + mapContainer.clientHeight;
-            const topmostCoord = coordinateOffset - Math.floor(topmostPixel / cellSize);
-            const bottommostCoord = coordinateOffset - Math.ceil(bottommostPixel / cellSize);
+            // Account for the extra 20px offset in settlement positioning
+            const topmostCoord = coordinateOffset - Math.floor((topmostPixel - 20) / cellSize);
+            const bottommostCoord = coordinateOffset - Math.ceil((bottommostPixel - 20) / cellSize);
             
             // Generate X-axis labels
             const xStep = Math.max(1, Math.ceil((rightmostCoord - leftmostCoord) / 15)); // Show ~15 labels max
@@ -245,7 +247,8 @@ if (empty($mapData)) {
                 label.className = 'coordinate-label x-label';
                 label.textContent = x;
                 // Calculate pixel position for this coordinate relative to scroll position
-                const pixelX = (x + coordinateOffset) * cellSize + (cellSize / 2) - scrollLeft; // Center in cell, relative to scroll
+                // Match the settlement positioning formula: (x + 20) * 40 + 20
+                const pixelX = (x + coordinateOffset) * cellSize + (cellSize / 2) + 20 - scrollLeft; // Center in cell, relative to scroll
                 // Only show labels that are within the container bounds
                 if (pixelX >= 0 && pixelX <= mapContainer.clientWidth) {
                     label.style.left = pixelX + 'px';
@@ -260,7 +263,8 @@ if (empty($mapData)) {
                 label.className = 'coordinate-label y-label';
                 label.textContent = y;
                 // Calculate pixel position for this coordinate relative to scroll position
-                const pixelY = (coordinateOffset - y) * cellSize + (cellSize / 2) - scrollTop; // Center in cell, relative to scroll
+                // Match the settlement positioning formula: (20 - y) * 40 + 20
+                const pixelY = (coordinateOffset - y) * cellSize + (cellSize / 2) + 20 - scrollTop; // Center in cell, relative to scroll
                 // Only show labels that are within the container bounds
                 if (pixelY >= 0 && pixelY <= mapContainer.clientHeight) {
                     label.style.top = pixelY + 'px';
