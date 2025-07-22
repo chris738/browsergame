@@ -244,10 +244,13 @@ if (empty($mapData)) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label x-label';
                 label.textContent = x;
-                // Calculate pixel position for this coordinate
-                const pixelX = (x + coordinateOffset) * cellSize + (cellSize / 2); // Center in cell
-                label.style.left = pixelX + 'px';
-                xCoordinatesContainer.appendChild(label);
+                // Calculate pixel position for this coordinate relative to scroll position
+                const pixelX = (x + coordinateOffset) * cellSize + (cellSize / 2) - scrollLeft; // Center in cell, relative to scroll
+                // Only show labels that are within the container bounds
+                if (pixelX >= 0 && pixelX <= mapContainer.clientWidth) {
+                    label.style.left = pixelX + 'px';
+                    xCoordinatesContainer.appendChild(label);
+                }
             }
             
             // Generate Y-axis labels
@@ -256,10 +259,13 @@ if (empty($mapData)) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label y-label';
                 label.textContent = y;
-                // Calculate pixel position for this coordinate
-                const pixelY = (coordinateOffset - y) * cellSize + (cellSize / 2); // Center in cell
-                label.style.top = pixelY + 'px';
-                yCoordinatesContainer.appendChild(label);
+                // Calculate pixel position for this coordinate relative to scroll position
+                const pixelY = (coordinateOffset - y) * cellSize + (cellSize / 2) - scrollTop; // Center in cell, relative to scroll
+                // Only show labels that are within the container bounds
+                if (pixelY >= 0 && pixelY <= mapContainer.clientHeight) {
+                    label.style.top = pixelY + 'px';
+                    yCoordinatesContainer.appendChild(label);
+                }
             }
         }
         
