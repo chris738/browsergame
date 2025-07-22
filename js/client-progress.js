@@ -27,8 +27,8 @@ class ClientProgressManager {
         
         // Configuration
         this.config = {
-            serverSyncInterval: 60000, // Sync with server every 60 seconds
-            progressUpdateInterval: 100, // Update progress every 100ms for smooth animation
+            serverSyncInterval: 120000, // Sync with server every 2 minutes (reduced from 1 minute)
+            progressUpdateInterval: 500, // Update progress every 500ms for better performance
             resourceUpdateInterval: 1000 // Update resources every second
         };
         
@@ -75,16 +75,15 @@ class ClientProgressManager {
      */
     startProgressLoop() {
         if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
+            clearInterval(this.animationFrameId);
         }
         
-        const loop = () => {
+        // Use interval instead of requestAnimationFrame for better performance
+        // and to avoid conflicts with CSS transitions
+        this.animationFrameId = setInterval(() => {
             this.updateProgress();
             this.updateResources();
-            this.animationFrameId = requestAnimationFrame(loop);
-        };
-        
-        loop();
+        }, this.config.progressUpdateInterval);
     }
     
     /**
@@ -92,7 +91,7 @@ class ClientProgressManager {
      */
     stop() {
         if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
+            clearInterval(this.animationFrameId);
             this.animationFrameId = null;
         }
     }
@@ -139,15 +138,27 @@ class ClientProgressManager {
             if (buildingCell && buildingCell.textContent.includes(this.translateBuildingName(item.buildingType))) {
                 const progressBar = row.querySelector('.progress-bar');
                 if (progressBar) {
-                    progressBar.style.width = `${completionPercentage}%`;
-                    progressBar.style.transition = 'width 0.1s ease-out';
+                    // Use smoother CSS transitions instead of frequent updates
+                    const currentWidth = parseFloat(progressBar.style.width) || 0;
+                    const widthDiff = Math.abs(completionPercentage - currentWidth);
+                    
+                    // Only update if there's a significant change (reduces DOM updates)
+                    if (widthDiff >= 0.5 || completionPercentage >= 100) {
+                        progressBar.style.width = `${completionPercentage}%`;
+                        progressBar.style.transition = 'width 0.5s ease-out';
+                    }
                 }
                 
-                // Update end time display
+                // Update end time display less frequently
                 const endTimeCell = row.querySelector('td:last-child');
                 if (endTimeCell) {
                     const remainingTime = Math.max(0, item.endTime - Date.now());
-                    endTimeCell.textContent = this.formatRemainingTime(remainingTime);
+                    const newTimeText = this.formatRemainingTime(remainingTime);
+                    
+                    // Only update if the text actually changed
+                    if (endTimeCell.textContent !== newTimeText) {
+                        endTimeCell.textContent = newTimeText;
+                    }
                 }
             }
         });
