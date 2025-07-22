@@ -1,0 +1,46 @@
+/* CSS Custom Properties and Theme Variables */
+:root {
+    /* Light theme colors */
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --nav-bg: #2c3e50;
+    --nav-border: #34495e;
+    --nav-text: #ecf0f1;
+    --nav-hover: #34495e;
+    --nav-active: #3498db;
+    --card-bg: #ffffff;
+    --card-border: #ddd;
+    --resource-bg: #f9f9f9;
+    --table-header-bg: #35424a;
+    --table-stripe: #f9f9f9;
+    --table-hover: #f1f1f1;
+    --button-bg: #35424a;
+    --button-hover: #1d2529;
+    --cost-box-bg: #f9f9f9;
+    --cost-box-border: #ccc;
+    --progress-bg: #e0e0e0;
+    --progress-bar: #4457ff69;
+}
+
+[data-theme="dark"] {
+    /* Dark theme colors */
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --nav-bg: #0f1419;
+    --nav-border: #2d2d2d;
+    --nav-text: #e0e0e0;
+    --nav-hover: #2d2d2d;
+    --nav-active: #4a9eff;
+    --card-bg: #2d2d2d;
+    --card-border: #404040;
+    --resource-bg: #3d3d3d;
+    --table-header-bg: #1f2937;
+    --table-stripe: #3d3d3d;
+    --table-hover: #404040;
+    --button-bg: #1f2937;
+    --button-hover: #374151;
+    --cost-box-bg: #3d3d3d;
+    --cost-box-border: #555;
+    --progress-bg: #4a5568;
+    --progress-bar: #63b3ed;
+}

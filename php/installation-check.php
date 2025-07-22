@@ -118,10 +118,10 @@ header('Content-Type: text/html; charset=utf-8');
         echo "<div class='check error'>❌ Frontend JavaScript: backend.js fehlt</div>";
     }
 
-    if (file_exists('../css/style.css')) {
-        echo "<div class='check success'>✅ Stylesheet: style.css vorhanden</div>";
+    if (file_exists('../css/main.css')) {
+        echo "<div class='check success'>✅ Stylesheet: main.css vorhanden</div>";
     } else {
-        echo "<div class='check error'>❌ Stylesheet: style.css fehlt</div>";
+        echo "<div class='check error'>❌ Stylesheet: main.css fehlt</div>";
     }
     ?>
 

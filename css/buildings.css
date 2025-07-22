@@ -1,0 +1,159 @@
+/* Building-related Styles */
+
+/* Old resources section removed - now integrated into navbar */
+
+.resource-emoji {
+    font-size: 16px;
+    margin-right: 4px;
+    cursor: help;
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.resource-emoji:hover {
+    transform: scale(1.2);
+}
+
+.building-emoji {
+    font-size: 18px;
+    margin-right: 8px;
+    cursor: help;
+    display: inline-block;
+    transition: transform 0.2s ease;
+}
+
+.building-emoji:hover {
+    transform: scale(1.2);
+}
+
+.buildings, .buildingsQueue {
+    padding: 20px;
+}
+
+.buildings table, .buildingsQueue table{
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--card-bg);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+}
+
+.buildings th, .buildings td {
+    border: 1px solid var(--card-border);
+    padding: 15px;
+    text-align: left;
+    vertical-align: middle;
+    line-height: 1.2;  /* Verringert die Zeilenhöhe */
+    transition: border-color 0.3s ease;
+}
+
+.buildings th {
+    background-color: var(--table-header-bg);
+    color: var(--nav-text);
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.buildings td {
+    font-size: 16px;
+    color: var(--text-color);
+}
+
+.buildings td:nth-child(1) {
+    width: 10%;
+}
+.buildings td:nth-child(2) {
+    width: 5%;
+}
+
+.buildings td:nth-child(3) {
+    width: 71%;
+}
+
+.buildings td:nth-child(4) {
+    width: 20%;
+}
+
+.buildings td:last-child {
+    text-align: right;
+    padding-right: 20px;
+}
+
+.buildings tr:nth-child(even) {
+    background-color: var(--table-stripe);
+}
+
+.buildings tr:hover {
+    background-color: var(--table-hover);
+}
+
+.cost-box {
+    display: inline-block;
+    background-color: var(--cost-box-bg); /* Hintergrundfarbe */
+    padding: 5px 10px; /* Innenabstand */
+    border: 1px solid var(--cost-box-border); /* Rahmen */
+    border-radius: 8px; /* Abgerundete Ecken */
+    font-size: 14px; /* Schriftgröße */
+    color: var(--text-color); /* Schriftfarbe */
+    text-align: center; /* Zentrierter Text */
+    margin-right: 5px; /* Abstand zwischen den Kästen */
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+button {
+    background-color: var(--button-bg);
+    color: var(--nav-text);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: var(--button-hover);
+}
+
+button:disabled,
+button.insufficient-resources {
+    background-color: #999 !important;
+    color: #666 !important;
+    cursor: not-allowed !important;
+    opacity: 0.6 !important;
+}
+
+button:disabled:hover,
+button.insufficient-resources:hover {
+    background-color: #999 !important;
+    transform: none !important;
+}
+
+button {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0;
+}
+
+.cost-box.insufficient {
+    color: red;
+}
+
+.progress-container {
+    width: 100%;
+    background-color: var(--progress-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    height: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: var(--progress-bar);
+    width: 0%;
+    border-radius: 10px;
+    transition: width 1s linear, background-color 0.3s ease;
+}

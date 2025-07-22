@@ -1,0 +1,17 @@
+/* Main CSS file - imports all component stylesheets */
+
+/* CSS Custom Properties and Theme Variables */
+@import url('variables.css');
+
+/* Base Layout and Navigation */
+@import url('navigation.css');
+
+/* Component-specific Styles */
+@import url('buildings.css');
+@import url('map.css');
+@import url('market.css');
+@import url('settlement.css');
+@import url('military.css');
+
+/* Common Components and UI Elements */
+@import url('components.css');
