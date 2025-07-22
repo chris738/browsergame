@@ -1,0 +1,19 @@
+# Cron job for processing travel arrivals in the browsergame
+# Add this to your crontab to automatically process arriving armies and trades
+
+# Process arrivals every 30 seconds (runs twice per minute)
+# Replace /path/to/browsergame with the actual path to your game directory
+*/1 * * * * cd /path/to/browsergame && php php/process-arrivals.php >> logs/travel-processor.log 2>&1
+*/1 * * * * sleep 30; cd /path/to/browsergame && php php/process-arrivals.php >> logs/travel-processor.log 2>&1
+
+# Alternative: Process arrivals every minute (less frequent but simpler)
+# */1 * * * * cd /path/to/browsergame && php php/process-arrivals.php >> logs/travel-processor.log 2>&1
+
+# To install this cron job:
+# 1. Replace /path/to/browsergame with your actual game directory path
+# 2. Run: crontab -e
+# 3. Add the appropriate line(s) above
+# 4. Save and exit
+
+# To view current cron jobs: crontab -l
+# To remove all cron jobs: crontab -r

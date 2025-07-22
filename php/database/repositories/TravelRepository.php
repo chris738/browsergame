@@ -361,15 +361,217 @@ class TravelRepository {
     }
 
     private function executeBattleOnArrival($attackerSettlementId, $defenderSettlementId, $units) {
-        // This would integrate with the existing battle system
-        // For now, we'll create a placeholder that calls the existing attackSettlement method
+        // This integrates with the existing battle system
         try {
-            // Note: This requires integration with the existing Database class battle method
-            // We'll need to modify this once we integrate with the main Database class
+            // We need to add the traveling units back to the attacker settlement temporarily for the battle calculation
+            foreach ($units as $unitType => $count) {
+                if ($count > 0) {
+                    $sql = "INSERT INTO MilitaryUnits (settlementId, unitType, count) 
+                            VALUES (?, ?, ?) 
+                            ON DUPLICATE KEY UPDATE count = count + ?";
+                    $stmt = $this->conn->prepare($sql);
+                    $stmt->execute([$attackerSettlementId, $unitType, $count, $count]);
+                }
+            }
+            
+            // Now execute the battle using the same logic as immediate attacks
+            // We'll simulate the battle calculation here since we can't directly call the Database class method
+            
+            // Get military power for both sides
+            $attackerPowerResult = $this->getSettlementMilitaryPowerForBattle($attackerSettlementId);
+            $defenderPowerResult = $this->getSettlementMilitaryPowerForBattle($defenderSettlementId);
+            
+            // Calculate battle outcome
+            $battleResult = $this->calculateBattleOutcome($attackerPowerResult, $defenderPowerResult);
+            
+            // Apply unit losses
+            $this->applyBattleLosses($attackerSettlementId, $defenderSettlementId, $battleResult, $units);
+            
+            // Apply resource plunder if attacker wins
+            if ($battleResult['winner'] === 'attacker') {
+                $this->applyResourcePlunder($attackerSettlementId, $defenderSettlementId, $units);
+            }
+            
+            // Record battle in history
+            $this->recordBattle($attackerSettlementId, $defenderSettlementId, $units, $battleResult);
+            
             return true;
         } catch (Exception $e) {
             error_log("Error executing battle on arrival: " . $e->getMessage());
             return false;
+        }
+    }
+    
+    private function getSettlementMilitaryPowerForBattle($settlementId) {
+        try {
+            $sql = "SELECT 
+                        SUM(mu.count * muc.attackPower) as totalAttack,
+                        SUM(mu.count * muc.defensePower) as totalDefense,
+                        SUM(mu.count * muc.rangedPower) as totalRanged,
+                        SUM(mu.count) as totalUnits
+                    FROM MilitaryUnits mu
+                    INNER JOIN MilitaryUnitConfig muc ON mu.unitType = muc.unitType
+                    WHERE mu.settlementId = ? AND muc.level = 1";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$settlementId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            $unitsSql = "SELECT unitType, count FROM MilitaryUnits WHERE settlementId = ?";
+            $unitsStmt = $this->conn->prepare($unitsSql);
+            $unitsStmt->execute([$settlementId]);
+            $unitsData = $unitsStmt->fetchAll(PDO::FETCH_KEY_PAIR);
+            
+            return [
+                'totalAttack' => (int)($result['totalAttack'] ?? 0),
+                'totalDefense' => (int)($result['totalDefense'] ?? 0),
+                'totalRanged' => (int)($result['totalRanged'] ?? 0),
+                'totalUnits' => (int)($result['totalUnits'] ?? 0),
+                'units' => $unitsData ?: []
+            ];
+        } catch (Exception $e) {
+            error_log("Error getting military power for battle: " . $e->getMessage());
+            return ['totalAttack' => 0, 'totalDefense' => 0, 'totalRanged' => 0, 'totalUnits' => 0, 'units' => []];
+        }
+    }
+    
+    private function calculateBattleOutcome($attackerPower, $defenderPower) {
+        $attackerTotal = $attackerPower['totalAttack'] + $attackerPower['totalRanged'];
+        $defenderTotal = $defenderPower['totalDefense'] + ($defenderPower['totalAttack'] * 0.5); // Defenders get some attack bonus
+        
+        // Add randomness
+        $attackerRoll = $attackerTotal * (0.8 + (mt_rand(0, 40) / 100));
+        $defenderRoll = $defenderTotal * (0.8 + (mt_rand(0, 40) / 100));
+        
+        $winner = $attackerRoll > $defenderRoll ? 'attacker' : 'defender';
+        
+        // Calculate loss rates based on power difference
+        $powerRatio = $attackerTotal > 0 ? $defenderTotal / $attackerTotal : 1;
+        $attackerLossRate = min(0.8, 0.2 + ($powerRatio * 0.3));
+        $defenderLossRate = min(0.8, 0.2 + ((1 / max($powerRatio, 0.1)) * 0.3));
+        
+        return [
+            'winner' => $winner,
+            'attackerLossRate' => $attackerLossRate,
+            'defenderLossRate' => $defenderLossRate,
+            'attackerRoll' => $attackerRoll,
+            'defenderRoll' => $defenderRoll
+        ];
+    }
+    
+    private function applyBattleLosses($attackerSettlementId, $defenderSettlementId, $battleResult, $attackingUnits) {
+        try {
+            // Apply losses to attacking units
+            foreach ($attackingUnits as $unitType => $count) {
+                if ($count > 0) {
+                    $losses = (int)($count * $battleResult['attackerLossRate']);
+                    $survivors = $count - $losses;
+                    
+                    if ($survivors > 0) {
+                        // Add survivors back to attacker
+                        $sql = "INSERT INTO MilitaryUnits (settlementId, unitType, count) 
+                                VALUES (?, ?, ?) 
+                                ON DUPLICATE KEY UPDATE count = count + ?";
+                        $stmt = $this->conn->prepare($sql);
+                        $stmt->execute([$attackerSettlementId, $unitType, $survivors, $survivors]);
+                    }
+                }
+            }
+            
+            // Apply losses to defending units
+            $defenderUnits = $this->getMilitaryUnits($defenderSettlementId);
+            foreach ($defenderUnits as $unitType => $count) {
+                if ($count > 0) {
+                    $losses = (int)($count * $battleResult['defenderLossRate']);
+                    $sql = "UPDATE MilitaryUnits SET count = GREATEST(0, count - ?) 
+                            WHERE settlementId = ? AND unitType = ?";
+                    $stmt = $this->conn->prepare($sql);
+                    $stmt->execute([$losses, $defenderSettlementId, $unitType]);
+                }
+            }
+        } catch (Exception $e) {
+            error_log("Error applying battle losses: " . $e->getMessage());
+        }
+    }
+    
+    private function getMilitaryUnits($settlementId) {
+        try {
+            $sql = "SELECT unitType, count FROM MilitaryUnits WHERE settlementId = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$settlementId]);
+            return $stmt->fetchAll(PDO::FETCH_KEY_PAIR);
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+    
+    private function applyResourcePlunder($attackerSettlementId, $defenderSettlementId, $attackingUnits) {
+        try {
+            // Calculate total loot capacity based on attacking units
+            $totalLootCapacity = 0;
+            foreach ($attackingUnits as $unitType => $count) {
+                if ($count > 0) {
+                    $sql = "SELECT lootAmount FROM MilitaryUnitConfig WHERE unitType = ? AND level = 1";
+                    $stmt = $this->conn->prepare($sql);
+                    $stmt->execute([$unitType]);
+                    $lootAmount = $stmt->fetchColumn();
+                    $totalLootCapacity += $count * ($lootAmount ?: 10);
+                }
+            }
+            
+            // Get defender's resources
+            $sql = "SELECT wood, stone, ore FROM Settlement WHERE settlementId = ?";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([$defenderSettlementId]);
+            $defenderResources = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($defenderResources) {
+                // Calculate what can be plundered (limited by loot capacity and available resources)
+                $maxPlunderPercent = 0.3; // Max 30% of resources
+                $woodPlunder = min($totalLootCapacity * 0.4, $defenderResources['wood'] * $maxPlunderPercent);
+                $stonePlunder = min($totalLootCapacity * 0.3, $defenderResources['stone'] * $maxPlunderPercent);
+                $orePlunder = min($totalLootCapacity * 0.3, $defenderResources['ore'] * $maxPlunderPercent);
+                
+                // Remove resources from defender
+                $sql = "UPDATE Settlement SET 
+                        wood = GREATEST(0, wood - ?),
+                        stone = GREATEST(0, stone - ?),
+                        ore = GREATEST(0, ore - ?)
+                        WHERE settlementId = ?";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->execute([$woodPlunder, $stonePlunder, $orePlunder, $defenderSettlementId]);
+                
+                // Add resources to attacker
+                $sql = "UPDATE Settlement SET 
+                        wood = wood + ?,
+                        stone = stone + ?,
+                        ore = ore + ?
+                        WHERE settlementId = ?";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->execute([$woodPlunder, $stonePlunder, $orePlunder, $attackerSettlementId]);
+            }
+        } catch (Exception $e) {
+            error_log("Error applying resource plunder: " . $e->getMessage());
+        }
+    }
+    
+    private function recordBattle($attackerSettlementId, $defenderSettlementId, $attackingUnits, $battleResult) {
+        try {
+            // Record battle in Battles table if it exists
+            $sql = "INSERT INTO Battles (attackerSettlementId, defenderSettlementId, attackerUnitsTotal, 
+                    defenderUnitsTotal, winner, battleResult) 
+                    VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute([
+                $attackerSettlementId,
+                $defenderSettlementId,
+                json_encode($attackingUnits),
+                json_encode([]), // We don't have the original defender units
+                $battleResult['winner'],
+                json_encode($battleResult)
+            ]);
+        } catch (Exception $e) {
+            // Battle table might not exist, that's okay
+            error_log("Could not record battle (table might not exist): " . $e->getMessage());
         }
     }
 

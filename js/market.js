@@ -144,6 +144,7 @@ function loadMarketData() {
     refreshOffers();
     loadMyOffers();
     loadTradeHistory();
+    loadTravelingTrades();
 }
 
 // Create a new trade offer
@@ -309,6 +310,67 @@ function loadTradeHistory() {
             console.error('Error loading trade history:', error);
             document.getElementById('tradeHistory').innerHTML = '<p>Error loading trade history.</p>';
         });
+}
+
+function loadTravelingTrades() {
+    fetch(`php/market-backend.php?settlementId=${settlementId}&getTravelingTrades=true`)
+        .then(response => response.json())
+        .then(data => {
+            const travelingList = document.getElementById('travelingTradesList');
+            
+            if (data.trades && data.trades.length > 0) {
+                travelingList.innerHTML = data.trades.map(trade => createTravelingTradeHTML(trade)).join('');
+            } else {
+                travelingList.innerHTML = '<p>No trades currently traveling.</p>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading traveling trades:', error);
+            document.getElementById('travelingTradesList').innerHTML = '<p>Error loading traveling trades.</p>';
+        });
+}
+
+function createTravelingTradeHTML(trade) {
+    const isOutgoing = trade.fromSettlementId == settlementId;
+    const direction = isOutgoing ? 'Outgoing' : 'Incoming';
+    const otherParty = isOutgoing ? trade.toName : trade.fromName;
+    const timeRemaining = trade.timeRemaining > 0 ? formatTradeTime(trade.timeRemaining) : 'Arrived';
+    
+    const resources = [];
+    if (trade.woodAmount > 0) resources.push(`${trade.woodAmount} Wood`);
+    if (trade.stoneAmount > 0) resources.push(`${trade.stoneAmount} Stone`);
+    if (trade.oreAmount > 0) resources.push(`${trade.oreAmount} Ore`);
+    if (trade.goldAmount > 0) resources.push(`${trade.goldAmount} Gold`);
+    
+    return `
+        <div class="traveling-trade-item ${isOutgoing ? 'outgoing' : 'incoming'}">
+            <div class="trade-header">
+                <span class="trade-direction">${direction}</span>
+                <span class="trade-time">${timeRemaining}</span>
+            </div>
+            <div class="trade-details">
+                <strong>${direction === 'Outgoing' ? 'To' : 'From'}:</strong> ${otherParty || 'Unknown'}<br>
+                <strong>Resources:</strong> ${resources.join(', ')}<br>
+                <strong>Distance:</strong> ${trade.distance} blocks
+            </div>
+        </div>
+    `;
+}
+
+function formatTradeTime(seconds) {
+    if (seconds <= 0) return 'Arrived';
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m ${secs}s`;
+    } else if (minutes > 0) {
+        return `${minutes}m ${secs}s`;
+    } else {
+        return `${secs}s`;
+    }
 }
 
 // Create HTML for a trade offer
@@ -608,6 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (marketLevel > 0) {
             refreshOffers();
             loadMyOffers();
+            loadTravelingTrades();
         }
     }, 30000);
 });

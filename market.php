@@ -109,6 +109,17 @@
             </div>
         </section>
 
+        <!-- Traveling Trades -->
+        <section class="market-section">
+            <h3><?= EmojiConfig::getUIEmoji('truck') ?> Trades in Transit</h3>
+            <div id="travelingTradesList" class="offers-table">
+                <div class="loading-state">
+                    <span class="loading-icon">⏳</span>
+                    <p>Loading traveling trades...</p>
+                </div>
+            </div>
+        </section>
+
         <!-- Trade History -->
         <section class="market-section">
             <h3><?= EmojiConfig::getUIEmoji('history') ?> Recent Trade History</h3>
