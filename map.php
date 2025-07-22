@@ -204,10 +204,9 @@ if (empty($mapData)) {
         
         // Initialize map positioning
         function initializeMap() {
-            generateCoordinateLabels();
             positionSettlements();
             centerMap();
-            // Update coordinates when map is panned
+            // Generate initial coordinates for visible area
             updateCoordinateLabelsPosition();
         }
         
@@ -218,81 +217,47 @@ if (empty($mapData)) {
             const scrollLeft = mapContainer.scrollLeft;
             const scrollTop = mapContainer.scrollTop;
             
-            // Update X-axis labels to stay aligned with visible area
-            const xLabels = xCoordinatesContainer.querySelectorAll('.x-label');
-            xLabels.forEach(label => {
-                const originalLeft = parseInt(label.style.left);
-                // Keep labels visible by adjusting for scroll offset
-                if (originalLeft - scrollLeft >= 0 && originalLeft - scrollLeft <= mapContainer.clientWidth) {
-                    label.style.opacity = '1';
-                } else {
-                    label.style.opacity = '0.3';
-                }
-            });
-            
-            // Update Y-axis labels to stay aligned with visible area
-            const yLabels = yCoordinatesContainer.querySelectorAll('.y-label');
-            yLabels.forEach(label => {
-                const originalTop = parseInt(label.style.top);
-                // Keep labels visible by adjusting for scroll offset
-                if (originalTop - scrollTop >= 0 && originalTop - scrollTop <= mapContainer.clientHeight) {
-                    label.style.opacity = '1';
-                } else {
-                    label.style.opacity = '0.3';
-                }
-            });
-        }
-        
-        // Generate coordinate labels for X and Y axes based on settlement positions
-        function generateCoordinateLabels() {
-            const xCoordinatesContainer = document.getElementById('mapXCoordinates');
-            const yCoordinatesContainer = document.getElementById('mapYCoordinates');
-            
             // Clear existing labels
             xCoordinatesContainer.innerHTML = '';
             yCoordinatesContainer.innerHTML = '';
             
-            // Get all settlements to determine coordinate range
-            const settlements = document.querySelectorAll('.settlement-icon');
-            let minX = 0, maxX = 0, minY = 0, maxY = 0;
+            // Map grid constants
+            const cellSize = 40; // Each grid cell is 40px
+            const coordinateOffset = 20; // Coordinate system is offset by 20 in both directions
             
-            // Find the range of settlement coordinates
-            settlements.forEach(settlement => {
-                const x = parseInt(settlement.dataset.x) || 0;
-                const y = parseInt(settlement.dataset.y) || 0;
-                minX = Math.min(minX, x);
-                maxX = Math.max(maxX, x);
-                minY = Math.min(minY, y);
-                maxY = Math.max(maxY, y);
-            });
+            // Calculate which coordinates are currently visible
+            // For X coordinates (horizontal)
+            const leftmostPixel = scrollLeft;
+            const rightmostPixel = scrollLeft + mapContainer.clientWidth;
+            const leftmostCoord = Math.floor((leftmostPixel / cellSize) - coordinateOffset);
+            const rightmostCoord = Math.ceil((rightmostPixel / cellSize) - coordinateOffset);
             
-            // Expand range to show some extra space around settlements
-            const padding = 10;
-            minX = Math.max(-20, minX - padding);
-            maxX = Math.min(20, maxX + padding);
-            minY = Math.max(-20, minY - padding);
-            maxY = Math.min(20, maxY + padding);
+            // For Y coordinates (vertical) - Y axis is inverted
+            const topmostPixel = scrollTop;
+            const bottommostPixel = scrollTop + mapContainer.clientHeight;
+            const topmostCoord = coordinateOffset - Math.floor(topmostPixel / cellSize);
+            const bottommostCoord = coordinateOffset - Math.ceil(bottommostPixel / cellSize);
             
-            // Generate X-axis labels (top) - show key coordinates with settlements plus some extras
-            const xStep = Math.max(1, Math.ceil((maxX - minX) / 15)); // Adaptive step size
-            for (let x = minX; x <= maxX; x += xStep) {
+            // Generate X-axis labels
+            const xStep = Math.max(1, Math.ceil((rightmostCoord - leftmostCoord) / 15)); // Show ~15 labels max
+            for (let x = Math.floor(leftmostCoord / xStep) * xStep; x <= rightmostCoord; x += xStep) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label x-label';
                 label.textContent = x;
-                // Calculate position relative to the visible area, accounting for grid offset
-                const pixelX = (x + 20) * 40 + 30 + 20; // grid offset + center in cell
+                // Calculate pixel position for this coordinate
+                const pixelX = (x + coordinateOffset) * cellSize + (cellSize / 2); // Center in cell
                 label.style.left = pixelX + 'px';
                 xCoordinatesContainer.appendChild(label);
             }
             
-            // Generate Y-axis labels (left) - show key coordinates with settlements plus some extras
-            const yStep = Math.max(1, Math.ceil((maxY - minY) / 15)); // Adaptive step size
-            for (let y = maxY; y >= minY; y -= yStep) {
+            // Generate Y-axis labels
+            const yStep = Math.max(1, Math.ceil((topmostCoord - bottommostCoord) / 12)); // Show ~12 labels max
+            for (let y = Math.ceil(bottommostCoord / yStep) * yStep; y <= topmostCoord; y += yStep) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label y-label';
                 label.textContent = y;
-                // Calculate position relative to the visible area, accounting for grid offset
-                const pixelY = (20 - y) * 40 + 25 + 20; // grid offset + center in cell
+                // Calculate pixel position for this coordinate
+                const pixelY = (coordinateOffset - y) * cellSize + (cellSize / 2); // Center in cell
                 label.style.top = pixelY + 'px';
                 yCoordinatesContainer.appendChild(label);
             }
