@@ -80,6 +80,13 @@ function updateTabVisibility() {
 }
 
 function getRegen(settlementId) {
+    // Use client-side progress manager if available
+    if (window.clientProgressManager) {
+        // Client manager handles this, but sync occasionally
+        return;
+    }
+    
+    // Fallback to original implementation
     fetch(`../php/backend.php?settlementId=${settlementId}&getRegen=true`)
     .then(response => response.json())
     .then(data => {
@@ -93,6 +100,18 @@ function getRegen(settlementId) {
 }
 
 function fetchResources(settlementId) {
+    // Use client-side progress manager if available
+    if (window.clientProgressManager) {
+        // Let client manager handle resources, but still fetch occasionally for accuracy
+        const lastSync = window.clientProgressManager.lastServerSync;
+        const now = Date.now();
+        if (now - lastSync > 30000) { // Force sync every 30 seconds
+            window.clientProgressManager.forceSyncWithServer();
+        }
+        return;
+    }
+    
+    // Fallback to original implementation
     fetch(`../php/backend.php?settlementId=${settlementId}`)
         .then(response => response.json())
         .then(data => {
@@ -397,6 +416,11 @@ function upgradeBuilding(buildingType, settlementId) {
                         fetchBuildings(settlementId); // Update building data
                         fetchResources(settlementId);
                         fetchBuildingQueue(settlementId);
+                        
+                        // Force sync with client progress manager
+                        if (window.clientProgressManager) {
+                            window.clientProgressManager.forceSyncWithServer();
+                        }
                     } else {
                         alert(data.message); // Shows error message
                     }
@@ -427,6 +451,13 @@ function getSettlementName(settlementId) {
 }
 
 function fetchBuildingQueue(settlementId) {
+    // Use client-side progress manager if available
+    if (window.clientProgressManager) {
+        window.clientProgressManager.forceSyncWithServer();
+        return;
+    }
+    
+    // Fallback to original implementation
     fetch(`../php/backend.php?settlementId=${settlementId}&getBuildingQueue=True`)
         .then(response => response.json())
         .then(data => {
@@ -469,29 +500,81 @@ function fetchBuildingQueue(settlementId) {
 
 getSettlementName(settlementId);
 
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize client progress manager
+async function initializeClientProgressManager(settlementId) {
+    if (!window.clientProgressManager) {
+        console.warn('Client progress manager not available');
+        return;
+    }
     
+    try {
+        // Fetch initial data from server
+        const [resourcesResponse, queueResponse, regenResponse] = await Promise.all([
+            fetch(`../php/backend.php?settlementId=${settlementId}`),
+            fetch(`../php/backend.php?settlementId=${settlementId}&getBuildingQueue=true`),
+            fetch(`../php/backend.php?settlementId=${settlementId}&getRegen=true`)
+        ]);
+        
+        const [resourcesData, queueData, regenData] = await Promise.all([
+            resourcesResponse.json(),
+            queueResponse.json(),
+            regenResponse.json()
+        ]);
+        
+        const initialData = {};
+        
+        if (resourcesData.resources) {
+            initialData.resources = resourcesData.resources.resources;
+        }
+        
+        if (queueData.info && queueData.info.queue) {
+            initialData.buildingQueue = queueData.info.queue;
+        }
+        
+        if (regenData.regen) {
+            initialData.regenerationRates = regenData.regen.regens;
+        }
+        
+        // Initialize the client progress manager
+        window.clientProgressManager.initialize(initialData);
+        console.log('Client progress manager initialized successfully');
+    } catch (error) {
+        console.error('Error initializing client progress manager:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // Initialize client progress manager first
+    await initializeClientProgressManager(settlementId);
+    
+    // Initial data fetch
     fetchBuildingQueue(settlementId);
-    setInterval(() => fetchBuildingQueue(settlementId), 1000);
-
-    // Update resources every second
     fetchResources(settlementId);
-    setInterval(() => fetchResources(settlementId), 1000);
-    
-    // Update resource production rates every 5 seconds
     getRegen(settlementId);
-    setInterval(() => getRegen(settlementId), 5000);
-    
-    // Fetch player info and update every 5 seconds
     fetchPlayerInfo(settlementId);
-    setInterval(() => fetchPlayerInfo(settlementId), 5000);
-    
-    // Load all players for the switcher
     fetchAllPlayers();
-
-    // Update building data every 5 seconds
     fetchBuildings(settlementId);
-    setInterval(() => fetchBuildings(settlementId), 5000); // 5000ms = 5 seconds
+
+    // Set up optimized intervals based on whether client progress manager is available
+    if (window.clientProgressManager) {
+        console.log('Using optimized client-side progress system');
+        
+        // Reduced server polling when using client-side calculations
+        // Only sync occasionally to ensure data accuracy
+        setInterval(() => fetchPlayerInfo(settlementId), 30000); // Every 30 seconds
+        setInterval(() => fetchBuildings(settlementId), 60000); // Every 60 seconds
+        
+        // Client progress manager handles resources and queue updates
+    } else {
+        console.log('Falling back to original polling system');
+        
+        // Original frequent polling as fallback
+        setInterval(() => fetchBuildingQueue(settlementId), 1000);
+        setInterval(() => fetchResources(settlementId), 1000);
+        setInterval(() => getRegen(settlementId), 5000);
+        setInterval(() => fetchPlayerInfo(settlementId), 5000);
+        setInterval(() => fetchBuildings(settlementId), 5000);
+    }
     
     // Check settlement ownership after a short delay to ensure currentPlayerId is set
     setTimeout(() => checkSettlementOwnership(settlementId), 1000);
