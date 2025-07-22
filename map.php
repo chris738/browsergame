@@ -210,7 +210,7 @@ if (empty($mapData)) {
             updateCoordinateLabelsPosition();
         }
         
-        // Update coordinate label positions based on current scroll position
+        // Update coordinate label positions based on current scroll position and zoom
         function updateCoordinateLabelsPosition() {
             const xCoordinatesContainer = document.getElementById('mapXCoordinates');
             const yCoordinatesContainer = document.getElementById('mapYCoordinates');
@@ -222,34 +222,42 @@ if (empty($mapData)) {
             yCoordinatesContainer.innerHTML = '';
             
             // Map grid constants
-            const cellSize = 40; // Each grid cell is 40px
-            const coordinateOffset = 20; // Coordinate system is offset by 20 in both directions
+            const cellSize = 40; // Each grid cell is 40px (base size)
+            const scaledCellSize = cellSize * currentZoom; // Account for zoom
+            const coordinateOffset = 100; // Coordinate system is offset by 100 in both directions for larger map
             
             // Calculate which coordinates are currently visible
             // For X coordinates (horizontal)
             const leftmostPixel = scrollLeft;
             const rightmostPixel = scrollLeft + mapContainer.clientWidth;
-            // Account for the extra 20px offset in settlement positioning
-            const leftmostCoord = Math.floor(((leftmostPixel - 20) / cellSize) - coordinateOffset);
-            const rightmostCoord = Math.ceil(((rightmostPixel - 20) / cellSize) - coordinateOffset);
+            // Account for the extra 20px offset in settlement positioning and zoom scaling
+            const leftmostCoord = Math.floor(((leftmostPixel - 20 * currentZoom) / scaledCellSize) - coordinateOffset);
+            const rightmostCoord = Math.ceil(((rightmostPixel - 20 * currentZoom) / scaledCellSize) - coordinateOffset);
             
             // For Y coordinates (vertical) - Y axis is inverted
             const topmostPixel = scrollTop;
             const bottommostPixel = scrollTop + mapContainer.clientHeight;
-            // Account for the grid margin (25px) and settlement positioning offset (20px)
-            const gridOffset = 45; // 25px margin-top + 20px positioning offset
-            const topmostCoord = coordinateOffset - Math.floor((topmostPixel - gridOffset) / cellSize);
-            const bottommostCoord = coordinateOffset - Math.ceil((bottommostPixel - gridOffset) / cellSize);
+            // Account for the grid margin (25px) and settlement positioning offset (20px) and zoom scaling
+            const gridOffset = 25 + 20 * currentZoom; // 25px margin-top + 20px positioning offset * zoom
+            const topmostCoord = coordinateOffset - Math.floor((topmostPixel - gridOffset) / scaledCellSize);
+            const bottommostCoord = coordinateOffset - Math.ceil((bottommostPixel - gridOffset) / scaledCellSize);
+            
+            // Calculate appropriate step size based on zoom level
+            const baseStepX = Math.max(1, Math.ceil((rightmostCoord - leftmostCoord) / 15)); // Show ~15 labels max
+            const baseStepY = Math.max(1, Math.ceil((topmostCoord - bottommostCoord) / 12)); // Show ~12 labels max
+            
+            // Adjust step size based on zoom - show fewer labels when zoomed out, more when zoomed in
+            const xStep = currentZoom > 1 ? Math.max(1, Math.floor(baseStepX / currentZoom)) : baseStepX;
+            const yStep = currentZoom > 1 ? Math.max(1, Math.floor(baseStepY / currentZoom)) : baseStepY;
             
             // Generate X-axis labels
-            const xStep = Math.max(1, Math.ceil((rightmostCoord - leftmostCoord) / 15)); // Show ~15 labels max
             for (let x = Math.floor(leftmostCoord / xStep) * xStep; x <= rightmostCoord; x += xStep) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label x-label';
                 label.textContent = x;
                 // Calculate pixel position for this coordinate relative to scroll position
-                // Match the settlement positioning formula: (x + 20) * 40 + 20
-                const pixelX = (x + coordinateOffset) * cellSize + (cellSize / 2) + 20 - scrollLeft; // Center in cell, relative to scroll
+                // Match the settlement positioning formula: (x + coordinateOffset) * cellSize + 20, scaled by zoom
+                const pixelX = (x + coordinateOffset) * scaledCellSize + (scaledCellSize / 2) + 20 * currentZoom - scrollLeft;
                 // Only show labels that are within the container bounds
                 if (pixelX >= 0 && pixelX <= mapContainer.clientWidth) {
                     label.style.left = pixelX + 'px';
@@ -258,15 +266,14 @@ if (empty($mapData)) {
             }
             
             // Generate Y-axis labels
-            const yStep = Math.max(1, Math.ceil((topmostCoord - bottommostCoord) / 12)); // Show ~12 labels max
             for (let y = Math.ceil(bottommostCoord / yStep) * yStep; y <= topmostCoord; y += yStep) {
                 const label = document.createElement('div');
                 label.className = 'coordinate-label y-label';
                 label.textContent = y;
                 // Calculate pixel position for this coordinate relative to scroll position
-                // Match the settlement positioning formula: (20 - y) * 40 + 20
+                // Match the settlement positioning formula: (coordinateOffset - y) * cellSize + 20, scaled by zoom
                 // But account for grid margin-top (25px)
-                const pixelY = (coordinateOffset - y) * cellSize + (cellSize / 2) + gridOffset - scrollTop; // Center in cell, relative to scroll
+                const pixelY = (coordinateOffset - y) * scaledCellSize + (scaledCellSize / 2) + gridOffset - scrollTop;
                 // Only show labels that are within the container bounds
                 if (pixelY >= 0 && pixelY <= mapContainer.clientHeight) {
                     label.style.top = pixelY + 'px';
@@ -293,8 +300,9 @@ if (empty($mapData)) {
                     console.warn(`Invalid coordinates for settlement: x=${xAttr}, y=${yAttr}. Using (0,0) as fallback.`);
                     settlement.dataset.x = '0';
                     settlement.dataset.y = '0';
-                    settlement.style.left = '820px'; // Center position
-                    settlement.style.top = '820px';
+                    // Center position for larger map (4000px is center of 8000px map)
+                    settlement.style.left = '4020px'; // Center position + 20px offset
+                    settlement.style.top = '4020px';
                     return;
                 }
                 
@@ -312,9 +320,10 @@ if (empty($mapData)) {
                 occupiedCells.add(cellKey);
                 
                 // Convert coordinates to pixel positions (center settlements within grid squares)
-                // Place settlements in the center of grid squares
-                const pixelX = (x + 20) * 40 + 20; // 40px per grid unit, offset to center in grid square
-                const pixelY = (20 - y) * 40 + 20; // Invert Y axis, offset to center in grid square
+                // Updated for larger map with coordinate offset of 100
+                const coordinateOffset = 100;
+                const pixelX = (x + coordinateOffset) * 40 + 20; // 40px per grid unit, offset to center in grid square
+                const pixelY = (coordinateOffset - y) * 40 + 20; // Invert Y axis, offset to center in grid square
                 
                 settlement.style.left = pixelX + 'px';
                 settlement.style.top = pixelY + 'px';
@@ -353,6 +362,8 @@ if (empty($mapData)) {
         function updateZoom() {
             mapGrid.style.transform = `scale(${currentZoom})`;
             zoomLevel.textContent = Math.round(currentZoom * 100) + '%';
+            // Update coordinate labels after zoom change
+            setTimeout(updateCoordinateLabelsPosition, 100);
         }
         
         // Pan functionality
