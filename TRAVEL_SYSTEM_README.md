@@ -44,14 +44,9 @@ This document describes the travel time system implementation for the browsergam
 
 ### 1. Database Setup
 
-Run the database migration script:
+The travel system is automatically set up when using Docker Compose as described in the main README.
 
-```bash
-chmod +x setup-travel-system.sh
-./setup-travel-system.sh
-```
-
-Or manually run the SQL files:
+For manual setup, run the SQL files:
 
 ```bash
 mysql -u browsergame -p browsergame < sql/tables/travel_tables.sql
@@ -67,13 +62,16 @@ The travel system uses MySQL events for automated processing, similar to the bui
 
 No additional setup is required - events are automatically enabled during database initialization.
 
-### 3. Test the Installation
+### 3. Verify the Installation
 
-Run the test script to verify everything is working:
+The travel system is integrated into the main game interface. You can verify it's working by:
 
-```bash
-php test-travel-system.php
-```
+1. Creating a settlement if none exists
+2. Training military units in the barracks
+3. Attempting an attack to see travel times in action
+4. Using the market to test trade travel times
+
+**Note**: Legacy standalone test files have been moved to `archive/standalone-tests/` for reference but are no longer needed for normal operation.
 
 ## Configuration
 
