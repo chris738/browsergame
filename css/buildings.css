@@ -155,18 +155,18 @@ button {
     background-color: var(--progress-bar);
     width: 0%;
     border-radius: 10px;
-    transition: width 0.1s ease-out, background-color 0.3s ease;
+    transition: width 0.5s ease-out, background-color 0.3s ease;
 }
 
 /* Smooth animation for client-side progress updates */
 .progress-bar.smooth-update {
-    transition: width 0.1s ease-out;
+    transition: width 0.5s ease-out;
 }
 
 /* Progress bar styling for active vs queued buildings */
 .progress-bar.active-building {
     background-color: var(--progress-bar);
-    animation: activeProgress 0.8s ease-out;
+    animation: activeProgress 0.5s ease-out;
 }
 
 .progress-bar.queued-building {
