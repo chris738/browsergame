@@ -65,8 +65,8 @@ BEGIN
         SET buildTimeReduction = 0.1; -- Minimum 10% of original build time
     END IF;
     
-    -- Apply build time reduction
-    SET nextBuildTime = ROUND(nextBuildTime * buildTimeReduction);
+    -- Apply build time reduction and add minimum time for testing
+    SET nextBuildTime = GREATEST(60, ROUND(nextBuildTime * buildTimeReduction)); -- Minimum 60 seconds for testing
 
     -- Check resources
     IF (SELECT wood FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelWoodCost AND
@@ -81,12 +81,12 @@ BEGIN
             ore = ore - nextLevelOreCost
         WHERE settlementId = inSettlementId;
 
-        -- Get last end time for queue
-        SELECT COALESCE(MAX(endTime), NOW()) INTO lastEndTime
+        -- Get last end time for queue, but ensure it's not in the past
+        SELECT GREATEST(COALESCE(MAX(endTime), NOW()), NOW()) INTO lastEndTime
         FROM BuildingQueue
         WHERE settlementId = inSettlementId;
 
-        -- Add to building queue
+        -- Add to building queue with proper timing
         INSERT INTO BuildingQueue (settlementId, buildingType, startTime, endTime, isActive, level)
         VALUES (
             inSettlementId,
