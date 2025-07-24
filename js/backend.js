@@ -468,12 +468,15 @@ function fetchBuildingQueue(settlementId) {
                         window.translateBuildingName(item.buildingType) : 
                         item.buildingType;
 
+                    // Ensure completion percentage is valid (0-100)
+                    const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+                    
                     row.innerHTML = `
                         <td>${translatedBuildingName}</td>
                         <td>${item.level}</td>
                         <td>
                             <div class="progress-container">
-                                <div class="progress-bar" style="width: ${item.completionPercentage || 0}%;"></div>
+                                <div class="progress-bar" style="width: ${completionPercentage}%;"></div>
                             </div>
                         </td>
                         <td>${item.endTime}</td>

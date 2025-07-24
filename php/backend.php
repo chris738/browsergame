@@ -140,12 +140,16 @@ function fetchBuildingQueue($settlementId) {
 
     return [
         'queue' => array_map(function($item) {
+            // Ensure completion percentage is always valid (0-100)
+            $completionPercentage = floatval($item['completionPercentage'] ?? 0);
+            $validPercentage = max(0, min(100, $completionPercentage));
+            
             return [
                 'queueId' => $item['queueId'],
                 'buildingType' => $item['buildingType'],
                 'startTime' => $item['startTime'],
                 'endTime' => $item['endTime'],
-                'completionPercentage' => $item['completionPercentage'],
+                'completionPercentage' => $validPercentage,
                 'level' => $item['level'],
             ];
         }, $queue),
