@@ -444,23 +444,6 @@ button {
     color: red;
 }
 
-.progress-container {
-    width: 100%;
-    background-color: var(--progress-bg);
-    border-radius: 10px;
-    overflow: hidden;
-    height: 20px;
-    transition: background-color 0.3s ease;
-}
-
-.progress-bar {
-    height: 100%;
-    background-color: var(--progress-bar);
-    width: 0%;
-    border-radius: 10px;
-    transition: width 0.5s ease-out, background-color 0.3s ease;
-}
-
 .grid {
     display: grid;
     grid-template-columns: repeat(20, 20px);

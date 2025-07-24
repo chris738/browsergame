@@ -1,0 +1,272 @@
+/**
+ * Unified Progress Bar Styles
+ * 
+ * This file consolidates all progress bar styles across the application
+ * Replaces progress bar styles from style.css, buildings.css, admin.css, and variables.css
+ */
+
+/* CSS Variables for theming */
+:root {
+    /* Light theme progress colors */
+    --progress-bg: #e0e0e0;
+    --progress-bar: #4457ff69;
+    --progress-bar-active: #4457ff;
+    --progress-bar-queued: #6c757d;
+    --progress-bar-admin: #007bff;
+    --progress-bar-complete: #28a745;
+    
+    /* Progress container styling */
+    --progress-border-radius: 4px;
+    --progress-height: 20px;
+    --progress-admin-height: 25px;
+    --progress-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme progress colors */
+[data-theme="dark"] {
+    --progress-bg: #4a5568;
+    --progress-bar: #63b3ed;
+    --progress-bar-active: #4299e1;
+    --progress-bar-queued: #718096;
+    --progress-bar-admin: #3182ce;
+    --progress-bar-complete: #38a169;
+}
+
+/* Base progress container styles */
+.progress-container {
+    width: 100%;
+    height: var(--progress-height);
+    background-color: var(--progress-bg);
+    border-radius: var(--progress-border-radius);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--progress-shadow);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Base progress bar styles */
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background-color: var(--progress-bar);
+    border-radius: var(--progress-border-radius);
+    transition: width 0.3s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Active building progress bar */
+.progress-bar.active-building {
+    background-color: var(--progress-bar-active);
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.2) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 20px 20px;
+    animation: progress-animation 1s linear infinite;
+}
+
+/* Queued building progress bar */
+.progress-bar.queued-building {
+    background-color: var(--progress-bar-queued);
+    transition: none; /* No animation for queued buildings */
+}
+
+/* Progress bar animation for active buildings */
+@keyframes progress-animation {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 20px 0;
+    }
+}
+
+/* Smooth update class for client-side progress updates */
+.progress-bar.smooth-update {
+    transition: width 0.5s ease-out;
+}
+
+/* Progress bar states */
+.progress-bar.completing {
+    background-color: var(--progress-bar-complete);
+    animation: completing-pulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes completing-pulse {
+    0% {
+        opacity: 0.8;
+    }
+    100% {
+        opacity: 1.0;
+    }
+}
+
+/* Building queue specific styles */
+.active-building {
+    font-weight: bold;
+    color: var(--primary-color, #007bff);
+}
+
+.queued-building {
+    color: var(--muted-color, #6c757d);
+    font-style: italic;
+}
+
+/* Admin progress bars */
+.admin-progress-container {
+    width: 100%;
+    height: var(--progress-admin-height);
+    background-color: var(--progress-bg);
+    border-radius: var(--progress-border-radius);
+    overflow: hidden;
+    margin: 10px 0;
+    box-shadow: var(--progress-shadow);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+}
+
+.admin-progress-bar {
+    height: 100%;
+    background-color: var(--progress-bar-admin);
+    border-radius: var(--progress-border-radius);
+    transition: width 0.3s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.3),
+        transparent
+    );
+    animation: admin-progress-shine 2s ease-in-out infinite;
+}
+
+@keyframes admin-progress-shine {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Progress percentage text overlay */
+.progress-container .progress-percentage {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-color, #333);
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+    z-index: 1;
+}
+
+/* Responsive progress bars for mobile */
+@media (max-width: 768px) {
+    .progress-container {
+        height: 16px;
+    }
+    
+    .admin-progress-container {
+        height: 20px;
+    }
+    
+    .progress-container .progress-percentage {
+        font-size: 10px;
+    }
+}
+
+/* Progress bar variants */
+.progress-container.small {
+    height: 12px;
+}
+
+.progress-container.large {
+    height: 30px;
+}
+
+.progress-container.small .progress-percentage {
+    font-size: 10px;
+}
+
+.progress-container.large .progress-percentage {
+    font-size: 14px;
+}
+
+/* Progress bar color variants */
+.progress-bar.success {
+    background-color: var(--progress-bar-complete);
+}
+
+.progress-bar.warning {
+    background-color: #ffc107;
+}
+
+.progress-bar.danger {
+    background-color: #dc3545;
+}
+
+.progress-bar.info {
+    background-color: #17a2b8;
+}
+
+/* Accessibility improvements */
+.progress-container:focus-within {
+    outline: 2px solid var(--focus-color, #007bff);
+    outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .progress-container {
+        border: 2px solid currentColor;
+    }
+    
+    .progress-bar {
+        background-color: currentColor;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .progress-bar {
+        transition: none;
+    }
+    
+    .progress-bar.active-building {
+        animation: none;
+    }
+    
+    .admin-progress-bar::after {
+        animation: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .progress-container {
+        border: 1px solid #000;
+        background-color: #fff;
+    }
+    
+    .progress-bar {
+        background-color: #000;
+    }
+}
