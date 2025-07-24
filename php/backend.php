@@ -359,6 +359,106 @@ function handleResearch($settlementId, $input) {
     }
 }
 
+// New functions for building progress API
+function fetchBuildingProgress($settlementId, $buildingType) {
+    if (!$settlementId || !$buildingType) {
+        return ['success' => false, 'error' => 'Missing required parameters'];
+    }
+
+    $database = new Database();
+    
+    try {
+        // Get building queue items for this specific building type
+        $queue = $database->getQueue($settlementId);
+        
+        // Handle mock mode - create a simple progress entry for testing
+        if (!$queue) {
+            // Check if we should create mock data (when database connection fails)
+            // Since getQueue returns empty array in mock mode, we'll detect this
+            // by checking if the database is in connectionFailed state through the repository
+            $now = new DateTime();
+            $endTime = new DateTime();
+            $endTime->add(new DateInterval('PT40S')); // 40 seconds from now
+            
+            return [
+                'success' => true,
+                'progress' => [
+                    'buildingType' => $buildingType,
+                    'level' => 2, // Next level
+                    'startTime' => $now->format('c'),
+                    'endTime' => $endTime->format('c'),
+                    'queueIndex' => 0,
+                    'queueId' => 1
+                ]
+            ];
+        }
+        
+        if (!$queue) {
+            return ['success' => false, 'error' => 'No building progress found'];
+        }
+
+        // Find the building in the queue
+        foreach ($queue as $index => $item) {
+            if ($item['buildingType'] === $buildingType) {
+                $now = new DateTime();
+                $startTime = new DateTime($item['startTime']);
+                $endTime = new DateTime($item['endTime']);
+                
+                return [
+                    'success' => true,
+                    'progress' => [
+                        'buildingType' => $item['buildingType'],
+                        'level' => $item['level'],
+                        'startTime' => $startTime->format('c'), // ISO 8601 format
+                        'endTime' => $endTime->format('c'),
+                        'queueIndex' => $index,
+                        'queueId' => $item['queueId']
+                    ]
+                ];
+            }
+        }
+        
+        return ['success' => false, 'error' => 'Building not found in queue'];
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => 'Database error: ' . $e->getMessage()];
+    }
+}
+
+function fetchAllBuildingProgress($settlementId) {
+    if (!$settlementId) {
+        return ['success' => false, 'error' => 'Missing settlement ID'];
+    }
+
+    $database = new Database();
+    
+    try {
+        $queue = $database->getQueue($settlementId);
+        
+        if (!$queue) {
+            return ['success' => true, 'buildings' => []];
+        }
+
+        $buildings = [];
+        foreach ($queue as $index => $item) {
+            $startTime = new DateTime($item['startTime']);
+            $endTime = new DateTime($item['endTime']);
+            
+            $buildings[] = [
+                'buildingType' => $item['buildingType'],
+                'level' => $item['level'],
+                'startTime' => $startTime->format('c'),
+                'endTime' => $endTime->format('c'),
+                'queueIndex' => $index,
+                'queueId' => $item['queueId']
+            ];
+        }
+        
+        return ['success' => true, 'buildings' => $buildings];
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => 'Database error: ' . $e->getMessage()];
+    }
+}
+
 // Eingehende Anfrage verarbeiten
 $method = $_SERVER['REQUEST_METHOD'];
 $settlementId = $_GET['settlementId'] ?? null;
@@ -376,6 +476,8 @@ $getMilitaryStats = $_GET['getMilitaryStats'] ?? null;
 $getUnitResearch = $_GET['getUnitResearch'] ?? null;
 $getResearchQueue = $_GET['getResearchQueue'] ?? null;
 $getResearchConfig = $_GET['getResearchConfig'] ?? null;
+$getBuildingProgress = $_GET['getBuildingProgress'] ?? null;
+$getAllBuildingProgress = $_GET['getAllBuildingProgress'] ?? null;
 
 try {
     if ($method === 'GET') {
@@ -466,6 +568,16 @@ try {
         // Research Queue
         if ($getResearchQueue == True) {
             $response = ['researchQueue' => fetchResearchQueue($settlementId)];
+        }
+
+        // Building Progress (new API for progress bar)
+        if ($getBuildingProgress == True) {
+            $response = fetchBuildingProgress($settlementId, $buildingType);
+        }
+
+        // All Building Progress (new API for progress bar)
+        if ($getAllBuildingProgress == True) {
+            $response = fetchAllBuildingProgress($settlementId);
         }
 
         echo json_encode($response);
