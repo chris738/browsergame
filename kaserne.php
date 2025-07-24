@@ -18,6 +18,7 @@
     <script src="js/theme-switcher.js"></script>
     <script src="js/emoji-config.js"></script>
     <script src="js/translations.js"></script>
+    <script src="js/unified-progress.js"></script>
     <script src="js/backend.js" defer></script>
 </head>
 <body>
