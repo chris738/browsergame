@@ -65,8 +65,8 @@ BEGIN
         SET buildTimeReduction = 0.1; -- Minimum 10% of original build time
     END IF;
     
-    -- Apply build time reduction and add minimum time for testing
-    SET nextBuildTime = GREATEST(60, ROUND(nextBuildTime * buildTimeReduction)); -- Minimum 60 seconds for testing
+    -- Apply build time reduction and ensure reasonable minimum time
+    SET nextBuildTime = GREATEST(300, ROUND(nextBuildTime * buildTimeReduction)); -- Minimum 5 minutes for proper testing
 
     -- Check resources
     IF (SELECT wood FROM Settlement WHERE settlementId = inSettlementId) >= nextLevelWoodCost AND

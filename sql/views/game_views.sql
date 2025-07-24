@@ -16,7 +16,8 @@ SELECT
     GREATEST(0, LEAST(100, ROUND(
         CASE 
             WHEN TIMESTAMPDIFF(SECOND, startTime, endTime) <= 0 THEN 100
-            WHEN NOW() <= startTime THEN 0
+            WHEN NOW() < DATE_ADD(startTime, INTERVAL 2 SECOND) THEN 0 -- Show 0% for first 2 seconds
+            WHEN NOW() >= endTime THEN 100
             ELSE 100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / TIMESTAMPDIFF(SECOND, startTime, endTime))
         END,
         2

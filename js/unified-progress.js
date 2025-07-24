@@ -629,7 +629,7 @@ class UnifiedProgressManager {
      * Format remaining time for display
      */
     formatRemainingTime(milliseconds, queueIndex = 0) {
-        const COMPLETION_BUFFER = 1000; // 1 second buffer
+        const COMPLETION_BUFFER = 100; // 100ms buffer - reduced from 1000ms
         
         if (milliseconds <= COMPLETION_BUFFER) {
             return queueIndex === 0 ? 'Completing...' : 'Queued';
