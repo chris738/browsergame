@@ -36,7 +36,7 @@ class UnifiedProgressManager {
         // Configuration
         this.config = {
             serverSyncInterval: 120000, // Sync with server every 2 minutes
-            progressUpdateInterval: 1000, // Update progress every 1000ms
+            progressUpdateInterval: 250, // Update progress every 250ms for smooth animation
             resourceUpdateInterval: 1000 // Update resources every second
         };
         
@@ -283,22 +283,35 @@ class UnifiedProgressManager {
             }
         });
 
-        // Remove completed buildings
-        completedBuildings.forEach(completedBuilding => {
-            const buildingKey = `${completedBuilding.settlementId}_${completedBuilding.buildingType}`;
-            this.activeBuildings.delete(buildingKey);
-        });
+        // Process completed buildings only if there are any
+        if (completedBuildings.length > 0) {
+            // Remove completed buildings from activeBuildings map
+            completedBuildings.forEach(completedBuilding => {
+                const buildingKey = `${completedBuilding.settlementId}_${completedBuilding.buildingType}`;
+                this.activeBuildings.delete(buildingKey);
+                console.log(`Building completed and removed: ${buildingKey}`);
+            });
 
-        const initialLength = this.buildingQueue.length;
-        this.buildingQueue = this.buildingQueue.filter(item => !item.completed);
-
-        // Refresh queue if buildings were completed
-        if (this.buildingQueue.length !== initialLength) {
-            this.refreshFullQueue();
+            const initialLength = this.buildingQueue.length;
+            // Filter out completed buildings
+            this.buildingQueue = this.buildingQueue.filter(item => !item.completed);
+            
+            // Only refresh the queue display if buildings were actually removed
+            if (this.buildingQueue.length !== initialLength) {
+                console.log(`Queue length changed from ${initialLength} to ${this.buildingQueue.length}, refreshing display`);
+                
+                // Re-assign queue indices to maintain consistency
+                this.buildingQueue.forEach((building, index) => {
+                    building.queueIndex = index;
+                });
+                
+                this.refreshFullQueue();
+            }
         }
 
         // Stop if no more buildings
         if (this.buildingQueue.length === 0) {
+            console.log('No more buildings in queue, stopping updates');
             this.stopProgressUpdates();
         }
     }
@@ -341,9 +354,12 @@ class UnifiedProgressManager {
                 const currentWidth = parseFloat(progressBar.style.width) || 0;
                 const widthDiff = Math.abs(completionPercentage - currentWidth);
                 
-                if (widthDiff >= 0.1 || completionPercentage >= 99.9 || completionPercentage === 0) {
+                // Reduced threshold from 0.1% to 0.05% for smoother updates
+                // Always update if it's the first time (currentWidth === 0) or completion changes significantly
+                if (widthDiff >= 0.05 || completionPercentage >= 99.9 || completionPercentage === 0 || currentWidth === 0) {
                     progressBar.style.width = `${Math.min(100, completionPercentage)}%`;
-                    progressBar.style.transition = queueIndex === 0 ? 'width 0.3s ease-out' : 'none';
+                    // Smoother transition for active buildings, instant for queued
+                    progressBar.style.transition = queueIndex === 0 ? 'width 0.2s ease-out' : 'none';
                 }
             }
             
@@ -399,7 +415,10 @@ class UnifiedProgressManager {
      */
     refreshFullQueue() {
         const buildingQueueBody = document.getElementById('buildingQueueBody');
-        if (!buildingQueueBody) return;
+        if (!buildingQueueBody) {
+            console.warn('Building queue body element not found, progress system may not be fully loaded');
+            return;
+        }
 
         buildingQueueBody.innerHTML = '';
 
@@ -407,6 +426,7 @@ class UnifiedProgressManager {
             const emptyRow = document.createElement('tr');
             emptyRow.innerHTML = '<td colspan="4">No buildings in queue</td>';
             buildingQueueBody.appendChild(emptyRow);
+            console.log('Building queue is empty, showing empty message');
             return;
         }
 
@@ -422,6 +442,8 @@ class UnifiedProgressManager {
         this.buildingQueue.forEach((building, index) => {
             building.queueIndex = index;
         });
+
+        console.log(`Refreshing queue display with ${this.buildingQueue.length} buildings`);
 
         // Create rows for each building
         this.buildingQueue.forEach((building, queueIndex) => {
@@ -455,7 +477,7 @@ class UnifiedProgressManager {
                 <td>
                     <div class="progress-container">
                         <div class="progress-bar ${queueIndex === 0 ? 'active-building' : 'queued-building'}" 
-                             style="width: ${initialProgress}%; transition: ${queueIndex === 0 ? 'width 0.3s ease-out' : 'none'};">
+                             style="width: ${initialProgress}%; transition: ${queueIndex === 0 ? 'width 0.2s ease-out' : 'none'};">
                         </div>
                     </div>
                 </td>
@@ -468,6 +490,8 @@ class UnifiedProgressManager {
 
             buildingQueueBody.appendChild(row);
         });
+        
+        console.log('Queue display refreshed successfully');
     }
 
     /**
@@ -666,6 +690,46 @@ window.unifiedProgressManager = new UnifiedProgressManager();
 // Maintain backwards compatibility
 window.clientProgressManager = window.unifiedProgressManager;
 window.buildingProgressManager = window.unifiedProgressManager;
+
+// Add a ready check function
+window.checkProgressSystemReady = function() {
+    const elements = {
+        buildingQueueBody: document.getElementById('buildingQueueBody'),
+        resourceElements: {
+            wood: document.getElementById('holz'),
+            stone: document.getElementById('stein'),
+            ore: document.getElementById('erz')
+        }
+    };
+    
+    const missing = [];
+    if (!elements.buildingQueueBody) missing.push('buildingQueueBody');
+    if (!elements.resourceElements.wood) missing.push('holz resource display');
+    if (!elements.resourceElements.stone) missing.push('stein resource display');
+    if (!elements.resourceElements.ore) missing.push('erz resource display');
+    
+    if (missing.length > 0) {
+        console.warn('Progress system elements missing:', missing);
+        return false;
+    }
+    
+    console.log('Progress system is ready - all required elements found');
+    return true;
+};
+
+// Automatic initialization when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, checking progress system readiness...');
+    
+    // Small delay to allow other scripts to initialize
+    setTimeout(() => {
+        if (window.checkProgressSystemReady()) {
+            console.log('Progress system ready for initialization');
+        } else {
+            console.warn('Some progress system elements are missing, functionality may be limited');
+        }
+    }, 100);
+});
 
 // Export for modules if needed
 if (typeof module !== 'undefined' && module.exports) {
