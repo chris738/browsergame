@@ -100,6 +100,18 @@ class ClientProgressManager {
      * Update building progress calculations
      */
     updateProgress() {
+        // IMPORTANT FIX: Do not handle building progress if BuildingProgressManager is active
+        // This prevents conflicts and flickering between the two systems
+        if (window.buildingProgressManager && window.buildingProgressManager.activeBuildings.size > 0) {
+            console.log('BuildingProgressManager is active, skipping progress updates in ClientProgressManager');
+            // Still check for server sync timing but don't update building progress
+            const now = Date.now();
+            if ((now - this.lastServerSync) > this.config.serverSyncInterval) {
+                this.syncWithServer();
+            }
+            return;
+        }
+        
         const now = Date.now();
         let shouldSyncWithServer = false;
         
@@ -396,25 +408,31 @@ class ClientProgressManager {
                 this.updateResourceDisplay();
             }
             
-            // Update building queue
+            // Update building queue only if BuildingProgressManager is not active
             if (queueData.info && queueData.info.queue) {
-                console.log('Updating building queue with', queueData.info.queue.length, 'items');
-                this.buildingQueue = queueData.info.queue.map(item => ({
-                    ...item,
-                    startTime: new Date(item.startTime).getTime(),
-                    endTime: new Date(item.endTime).getTime(),
-                    completed: false
-                }));
-                this.updateQueueDisplay();
+                // Don't update queue if the new building progress manager is handling it
+                if (window.buildingProgressManager && window.buildingProgressManager.activeBuildings.size > 0) {
+                    console.log('BuildingProgressManager is handling queue, skipping ClientProgressManager queue update');
+                } else {
+                    console.log('Updating building queue with', queueData.info.queue.length, 'items');
+                    this.buildingQueue = queueData.info.queue.map(item => ({
+                        ...item,
+                        startTime: new Date(item.startTime).getTime(),
+                        endTime: new Date(item.endTime).getTime(),
+                        completed: false
+                    }));
+                    this.updateQueueDisplay();
+                }
             } else {
-                console.log('No building queue items found, clearing queue');
+                console.log('No building queue items found from server');
                 // Don't clear the queue if the new building progress manager is active and has buildings
                 if (window.buildingProgressManager && window.buildingProgressManager.activeBuildings.size > 0) {
-                    console.log('New building progress manager is active, keeping existing queue');
-                    return;
+                    console.log('BuildingProgressManager is active, keeping existing queue');
+                } else {
+                    console.log('Clearing ClientProgressManager queue');
+                    this.buildingQueue = [];
+                    this.updateQueueDisplay();
                 }
-                this.buildingQueue = [];
-                this.updateQueueDisplay();
             }
             
             // Update regeneration rates
@@ -438,9 +456,10 @@ class ClientProgressManager {
      * Update queue display in DOM
      */
     updateQueueDisplay() {
-        // Don't interfere if the new building progress manager is active
+        // IMPORTANT FIX: Don't interfere if the new building progress manager is active
+        // This prevents conflicts between the two progress management systems
         if (window.buildingProgressManager && window.buildingProgressManager.activeBuildings.size > 0) {
-            console.log('New building progress manager is active, skipping queue display update');
+            console.log('BuildingProgressManager is active, skipping queue display update in ClientProgressManager');
             return;
         }
         

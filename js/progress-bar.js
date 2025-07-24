@@ -242,10 +242,12 @@ class BuildingProgressManager {
                             const currentWidth = parseFloat(progressBar.style.width) || 0;
                             const widthDiff = Math.abs(completionPercentage - currentWidth);
                             
-                            // Update progress bar with smooth transition
-                            if (widthDiff >= 0.5 || completionPercentage >= 100 || completionPercentage === 0) {
-                                progressBar.style.width = `${completionPercentage}%`;
-                                progressBar.style.transition = 'width 0.5s ease-out';
+                            // FIX: Use more precise conditions to prevent unnecessary updates that cause flickering
+                            // Only update if there's a meaningful change (at least 0.1%) or if we're at completion
+                            if (widthDiff >= 0.1 || (completionPercentage >= 99.9 && currentWidth < 99.9)) {
+                                progressBar.style.width = `${Math.min(100, completionPercentage)}%`;
+                                // Use consistent transition timing to prevent jerky movement
+                                progressBar.style.transition = 'width 0.3s ease-out';
                             }
                         }
                         
@@ -346,7 +348,10 @@ class BuildingProgressManager {
      * Format remaining time for display
      */
     formatRemainingTime(milliseconds, queueIndex = 0) {
-        if (milliseconds <= 0) {
+        // FIX: Use a small buffer to prevent jumping between "Completing..." and time display
+        const COMPLETION_BUFFER = 1000; // 1 second buffer
+        
+        if (milliseconds <= COMPLETION_BUFFER) {
             return queueIndex === 0 ? 'Completing...' : 'Queued';
         }
 
