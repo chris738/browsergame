@@ -174,6 +174,7 @@ CREATE TABLE MilitaryUnitConfig (
     attackPower INT NOT NULL DEFAULT 1,
     rangedPower INT NOT NULL DEFAULT 0,
     speed INT NOT NULL DEFAULT 1,
+    lootAmount FLOAT NOT NULL DEFAULT 10.0,
     PRIMARY KEY (unitType, level)
 );
 
@@ -278,6 +279,114 @@ CREATE TABLE TradeHistory (
     completedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (fromSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
     FOREIGN KEY (toSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE
+);
+
+-- ====================================
+-- TRAVEL SYSTEM TABLES
+-- ====================================
+
+-- Table: TravelConfig - Configuration for travel times
+CREATE TABLE IF NOT EXISTS TravelConfig (
+    configId INT AUTO_INCREMENT PRIMARY KEY,
+    travelType ENUM('trade', 'military') NOT NULL,
+    baseSpeed INT NOT NULL DEFAULT 5, -- seconds per block distance
+    description VARCHAR(255),
+    UNIQUE KEY (travelType)
+);
+
+-- Table: TravelingArmies - Track armies in transit for attacks
+CREATE TABLE IF NOT EXISTS TravelingArmies (
+    travelId INT AUTO_INCREMENT PRIMARY KEY,
+    attackerSettlementId INT NOT NULL,
+    defenderSettlementId INT NOT NULL,
+    -- Units being sent
+    guardsCount INT NOT NULL DEFAULT 0,
+    soldiersCount INT NOT NULL DEFAULT 0,
+    archersCount INT NOT NULL DEFAULT 0,
+    cavalryCount INT NOT NULL DEFAULT 0,
+    -- Travel timing
+    startTime DATETIME NOT NULL,
+    arrivalTime DATETIME NOT NULL,
+    distance INT NOT NULL, -- block distance between settlements
+    travelSpeed FLOAT NOT NULL, -- calculated speed based on slowest unit
+    -- Status
+    status ENUM('traveling', 'arrived', 'cancelled') NOT NULL DEFAULT 'traveling',
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (attackerSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    FOREIGN KEY (defenderSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    INDEX idx_attacker (attackerSettlementId),
+    INDEX idx_defender (defenderSettlementId),
+    INDEX idx_arrival (arrivalTime),
+    INDEX idx_status (status)
+);
+
+-- Table: TravelingTrades - Track trades in transit
+CREATE TABLE IF NOT EXISTS TravelingTrades (
+    travelId INT AUTO_INCREMENT PRIMARY KEY,
+    fromSettlementId INT NOT NULL,
+    toSettlementId INT NOT NULL,
+    -- Resources being sent
+    woodAmount FLOAT NOT NULL DEFAULT 0,
+    stoneAmount FLOAT NOT NULL DEFAULT 0,
+    oreAmount FLOAT NOT NULL DEFAULT 0,
+    goldAmount INT NOT NULL DEFAULT 0,
+    -- Resources expected in return (for resource trades)
+    expectedWood FLOAT NOT NULL DEFAULT 0,
+    expectedStone FLOAT NOT NULL DEFAULT 0,
+    expectedOre FLOAT NOT NULL DEFAULT 0,
+    expectedGold INT NOT NULL DEFAULT 0,
+    -- Travel timing
+    startTime DATETIME NOT NULL,
+    arrivalTime DATETIME NOT NULL,
+    distance INT NOT NULL, -- block distance between settlements
+    travelSpeed FLOAT NOT NULL DEFAULT 5.0, -- seconds per block
+    -- Trade details
+    tradeType ENUM('resource_trade', 'resource_sell', 'resource_buy', 'direct_send') NOT NULL,
+    originalOfferId INT NULL, -- Reference to original trade offer if applicable
+    -- Status
+    status ENUM('traveling', 'arrived', 'completed', 'cancelled') NOT NULL DEFAULT 'traveling',
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fromSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    FOREIGN KEY (toSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    FOREIGN KEY (originalOfferId) REFERENCES TradeOffers(offerId) ON DELETE SET NULL,
+    INDEX idx_from (fromSettlementId),
+    INDEX idx_to (toSettlementId),
+    INDEX idx_arrival (arrivalTime),
+    INDEX idx_status (status)
+);
+
+-- Table: TravelHistory - Archive of completed travels for statistics
+CREATE TABLE IF NOT EXISTS TravelHistory (
+    historyId INT AUTO_INCREMENT PRIMARY KEY,
+    travelType ENUM('military', 'trade') NOT NULL,
+    fromSettlementId INT NOT NULL,
+    toSettlementId INT NOT NULL,
+    distance INT NOT NULL,
+    travelTime INT NOT NULL, -- total travel time in seconds
+    startTime DATETIME NOT NULL,
+    completedTime DATETIME NOT NULL,
+    outcome TEXT, -- description of what happened when travel completed
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (fromSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    FOREIGN KEY (toSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    INDEX idx_travel_type (travelType),
+    INDEX idx_from (fromSettlementId),
+    INDEX idx_completed (completedTime)
+);
+
+-- Table: BattleHistory - Track battle outcomes for travel arrivals
+CREATE TABLE IF NOT EXISTS BattleHistory (
+    battleId INT AUTO_INCREMENT PRIMARY KEY,
+    attackerSettlementId INT NOT NULL,
+    defenderSettlementId INT NOT NULL,
+    result ENUM('victory', 'defeat') NOT NULL,
+    battleTime DATETIME NOT NULL,
+    createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (attackerSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    FOREIGN KEY (defenderSettlementId) REFERENCES Settlement(settlementId) ON DELETE CASCADE,
+    INDEX idx_attacker (attackerSettlementId),
+    INDEX idx_defender (defenderSettlementId),
+    INDEX idx_battle_time (battleTime)
 );
 
 -- ====================================
@@ -757,11 +866,16 @@ INSERT INTO BuildingConfig (buildingType, level, costWood, costStone, costOre, s
 ('Kaserne', 10, 353.693, 353.693, 471.59, 4.7159, 23.579, 169);
 
 -- Military unit configuration
-INSERT INTO MilitaryUnitConfig (unitType, level, costWood, costStone, costOre, costGold, costSettlers, trainingTime, defensePower, attackPower, rangedPower, speed) VALUES
-('guards', 1, 50, 30, 20, 10, 1, 300, 3, 2, 0, 1),
-('soldiers', 1, 80, 60, 40, 25, 2, 600, 5, 6, 0, 1),
-('archers', 1, 60, 40, 30, 20, 1, 450, 2, 4, 8, 1),
-('cavalry', 1, 120, 80, 60, 50, 3, 900, 8, 10, 0, 2);
+INSERT INTO MilitaryUnitConfig (unitType, level, costWood, costStone, costOre, costGold, costSettlers, trainingTime, defensePower, attackPower, rangedPower, speed, lootAmount) VALUES
+('guards', 1, 50, 30, 20, 10, 1, 300, 3, 2, 0, 1, 5.0),
+('soldiers', 1, 80, 60, 40, 25, 2, 600, 5, 6, 0, 1, 10.0),
+('archers', 1, 60, 40, 30, 20, 1, 450, 2, 4, 8, 1, 8.0),
+('cavalry', 1, 120, 80, 60, 50, 3, 900, 8, 10, 0, 2, 15.0);
+
+-- Travel system configuration
+INSERT INTO TravelConfig (travelType, baseSpeed, description) VALUES
+('trade', 5, 'Base travel speed for trades: 5 seconds per block distance'),
+('military', 5, 'Base travel speed for military units: 5 seconds per block (modified by unit speed)');
 
 -- Research configuration
 INSERT INTO ResearchConfig (unitType, costWood, costStone, costOre, costGold, researchTime, prerequisiteUnit) VALUES
