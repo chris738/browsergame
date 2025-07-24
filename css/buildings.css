@@ -141,54 +141,6 @@ button {
     color: red;
 }
 
-.progress-container {
-    width: 100%;
-    background-color: var(--progress-bg);
-    border-radius: 10px;
-    overflow: hidden;
-    height: 20px;
-    transition: background-color 0.3s ease;
-}
-
-.progress-bar {
-    height: 100%;
-    background-color: var(--progress-bar);
-    width: 0%;
-    border-radius: 10px;
-    transition: width 0.5s ease-out, background-color 0.3s ease;
-}
-
-/* Smooth animation for client-side progress updates */
-.progress-bar.smooth-update {
-    transition: width 0.5s ease-out;
-}
-
-/* Progress bar styling for active vs queued buildings */
-.progress-bar.active-building {
-    background-color: var(--progress-bar);
-    animation: activeProgress 0.5s ease-out;
-}
-
-.progress-bar.queued-building {
-    background-color: #cccccc;
-    opacity: 0.5;
-}
-
-.active-building {
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-.queued-building {
-    color: #888;
-    font-style: italic;
-}
-
-@keyframes activeProgress {
-    0% { background-color: var(--progress-bg); }
-    100% { background-color: var(--progress-bar); }
-}
-
 /* Building completion notification styles */
 .building-completion-notification {
     animation: slideInRight 0.3s ease-out;
