@@ -442,35 +442,23 @@
                 const levelCell = row.insertCell(1);
                 levelCell.textContent = `${item.count} unit${item.count > 1 ? 's' : ''}`;
                 
-                // Progress
+                // Progress - using unified progress bar system
                 const progressCell = row.insertCell(2);
-                const progressBar = document.createElement('div');
-                progressBar.className = 'progress-bar';
-                progressBar.style.width = '100%';
-                progressBar.style.backgroundColor = '#e0e0e0';
-                progressBar.style.borderRadius = '4px';
-                progressBar.style.height = '20px';
-                progressBar.style.position = 'relative';
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'progress-container';
                 
-                const progressFill = document.createElement('div');
-                progressFill.style.width = `${Math.max(0, Math.min(100, item.completionPercentage || 0))}%`;
-                progressFill.style.backgroundColor = '#4CAF50';
-                progressFill.style.height = '100%';
-                progressFill.style.borderRadius = '4px';
-                progressFill.style.transition = 'width 0.3s ease';
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar active-building';
+                const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+                progressBar.style.width = `${completionPercentage}%`;
                 
                 const progressText = document.createElement('span');
-                progressText.style.position = 'absolute';
-                progressText.style.left = '50%';
-                progressText.style.top = '50%';
-                progressText.style.transform = 'translate(-50%, -50%)';
-                progressText.style.fontSize = '12px';
-                progressText.style.fontWeight = 'bold';
-                progressText.textContent = `${Math.round(item.completionPercentage || 0)}%`;
+                progressText.className = 'progress-percentage';
+                progressText.textContent = `${Math.round(completionPercentage)}%`;
                 
-                progressBar.appendChild(progressFill);
-                progressBar.appendChild(progressText);
-                progressCell.appendChild(progressBar);
+                progressContainer.appendChild(progressBar);
+                progressContainer.appendChild(progressText);
+                progressCell.appendChild(progressContainer);
                 
                 // End time
                 const timeCell = row.insertCell(3);
@@ -719,34 +707,23 @@
                 const quantityCell = row.insertCell(1);
                 quantityCell.textContent = '1 unit';
                 
-                // Progress
+                // Progress - using unified progress bar system
                 const progressCell = row.insertCell(2);
-                const progressBar = document.createElement('div');
-                progressBar.className = 'progress-bar';
-                progressBar.style.width = '100%';
-                progressBar.style.backgroundColor = '#e0e0e0';
-                progressBar.style.borderRadius = '4px';
-                progressBar.style.height = '20px';
-                progressBar.style.position = 'relative';
+                const progressContainer = document.createElement('div');
+                progressContainer.className = 'progress-container';
                 
-                const progressFill = document.createElement('div');
-                progressFill.style.width = `${Math.max(0, Math.min(100, item.completionPercentage || 0))}%`;
-                progressFill.style.backgroundColor = '#3498db';
-                progressFill.style.height = '100%';
-                progressFill.style.borderRadius = '4px';
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar active-building';
+                const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+                progressBar.style.width = `${completionPercentage}%`;
                 
                 const progressText = document.createElement('span');
-                progressText.style.position = 'absolute';
-                progressText.style.left = '50%';
-                progressText.style.top = '50%';
-                progressText.style.transform = 'translate(-50%, -50%)';
-                progressText.style.fontSize = '12px';
-                progressText.style.fontWeight = 'bold';
-                progressText.textContent = `${Math.round(item.completionPercentage || 0)}%`;
+                progressText.className = 'progress-percentage';
+                progressText.textContent = `${Math.round(completionPercentage)}%`;
                 
-                progressBar.appendChild(progressFill);
-                progressBar.appendChild(progressText);
-                progressCell.appendChild(progressBar);
+                progressContainer.appendChild(progressBar);
+                progressContainer.appendChild(progressText);
+                progressCell.appendChild(progressContainer);
                 
                 // End time
                 const timeCell = row.insertCell(3);
@@ -792,7 +769,7 @@
                     // Transform button into progress bar
                     researchBtn.style.display = 'none';
                     
-                    // Create or update progress bar in the research info section
+                    // Create or update progress bar in the research info section using unified system
                     let progressContainer = document.getElementById(`research-progress-${unitType}`);
                     if (!progressContainer) {
                         progressContainer = document.createElement('div');
@@ -805,50 +782,32 @@
                         progressLabel.style.fontSize = '13px';
                         progressLabel.style.fontWeight = 'bold';
                         progressLabel.style.marginBottom = '5px';
-                        progressLabel.style.color = '#3498db';
+                        progressLabel.style.color = 'var(--progress-bar-active, #3498db)';
+                        
+                        const progressBarContainer = document.createElement('div');
+                        progressBarContainer.className = 'progress-container';
                         
                         const progressBar = document.createElement('div');
-                        progressBar.className = 'progress-bar-container';
-                        progressBar.style.width = '100%';
-                        progressBar.style.backgroundColor = '#e0e0e0';
-                        progressBar.style.borderRadius = '4px';
-                        progressBar.style.height = '25px';
-                        progressBar.style.position = 'relative';
-                        progressBar.style.border = '1px solid #ccc';
-                        
-                        const progressFill = document.createElement('div');
-                        progressFill.className = 'progress-fill';
-                        progressFill.style.backgroundColor = '#3498db';
-                        progressFill.style.height = '100%';
-                        progressFill.style.borderRadius = '4px';
-                        progressFill.style.transition = 'width 0.3s ease';
+                        progressBar.className = 'progress-bar active-building';
                         
                         const progressText = document.createElement('span');
-                        progressText.className = 'progress-text';
-                        progressText.style.position = 'absolute';
-                        progressText.style.left = '50%';
-                        progressText.style.top = '50%';
-                        progressText.style.transform = 'translate(-50%, -50%)';
-                        progressText.style.fontSize = '12px';
-                        progressText.style.fontWeight = 'bold';
-                        progressText.style.color = 'white';
-                        progressText.style.textShadow = '1px 1px 1px rgba(0,0,0,0.5)';
+                        progressText.className = 'progress-percentage';
                         
-                        progressBar.appendChild(progressFill);
-                        progressBar.appendChild(progressText);
+                        progressBarContainer.appendChild(progressBar);
+                        progressBarContainer.appendChild(progressText);
                         progressContainer.appendChild(progressLabel);
-                        progressContainer.appendChild(progressBar);
+                        progressContainer.appendChild(progressBarContainer);
                         
                         researchInfo.appendChild(progressContainer);
                     }
                     
-                    // Update progress bar
-                    const progressFill = progressContainer.querySelector('.progress-fill');
-                    const progressText = progressContainer.querySelector('.progress-text');
+                    // Update progress bar using unified system
+                    const progressBar = progressContainer.querySelector('.progress-bar');
+                    const progressText = progressContainer.querySelector('.progress-percentage');
                     const percentage = Math.max(0, Math.min(100, activeResearch.completionPercentage || 0));
                     
-                    if (progressFill) {
-                        progressFill.style.width = `${percentage}%`;
+                    if (progressBar) {
+                        progressBar.style.width = `${percentage}%`;
                     }
                     if (progressText) {
                         progressText.textContent = `${Math.round(percentage)}%`;
