@@ -42,6 +42,7 @@
     <script src="js/theme-switcher.js"></script>
     <script src="js/emoji-config.js"></script>
     <script src="js/translations.js"></script>
+    <script src="js/progress-bar.js"></script>
     <script src="js/client-progress.js"></script>
     <script src="js/backend.js" defer></script>
 </head>

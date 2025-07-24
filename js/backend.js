@@ -407,9 +407,16 @@ function upgradeBuilding(buildingType, settlementId) {
                         //alert(data.message); // Shows success message
                         fetchBuildings(settlementId); // Update building data
                         fetchResources(settlementId);
-                        fetchBuildingQueue(settlementId);
                         
-                        // Force sync with client progress manager
+                        // Use the new progress bar system - fetch end time via API call as requested
+                        if (window.buildingProgressManager) {
+                            window.buildingProgressManager.trackBuildingUpgrade(settlementId, buildingType);
+                        } else {
+                            // Fallback to old system
+                            fetchBuildingQueue(settlementId);
+                        }
+                        
+                        // Force sync with client progress manager if it exists
                         if (window.clientProgressManager) {
                             window.clientProgressManager.forceSyncWithServer();
                         }
@@ -542,16 +549,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize client progress manager first
     await initializeClientProgressManager(settlementId);
     
+    // Initialize the new building progress manager and fetch all progress
+    if (window.buildingProgressManager) {
+        await window.buildingProgressManager.fetchAllBuildingProgress(settlementId);
+    }
+    
     // Initial data fetch
-    fetchBuildingQueue(settlementId);
+    if (!window.buildingProgressManager) {
+        // Only use old system if new system is not available
+        fetchBuildingQueue(settlementId);
+    }
+    
     fetchResources(settlementId);
     getRegen(settlementId);
     fetchPlayerInfo(settlementId);
     fetchAllPlayers();
     await fetchBuildings(settlementId);
 
-    // Set up optimized intervals based on whether client progress manager is available
-    if (window.clientProgressManager) {
+    // Set up optimized intervals based on available progress systems
+    if (window.buildingProgressManager) {
+        console.log('Using new building progress bar system');
+        
+        // Very light polling since new progress bar handles real-time updates
+        setInterval(() => fetchPlayerInfo(settlementId), 60000); // Every 60 seconds
+        setInterval(() => fetchBuildings(settlementId), 180000); // Every 3 minutes
+        
+        // New progress bar system handles building queue updates internally
+    } else if (window.clientProgressManager) {
         console.log('Using optimized client-side progress system');
         
         // Much more conservative server polling when using client-side calculations
