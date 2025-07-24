@@ -413,6 +413,56 @@
         // Update military training queue display
         function updateMilitaryQueue(queue) {
             const tbody = document.getElementById('militaryTrainingQueueBody');
+            
+            // If we have existing rows and the same number of items, try to update in place
+            const existingRows = tbody.querySelectorAll('tr');
+            const canUpdateInPlace = existingRows.length === queue.length && queue.length > 0;
+            
+            if (canUpdateInPlace) {
+                // Update existing rows with smooth transitions
+                queue.forEach((item, index) => {
+                    const row = existingRows[index];
+                    const progressBar = row.querySelector('.progress-bar');
+                    const progressText = row.querySelector('.progress-percentage');
+                    const timeCell = row.querySelector('td:last-child');
+                    
+                    if (progressBar && progressText) {
+                        const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+                        
+                        // Smooth update - only update if percentage changed significantly
+                        const currentWidth = parseFloat(progressBar.style.width) || 0;
+                        if (Math.abs(completionPercentage - currentWidth) >= 0.1) {
+                            progressBar.style.width = `${completionPercentage}%`;
+                            progressText.textContent = `${Math.round(completionPercentage)}%`;
+                        }
+                        
+                        // Update time display
+                        if (timeCell) {
+                            const endTime = new Date(item.endTime);
+                            timeCell.innerHTML = endTime.toLocaleString();
+                            
+                            if (item.remainingTimeSeconds > 0) {
+                                const remainingDiv = document.createElement('div');
+                                remainingDiv.style.fontSize = '12px';
+                                remainingDiv.style.color = '#666';
+                                const hours = Math.floor(item.remainingTimeSeconds / 3600);
+                                const minutes = Math.floor((item.remainingTimeSeconds % 3600) / 60);
+                                const seconds = item.remainingTimeSeconds % 60;
+                                
+                                if (hours > 0) {
+                                    remainingDiv.textContent = `(${hours}h ${minutes}m remaining)`;
+                                } else {
+                                    remainingDiv.textContent = `(${minutes}m ${seconds}s remaining)`;
+                                }
+                                timeCell.appendChild(remainingDiv);
+                            }
+                        }
+                    }
+                });
+                return; // Skip full recreation
+            }
+            
+            // Fallback to full recreation if structure changed
             tbody.innerHTML = '';
             
             if (queue.length === 0) {
@@ -443,7 +493,7 @@
                 const levelCell = row.insertCell(1);
                 levelCell.textContent = `${item.count} unit${item.count > 1 ? 's' : ''}`;
                 
-                // Progress - using unified progress bar system
+                // Progress - using unified progress bar system with smooth transitions
                 const progressCell = row.insertCell(2);
                 const progressContainer = document.createElement('div');
                 progressContainer.className = 'progress-container';
@@ -451,6 +501,8 @@
                 const progressBar = document.createElement('div');
                 progressBar.className = 'progress-bar active-building';
                 const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+                // Add smooth transition for military training progress
+                progressBar.style.transition = 'width 0.2s ease-out';
                 progressBar.style.width = `${completionPercentage}%`;
                 
                 const progressText = document.createElement('span');
@@ -686,6 +738,54 @@
             const table = document.getElementById('researchQueueTable');
             const noMessage = document.getElementById('noResearchMessage');
             
+            // If we have existing rows and the same number of items, try to update in place
+            const existingRows = tbody.querySelectorAll('tr');
+            const canUpdateInPlace = existingRows.length === queue.length && queue.length > 0;
+            
+            if (canUpdateInPlace) {
+                // Update existing rows with smooth transitions
+                queue.forEach((item, index) => {
+                    const row = existingRows[index];
+                    const progressBar = row.querySelector('.progress-bar');
+                    const progressText = row.querySelector('.progress-percentage');
+                    const timeCell = row.querySelector('td:last-child');
+                    
+                    if (progressBar && progressText) {
+                        const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+                        
+                        // Smooth update - only update if percentage changed significantly
+                        const currentWidth = parseFloat(progressBar.style.width) || 0;
+                        if (Math.abs(completionPercentage - currentWidth) >= 0.1) {
+                            progressBar.style.width = `${completionPercentage}%`;
+                            progressText.textContent = `${Math.round(completionPercentage)}%`;
+                        }
+                        
+                        // Update time display
+                        if (timeCell) {
+                            const endTime = new Date(item.endTime);
+                            timeCell.innerHTML = endTime.toLocaleString();
+                            
+                            if (item.remainingTimeSeconds > 0) {
+                                const remainingDiv = document.createElement('div');
+                                remainingDiv.style.fontSize = '12px';
+                                remainingDiv.style.color = '#666';
+                                const hours = Math.floor(item.remainingTimeSeconds / 3600);
+                                const minutes = Math.floor((item.remainingTimeSeconds % 3600) / 60);
+                                
+                                if (hours > 0) {
+                                    remainingDiv.textContent = `(${hours}h ${minutes}m remaining)`;
+                                } else {
+                                    remainingDiv.textContent = `(${minutes}m remaining)`;
+                                }
+                                timeCell.appendChild(remainingDiv);
+                            }
+                        }
+                    }
+                });
+                return; // Skip full recreation
+            }
+            
+            // Fallback to full recreation if structure changed
             tbody.innerHTML = '';
             
             if (queue.length === 0) {
@@ -708,7 +808,7 @@
                 const quantityCell = row.insertCell(1);
                 quantityCell.textContent = '1 unit';
                 
-                // Progress - using unified progress bar system
+                // Progress - using unified progress bar system with smooth transitions
                 const progressCell = row.insertCell(2);
                 const progressContainer = document.createElement('div');
                 progressContainer.className = 'progress-container';
@@ -716,6 +816,8 @@
                 const progressBar = document.createElement('div');
                 progressBar.className = 'progress-bar active-building';
                 const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+                // Add smooth transition for research progress
+                progressBar.style.transition = 'width 0.2s ease-out';
                 progressBar.style.width = `${completionPercentage}%`;
                 
                 const progressText = document.createElement('span');
@@ -790,6 +892,8 @@
                         
                         const progressBar = document.createElement('div');
                         progressBar.className = 'progress-bar active-building';
+                        // Add smooth transition for research button progress
+                        progressBar.style.transition = 'width 0.2s ease-out';
                         
                         const progressText = document.createElement('span');
                         progressText.className = 'progress-percentage';
