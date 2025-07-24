@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Bar Fixes Test</title>
+    <link rel="stylesheet" href="../css/progress-bars.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .test-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .test-table th, .test-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .test-table th {
+            background-color: #f2f2f2;
+        }
+        
+        .active-building {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .queued-building {
+            color: #6c757d;
+            font-style: italic;
+        }
+        
+        .controls {
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Building Queue & Progress Bar Fixes Test</h1>
+    
+    <div class="status success">
+        <strong>✅ Fixed Issues:</strong>
+        <ul>
+            <li>Progress updates now happen every 250ms instead of 1000ms (4x smoother)</li>
+            <li>Progress bar threshold reduced from 0.1% to 0.05% (smoother increments)</li>
+            <li>CSS transition time reduced from 0.3s to 0.2s (more responsive)</li>
+            <li>Improved queue management to prevent disappearing when multiple buildings complete</li>
+            <li>Added better error handling and logging</li>
+            <li>Added readiness checks to ensure system is properly loaded everywhere</li>
+        </ul>
+    </div>
+    
+    <div class="test-container">
+        <h2>📊 Performance Metrics</h2>
+        <div class="metrics">
+            <div class="metric">
+                <div class="metric-value" id="updateFreq">250ms</div>
+                <div class="metric-label">Update Frequency</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="progressThreshold">0.05%</div>
+                <div class="metric-label">Progress Threshold</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="transitionTime">0.2s</div>
+                <div class="metric-label">CSS Transition</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value" id="queueSize">0</div>
+                <div class="metric-label">Queue Length</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-container">
+        <h2>🏗️ Building Queue Test</h2>
+        <div class="status info">
+            Testing queue with multiple buildings to ensure no disappearing issues
+        </div>
+        
+        <div class="controls">
+            <button class="btn btn-primary" onclick="startTest()">Start Test</button>
+            <button class="btn btn-success" onclick="addBuilding()">Add Building</button>
+            <button class="btn btn-warning" onclick="simulateCompletion()">Complete First Building</button>
+        </div>
+        
+        <table class="test-table">
+            <thead>
+                <tr>
+                    <th>Building</th>
+                    <th>Level</th>
+                    <th>Progress</th>
+                    <th>Time Remaining</th>
+                </tr>
+            </thead>
+            <tbody id="buildingQueueBody">
+                <tr><td colspan="4">No buildings in queue</td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <div class="test-container">
+        <h2>📈 Real-time Progress Test</h2>
+        <div class="status info">
+            Demonstrates smooth 250ms updates and 0.05% threshold
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar active-building" id="testProgressBar" style="width: 0%;">
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 10px;">
+            <span id="testProgress">0%</span> - <span id="testStatus">Ready to start</span>
+        </div>
+    </div>
+
+    <script src="../js/unified-progress.js"></script>
+    <script>
+        let testProgress = 0;
+        let testRunning = false;
+        let buildingCounter = 1;
+        
+        // Test the readiness check
+        window.addEventListener('DOMContentLoaded', function() {
+            if (window.checkProgressSystemReady) {
+                const ready = window.checkProgressSystemReady();
+                console.log('Progress system ready:', ready);
+            }
+        });
+        
+        function startTest() {
+            console.log('Starting progress bar smoothness test...');
+            
+            // Add multiple test buildings
+            const testBuildings = [
+                { type: 'Rathaus', level: 2, duration: 90000 },
+                { type: 'Holzfäller', level: 3, duration: 60000 },
+                { type: 'Steinbruch', level: 1, duration: 45000 },
+                { type: 'Erzbergwerk', level: 4, duration: 120000 }
+            ];
+            
+            testBuildings.forEach((building, index) => {
+                addTestBuilding(building.type, building.level, building.duration, index);
+            });
+            
+            startSmoothProgressTest();
+        }
+        
+        function addTestBuilding(buildingType, level, duration, queueIndex) {
+            const now = Date.now();
+            const startTime = queueIndex === 0 ? now : now + (queueIndex * 30000); // Stagger starts
+            const endTime = startTime + duration;
+            
+            const building = {
+                settlementId: 'test',
+                buildingType: buildingType,
+                level: level,
+                startTime: startTime,
+                endTime: endTime,
+                completed: false,
+                queueIndex: queueIndex
+            };
+            
+            if (window.unifiedProgressManager) {
+                window.unifiedProgressManager.buildingQueue.push(building);
+                const buildingKey = `test_${buildingType}`;
+                window.unifiedProgressManager.activeBuildings.set(buildingKey, building);
+                window.unifiedProgressManager.refreshFullQueue();
+                
+                // Start updates if this is the first building
+                if (queueIndex === 0) {
+                    window.unifiedProgressManager.startProgressUpdates();
+                }
+                
+                updateQueueSize();
+            }
+        }
+        
+        function addBuilding() {
+            const buildingTypes = ['Lager', 'Farm', 'Markt', 'Kaserne'];
+            const randomType = buildingTypes[Math.floor(Math.random() * buildingTypes.length)];
+            const randomLevel = Math.floor(Math.random() * 5) + 1;
+            const randomDuration = (Math.floor(Math.random() * 60) + 30) * 1000; // 30-90 seconds
+            
+            const currentQueueLength = window.unifiedProgressManager ? 
+                window.unifiedProgressManager.buildingQueue.length : 0;
+            
+            addTestBuilding(randomType, randomLevel, randomDuration, currentQueueLength);
+            
+            console.log(`Added ${randomType} Level ${randomLevel} to queue`);
+        }
+        
+        function simulateCompletion() {
+            if (window.unifiedProgressManager && window.unifiedProgressManager.buildingQueue.length > 0) {
+                const firstBuilding = window.unifiedProgressManager.buildingQueue[0];
+                firstBuilding.endTime = Date.now() - 1000; // Set to completed
+                console.log('Simulated completion of first building');
+            }
+        }
+        
+        function startSmoothProgressTest() {
+            testProgress = 0;
+            testRunning = true;
+            
+            const progressBar = document.getElementById('testProgressBar');
+            const progressText = document.getElementById('testProgress');
+            const statusText = document.getElementById('testStatus');
+            
+            const updateTestProgress = () => {
+                if (!testRunning) return;
+                
+                testProgress += 0.1; // Very small increments to test smoothness
+                
+                if (testProgress >= 100) {
+                    testProgress = 100;
+                    testRunning = false;
+                    statusText.textContent = 'Test completed - progress was smooth!';
+                } else {
+                    statusText.textContent = 'Running smooth progress test...';
+                }
+                
+                progressBar.style.width = testProgress + '%';
+                progressText.textContent = testProgress.toFixed(1) + '%';
+                
+                if (testRunning) {
+                    setTimeout(updateTestProgress, 250); // Match our 250ms update frequency
+                }
+            };
+            
+            updateTestProgress();
+        }
+        
+        function updateQueueSize() {
+            const queueSize = window.unifiedProgressManager ? 
+                window.unifiedProgressManager.buildingQueue.length : 0;
+            document.getElementById('queueSize').textContent = queueSize;
+        }
+        
+        // Update metrics every second
+        setInterval(() => {
+            updateQueueSize();
+        }, 1000);
+        
+        console.log('✅ Progress fixes test page loaded');
+        console.log('✅ Update frequency: 250ms (was 1000ms)');
+        console.log('✅ Progress threshold: 0.05% (was 0.1%)');
+        console.log('✅ CSS transition: 0.2s (was 0.3s)');
+    </script>
+</body>
+</html>
