@@ -106,7 +106,24 @@ class ClientProgressManager {
         // Only update the first (active) building in the queue
         if (this.buildingQueue.length > 0) {
             const activeBuilding = this.buildingQueue[0];
+            
+            // Validate building times
+            if (!activeBuilding.startTime || !activeBuilding.endTime) {
+                console.warn('Invalid building times detected:', activeBuilding);
+                return;
+            }
+            
             const totalDuration = activeBuilding.endTime - activeBuilding.startTime;
+            
+            // Handle edge case where duration is 0 or negative
+            if (totalDuration <= 0) {
+                console.warn('Invalid building duration:', totalDuration);
+                activeBuilding.completed = true;
+                shouldSyncWithServer = true;
+                this.onBuildingCompleted(activeBuilding);
+                return;
+            }
+            
             const elapsed = now - activeBuilding.startTime;
             const completionPercentage = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
             
@@ -121,20 +138,47 @@ class ClientProgressManager {
             }
         }
         
-        // Update remaining buildings with 0% progress and proper time display
+        // Update remaining buildings with time display only (progress stays at 0%)
+        // Only update time display to avoid unnecessary DOM manipulation
         this.buildingQueue.forEach((item, index) => {
             if (index > 0) {
-                // Show 0% progress for non-active buildings
-                this.updateProgressBar(item, 0, index);
+                // Only update time display for queued buildings, not progress bar
+                this.updateTimeDisplay(item, index);
             }
         });
         
         // Remove completed buildings from queue
+        const initialQueueLength = this.buildingQueue.length;
         this.buildingQueue = this.buildingQueue.filter(item => !item.completed);
+        
+        // If queue changed, refresh the display to maintain correct indices
+        if (this.buildingQueue.length !== initialQueueLength) {
+            this.updateQueueDisplay();
+        }
         
         // Check if we need to sync with server
         if (shouldSyncWithServer || (now - this.lastServerSync) > this.config.serverSyncInterval) {
             this.syncWithServer();
+        }
+    }
+    
+    /**
+     * Update only the time display for a queued building (more efficient)
+     */
+    updateTimeDisplay(item, queueIndex) {
+        const queueRows = document.querySelectorAll('#buildingQueueBody tr');
+        if (queueIndex < queueRows.length) {
+            const row = queueRows[queueIndex];
+            const endTimeCell = row.querySelector('td:last-child');
+            if (endTimeCell) {
+                const remainingTime = Math.max(0, item.endTime - Date.now());
+                const newTimeText = this.formatRemainingTime(remainingTime, queueIndex);
+                
+                // Only update if the text actually changed
+                if (endTimeCell.textContent !== newTimeText) {
+                    endTimeCell.textContent = newTimeText;
+                }
+            }
         }
     }
     
@@ -149,13 +193,15 @@ class ClientProgressManager {
             const row = queueRows[queueIndex];
             const progressBar = row.querySelector('.progress-bar');
             if (progressBar) {
-                // Only update if there's a significant change to reduce DOM updates
+                // Only update if there's a meaningful change to reduce DOM updates
                 const currentWidth = parseFloat(progressBar.style.width) || 0;
                 const widthDiff = Math.abs(completionPercentage - currentWidth);
                 
-                if (widthDiff >= 1 || completionPercentage >= 100 || completionPercentage === 0) {
+                // Use smaller threshold for smoother updates, but still avoid excessive DOM manipulation
+                if (widthDiff >= 0.5 || completionPercentage >= 100 || completionPercentage === 0) {
                     progressBar.style.width = `${completionPercentage}%`;
-                    progressBar.style.transition = queueIndex === 0 ? 'width 0.8s ease-out' : 'none';
+                    // Use consistent transition timing for smooth progress
+                    progressBar.style.transition = queueIndex === 0 ? 'width 0.5s ease-out' : 'none';
                 }
             }
             
@@ -180,9 +226,10 @@ class ClientProgressManager {
                         const currentWidth = parseFloat(progressBar.style.width) || 0;
                         const widthDiff = Math.abs(completionPercentage - currentWidth);
                         
-                        if (widthDiff >= 1 || completionPercentage >= 100) {
+                        // Use smaller threshold for smoother updates
+                        if (widthDiff >= 0.5 || completionPercentage >= 100) {
                             progressBar.style.width = `${completionPercentage}%`;
-                            progressBar.style.transition = 'width 0.8s ease-out';
+                            progressBar.style.transition = 'width 0.5s ease-out';
                         }
                     }
                     
@@ -388,7 +435,7 @@ class ClientProgressManager {
                 <td>${item.level}</td>
                 <td>
                     <div class="progress-container">
-                        <div class="progress-bar ${statusClass}" style="width: 0%; transition: width 0.1s ease-out;"></div>
+                        <div class="progress-bar ${statusClass}" style="width: 0%; transition: width 0.5s ease-out;"></div>
                     </div>
                 </td>
                 <td>${this.formatRemainingTime(remainingTime, index)}</td>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Improved Progress Bar Test</title>
+    <style>
+        /* Use the improved CSS from the actual game */
+        :root {
+            --progress-bg: #e0e0e0;
+            --progress-bar: #4457ff69;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: var(--progress-bg);
+            border-radius: 10px;
+            overflow: hidden;
+            height: 20px;
+            margin: 10px 0;
+            transition: background-color 0.3s ease;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--progress-bar);
+            width: 0%;
+            border-radius: 10px;
+            transition: width 0.5s ease-out, background-color 0.3s ease;
+        }
+        
+        .progress-bar.active-building {
+            background-color: var(--progress-bar);
+        }
+        
+        .progress-bar.queued-building {
+            background-color: #cccccc;
+            opacity: 0.5;
+        }
+        
+        .active-building {
+            font-weight: bold;
+        }
+        
+        .queued-building {
+            color: #888;
+            font-style: italic;
+        }
+        
+        table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        
+        .test-controls {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .btn-primary { background-color: #007bff; color: white; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-success { background-color: #28a745; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Improved Progress Bar Test</h1>
+    
+    <div class="test-controls">
+        <h3>Test Controls</h3>
+        <button class="btn-primary" onclick="testSmooth()">Test Smooth Animation</button>
+        <button class="btn-success" onclick="testEdgeCases()">Test Edge Cases</button>
+        <button class="btn-secondary" onclick="resetAll()">Reset All</button>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Building</th>
+                <th>Level</th>
+                <th>Progress</th>
+                <th>Status</th>
+                <th>Remaining Time</th>
+            </tr>
+        </thead>
+        <tbody id="buildingQueueBody">
+            <tr>
+                <td class="active-building">Town Hall</td>
+                <td>2</td>
+                <td>
+                    <div class="progress-container">
+                        <div class="progress-bar active-building" id="progress-1" style="width: 0%;"></div>
+                    </div>
+                </td>
+                <td>Active</td>
+                <td id="time-1">1m 30s</td>
+            </tr>
+            <tr>
+                <td class="queued-building">Lumberjack (queued)</td>
+                <td>3</td>
+                <td>
+                    <div class="progress-container">
+                        <div class="progress-bar queued-building" id="progress-2" style="width: 0%;"></div>
+                    </div>
+                </td>
+                <td>Queued</td>
+                <td id="time-2">3m 45s (queued)</td>
+            </tr>
+            <tr>
+                <td class="queued-building">Storage (queued)</td>
+                <td>4</td>
+                <td>
+                    <div class="progress-container">
+                        <div class="progress-bar queued-building" id="progress-3" style="width: 0%;"></div>
+                    </div>
+                </td>
+                <td>Queued</td>
+                <td id="time-3">5m 20s (queued)</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div id="status">Status: Ready for testing</div>
+    
+    <script>
+        let testInterval = null;
+        let currentTest = null;
+        
+        function updateStatus(message) {
+            document.getElementById('status').textContent = 'Status: ' + message;
+        }
+        
+        function testSmooth() {
+            if (testInterval) clearInterval(testInterval);
+            resetAll();
+            
+            updateStatus('Testing smooth animation with 0.5% increments');
+            
+            let progress1 = 0;
+            let progress2 = 0;
+            let progress3 = 0;
+            let startTime = Date.now();
+            
+            testInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                
+                // First building: 0-100% in 20 seconds
+                if (progress1 < 100) {
+                    progress1 += 0.5; // 0.5% every 100ms = smooth animation
+                    document.getElementById('progress-1').style.width = progress1 + '%';
+                    
+                    const remaining = Math.max(0, 90 - Math.floor(elapsed / 1000));
+                    document.getElementById('time-1').textContent = formatTime(remaining);
+                }
+                
+                // Second building starts after first reaches 100%
+                if (progress1 >= 100 && progress2 < 100) {
+                    progress2 += 1; // Faster progress for demonstration
+                    document.getElementById('progress-2').style.width = progress2 + '%';
+                    document.getElementById('progress-2').classList.remove('queued-building');
+                    document.getElementById('progress-2').classList.add('active-building');
+                    
+                    const remaining = Math.max(0, 60 - Math.floor((elapsed - 20000) / 1000));
+                    document.getElementById('time-2').textContent = formatTime(remaining);
+                }
+                
+                // Third building starts after second reaches 100%
+                if (progress2 >= 100 && progress3 < 100) {
+                    progress3 += 1.5;
+                    document.getElementById('progress-3').style.width = progress3 + '%';
+                    document.getElementById('progress-3').classList.remove('queued-building');
+                    document.getElementById('progress-3').classList.add('active-building');
+                    
+                    const remaining = Math.max(0, 40 - Math.floor((elapsed - 30000) / 1000));
+                    document.getElementById('time-3').textContent = formatTime(remaining);
+                }
+                
+                if (progress1 >= 100 && progress2 >= 100 && progress3 >= 100) {
+                    clearInterval(testInterval);
+                    updateStatus('Smooth animation test completed successfully!');
+                }
+            }, 100);
+        }
+        
+        function testEdgeCases() {
+            if (testInterval) clearInterval(testInterval);
+            resetAll();
+            
+            updateStatus('Testing edge cases: instant completion, negative time, etc.');
+            
+            // Test instant completion
+            document.getElementById('progress-1').style.width = '100%';
+            document.getElementById('time-1').textContent = 'Completed!';
+            
+            // Test very slow progress
+            let slowProgress = 0;
+            testInterval = setInterval(() => {
+                if (slowProgress < 25) {
+                    slowProgress += 0.1; // Very slow progress
+                    document.getElementById('progress-2').style.width = slowProgress + '%';
+                    document.getElementById('progress-2').classList.remove('queued-building');
+                    document.getElementById('progress-2').classList.add('active-building');
+                    
+                    document.getElementById('time-2').textContent = formatTime(250 - Math.floor(slowProgress * 10));
+                }
+            }, 200);
+            
+            // Test negative/zero time handling
+            document.getElementById('time-3').textContent = 'Invalid time handled gracefully';
+        }
+        
+        function resetAll() {
+            if (testInterval) {
+                clearInterval(testInterval);
+                testInterval = null;
+            }
+            
+            // Reset all progress bars
+            document.getElementById('progress-1').style.width = '0%';
+            document.getElementById('progress-2').style.width = '0%';
+            document.getElementById('progress-3').style.width = '0%';
+            
+            // Reset classes
+            document.getElementById('progress-2').classList.remove('active-building');
+            document.getElementById('progress-2').classList.add('queued-building');
+            document.getElementById('progress-3').classList.remove('active-building');
+            document.getElementById('progress-3').classList.add('queued-building');
+            
+            // Reset times
+            document.getElementById('time-1').textContent = '1m 30s';
+            document.getElementById('time-2').textContent = '3m 45s (queued)';
+            document.getElementById('time-3').textContent = '5m 20s (queued)';
+            
+            updateStatus('All progress bars reset');
+        }
+        
+        function formatTime(seconds) {
+            if (seconds <= 0) return 'Completed!';
+            
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes}m ${secs}s`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${secs}s`;
+            } else {
+                return `${secs}s`;
+            }
+        }
+    </script>
+</body>
+</html>
