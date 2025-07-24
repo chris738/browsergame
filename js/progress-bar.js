@@ -33,7 +33,14 @@ class BuildingProgressManager {
             if (data.success && data.progress) {
                 const progressData = data.progress;
                 
-                // Store the building progress data
+                // Calculate proper queue index based on existing buildings for this settlement
+                const settlementBuildings = Array.from(this.activeBuildings.values())
+                    .filter(building => building.settlementId === settlementId)
+                    .sort((a, b) => a.startTime - b.startTime); // Sort by start time
+                
+                const queueIndex = settlementBuildings.length; // Next position in queue
+                
+                // Store the building progress data with correct queue index
                 const buildingKey = `${settlementId}_${buildingType}`;
                 this.activeBuildings.set(buildingKey, {
                     settlementId: settlementId,
@@ -41,16 +48,17 @@ class BuildingProgressManager {
                     startTime: new Date(progressData.startTime).getTime(),
                     endTime: new Date(progressData.endTime).getTime(),
                     level: progressData.level,
-                    queueIndex: progressData.queueIndex || 0
+                    queueIndex: queueIndex,
+                    completed: false
                 });
                 
-                // Add or update progress bar in the UI
-                this.addProgressBarToQueue(progressData);
+                // Refresh the entire queue display to ensure proper ordering
+                this.refreshFullQueue();
                 
                 // Start the progress update loop if not already running
                 this.startProgressUpdates();
                 
-                console.log(`Successfully started tracking ${buildingType}:`, progressData);
+                console.log(`Successfully started tracking ${buildingType} at queue position ${queueIndex}:`, progressData);
             } else {
                 console.warn(`No progress data available for ${buildingType}:`, data);
             }
@@ -72,48 +80,92 @@ class BuildingProgressManager {
             emptyRow.parentElement.remove();
         }
 
-        // Check if a row for this building already exists
-        const existingRow = Array.from(buildingQueueBody.querySelectorAll('tr')).find(row => {
-            const buildingCell = row.querySelector('td:first-child');
-            return buildingCell && buildingCell.textContent.includes(this.translateBuildingName(progressData.buildingType));
-        });
+        // Re-render the entire queue to ensure proper ordering and queue indices
+        this.refreshFullQueue();
+    }
 
-        let row;
-        if (existingRow) {
-            row = existingRow;
-        } else {
-            row = document.createElement('tr');
-            buildingQueueBody.appendChild(row);
+    /**
+     * Refresh the entire building queue display
+     */
+    refreshFullQueue() {
+        const buildingQueueBody = document.getElementById('buildingQueueBody');
+        if (!buildingQueueBody) return;
+
+        // Clear existing content
+        buildingQueueBody.innerHTML = '';
+
+        if (this.activeBuildings.size === 0) {
+            const emptyRow = document.createElement('tr');
+            emptyRow.innerHTML = '<td colspan="4">No buildings in queue</td>';
+            buildingQueueBody.appendChild(emptyRow);
+            return;
         }
 
-        // Calculate initial progress
-        const now = Date.now();
-        const startTime = new Date(progressData.startTime).getTime();
-        const endTime = new Date(progressData.endTime).getTime();
-        const totalDuration = endTime - startTime;
-        const elapsed = now - startTime;
-        const initialProgress = Math.max(0, Math.min(100, (elapsed / totalDuration) * 100));
+        // Sort buildings by queue index (start time as secondary sort)
+        const sortedBuildings = Array.from(this.activeBuildings.values()).sort((a, b) => {
+            if (a.queueIndex !== b.queueIndex) {
+                return a.queueIndex - b.queueIndex;
+            }
+            return a.startTime - b.startTime;
+        });
 
-        // Create or update row content
-        const translatedName = this.translateBuildingName(progressData.buildingType);
-        const queueStatus = progressData.queueIndex === 0 ? '' : ' (queued)';
-        
-        row.innerHTML = `
-            <td class="${progressData.queueIndex === 0 ? 'active-building' : 'queued-building'}">${translatedName}${queueStatus}</td>
-            <td>${progressData.level}</td>
-            <td>
-                <div class="progress-container">
-                    <div class="progress-bar ${progressData.queueIndex === 0 ? 'active-building' : 'queued-building'}" 
-                         style="width: ${progressData.queueIndex === 0 ? initialProgress : 0}%; transition: width 0.3s ease-out;">
+        // Re-assign correct queue indices
+        sortedBuildings.forEach((building, index) => {
+            building.queueIndex = index;
+            const buildingKey = `${building.settlementId}_${building.buildingType}`;
+            this.activeBuildings.set(buildingKey, building);
+        });
+
+        // Create rows for each building
+        sortedBuildings.forEach((building, queueIndex) => {
+            const row = document.createElement('tr');
+            
+            // Calculate progress and time
+            const now = Date.now();
+            const startTime = building.startTime;
+            const endTime = building.endTime;
+            const totalDuration = endTime - startTime;
+            const elapsed = now - startTime;
+            const initialProgress = queueIndex === 0 ? Math.max(0, Math.min(100, (elapsed / totalDuration) * 100)) : 0;
+
+            // Calculate wait time for queued buildings
+            let waitTime = 0;
+            if (queueIndex > 0) {
+                // Add remaining time from all previous buildings
+                for (let i = 0; i < queueIndex; i++) {
+                    const prevBuilding = sortedBuildings[i];
+                    waitTime += Math.max(0, prevBuilding.endTime - now);
+                }
+                // Add this building's build time
+                waitTime += (endTime - startTime);
+            } else {
+                // Active building - just show remaining time
+                waitTime = Math.max(0, endTime - now);
+            }
+
+            const translatedName = this.translateBuildingName(building.buildingType);
+            const queueStatus = queueIndex === 0 ? '' : ' (queued)';
+            
+            row.innerHTML = `
+                <td class="${queueIndex === 0 ? 'active-building' : 'queued-building'}">${translatedName}${queueStatus}</td>
+                <td>${building.level}</td>
+                <td>
+                    <div class="progress-container">
+                        <div class="progress-bar ${queueIndex === 0 ? 'active-building' : 'queued-building'}" 
+                             style="width: ${initialProgress}%; transition: ${queueIndex === 0 ? 'width 0.3s ease-out' : 'none'};">
+                        </div>
                     </div>
-                </div>
-            </td>
-            <td class="time-display">${this.formatRemainingTime(endTime - now, progressData.queueIndex)}</td>
-        `;
+                </td>
+                <td class="time-display">${this.formatRemainingTime(waitTime, queueIndex)}</td>
+            `;
 
-        // Store reference to this row for updates
-        row.dataset.buildingType = progressData.buildingType;
-        row.dataset.settlementId = progressData.settlementId;
+            // Store reference to this row for updates
+            row.dataset.buildingType = building.buildingType;
+            row.dataset.settlementId = building.settlementId;
+            row.dataset.queueIndex = queueIndex;
+
+            buildingQueueBody.appendChild(row);
+        });
     }
 
     /**
@@ -144,43 +196,120 @@ class BuildingProgressManager {
         const now = Date.now();
         const completedBuildings = [];
 
-        for (const [buildingKey, buildingData] of this.activeBuildings) {
-            const { buildingType, startTime, endTime, queueIndex, settlementId } = buildingData;
+        if (this.activeBuildings.size === 0) {
+            this.stopProgressUpdates();
+            return;
+        }
+
+        // Get sorted buildings (first one is active)
+        const sortedBuildings = Array.from(this.activeBuildings.values()).sort((a, b) => {
+            if (a.queueIndex !== b.queueIndex) {
+                return a.queueIndex - b.queueIndex;
+            }
+            return a.startTime - b.startTime;
+        });
+
+        // Update only the first (active) building's progress bar
+        if (sortedBuildings.length > 0) {
+            const activeBuilding = sortedBuildings[0];
+            const buildingKey = `${activeBuilding.settlementId}_${activeBuilding.buildingType}`;
             
-            // Find the corresponding row in the table
-            const row = document.querySelector(`tr[data-building-type="${buildingType}"][data-settlement-id="${settlementId}"]`);
-            if (!row) continue;
-
-            const totalDuration = endTime - startTime;
-            const elapsed = now - startTime;
-            const progress = Math.max(0, Math.min(100, (elapsed / totalDuration) * 100));
-
-            // Update progress bar only for active building (queueIndex 0)
-            if (queueIndex === 0) {
-                const progressBar = row.querySelector('.progress-bar');
-                if (progressBar) {
-                    progressBar.style.width = `${progress}%`;
+            // Validate building times
+            if (!activeBuilding.startTime || !activeBuilding.endTime) {
+                console.warn('Invalid building times detected:', activeBuilding);
+                return;
+            }
+            
+            const totalDuration = activeBuilding.endTime - activeBuilding.startTime;
+            
+            // Handle edge case where duration is 0 or negative
+            if (totalDuration <= 0) {
+                console.warn('Invalid building duration:', totalDuration);
+                activeBuilding.completed = true;
+                completedBuildings.push(buildingKey);
+                this.onBuildingCompleted(activeBuilding);
+            } else {
+                const elapsed = now - activeBuilding.startTime;
+                const completionPercentage = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
+                
+                // Ensure valid progress percentage
+                if (!isNaN(completionPercentage) && completionPercentage >= 0) {
+                    // Find the active building row (should be first row with queueIndex 0)
+                    const activeRow = document.querySelector(`tr[data-queue-index="0"]`);
+                    if (activeRow) {
+                        const progressBar = activeRow.querySelector('.progress-bar');
+                        if (progressBar) {
+                            const currentWidth = parseFloat(progressBar.style.width) || 0;
+                            const widthDiff = Math.abs(completionPercentage - currentWidth);
+                            
+                            // Update progress bar with smooth transition
+                            if (widthDiff >= 0.5 || completionPercentage >= 100 || completionPercentage === 0) {
+                                progressBar.style.width = `${completionPercentage}%`;
+                                progressBar.style.transition = 'width 0.5s ease-out';
+                            }
+                        }
+                        
+                        // Update time display for active building
+                        const timeDisplay = activeRow.querySelector('.time-display');
+                        if (timeDisplay) {
+                            const remainingTime = Math.max(0, activeBuilding.endTime - now);
+                            const newTimeText = this.formatRemainingTime(remainingTime, 0);
+                            if (timeDisplay.textContent !== newTimeText) {
+                                timeDisplay.textContent = newTimeText;
+                            }
+                        }
+                    }
+                    
+                    // Check if building is completed
+                    if (now >= activeBuilding.endTime && !activeBuilding.completed) {
+                        activeBuilding.completed = true;
+                        completedBuildings.push(buildingKey);
+                        this.onBuildingCompleted(activeBuilding);
+                    }
                 }
             }
-
-            // Update time display
-            const timeDisplay = row.querySelector('.time-display');
-            if (timeDisplay) {
-                const remainingTime = Math.max(0, endTime - now);
-                timeDisplay.textContent = this.formatRemainingTime(remainingTime, queueIndex);
-            }
-
-            // Check if building is completed
-            if (now >= endTime) {
-                completedBuildings.push(buildingKey);
-                this.onBuildingCompleted(buildingData, row);
-            }
         }
+
+        // Update time displays for queued buildings (but not progress bars)
+        sortedBuildings.forEach((building, index) => {
+            if (index > 0) { // Only queued buildings
+                const row = document.querySelector(`tr[data-queue-index="${index}"]`);
+                if (row) {
+                    const timeDisplay = row.querySelector('.time-display');
+                    if (timeDisplay) {
+                        // Calculate total wait time for queued building
+                        let totalWaitTime = 0;
+                        
+                        // Add remaining time from all previous buildings
+                        for (let i = 0; i < index; i++) {
+                            const prevBuilding = sortedBuildings[i];
+                            if (prevBuilding && !prevBuilding.completed) {
+                                totalWaitTime += Math.max(0, prevBuilding.endTime - now);
+                            }
+                        }
+                        
+                        // Add this building's build time
+                        const thisBuildingDuration = building.endTime - building.startTime;
+                        totalWaitTime += thisBuildingDuration;
+                        
+                        const newTimeText = this.formatRemainingTime(totalWaitTime, index);
+                        if (timeDisplay.textContent !== newTimeText) {
+                            timeDisplay.textContent = newTimeText;
+                        }
+                    }
+                }
+            }
+        });
 
         // Remove completed buildings from tracking
         completedBuildings.forEach(buildingKey => {
             this.activeBuildings.delete(buildingKey);
         });
+
+        // If buildings were completed, refresh the queue to update indices
+        if (completedBuildings.length > 0) {
+            this.refreshFullQueue();
+        }
 
         // Stop updates if no active buildings
         if (this.activeBuildings.size === 0) {
@@ -199,14 +328,9 @@ class BuildingProgressManager {
     /**
      * Handle building completion
      */
-    onBuildingCompleted(buildingData, row) {
+    onBuildingCompleted(buildingData) {
         console.log(`Building completed: ${buildingData.buildingType} Level ${buildingData.level}`);
         
-        // Remove the row from the queue
-        if (row && row.parentNode) {
-            row.parentNode.removeChild(row);
-        }
-
         // Refresh building data and resources
         if (window.fetchBuildings) {
             window.fetchBuildings(buildingData.settlementId);
@@ -214,6 +338,8 @@ class BuildingProgressManager {
         if (window.fetchResources) {
             window.fetchResources(buildingData.settlementId);
         }
+        
+        // The queue will be refreshed by the calling function after removing the completed building
     }
 
     /**
@@ -266,8 +392,16 @@ class BuildingProgressManager {
                 // Clear existing tracking
                 this.activeBuildings.clear();
                 
-                // Track all active buildings
-                for (const buildingProgress of data.buildings) {
+                // Sort buildings by queue index, then by start time
+                const sortedBuildings = data.buildings.sort((a, b) => {
+                    if (a.queueIndex !== b.queueIndex) {
+                        return (a.queueIndex || 0) - (b.queueIndex || 0);
+                    }
+                    return new Date(a.startTime) - new Date(b.startTime);
+                });
+                
+                // Track all active buildings with correct queue indices
+                sortedBuildings.forEach((buildingProgress, index) => {
                     const buildingKey = `${settlementId}_${buildingProgress.buildingType}`;
                     this.activeBuildings.set(buildingKey, {
                         settlementId: settlementId,
@@ -275,11 +409,13 @@ class BuildingProgressManager {
                         startTime: new Date(buildingProgress.startTime).getTime(),
                         endTime: new Date(buildingProgress.endTime).getTime(),
                         level: buildingProgress.level,
-                        queueIndex: buildingProgress.queueIndex || 0
+                        queueIndex: index, // Use actual order in queue
+                        completed: false
                     });
-                    
-                    this.addProgressBarToQueue(buildingProgress);
-                }
+                });
+                
+                // Refresh the queue display
+                this.refreshFullQueue();
                 
                 // Start updates if we have active buildings
                 if (this.activeBuildings.size > 0) {
