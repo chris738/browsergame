@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attack Test</title>
+</head>
+<body>
+    <h1>Attack Test</h1>
+    <button onclick="testAttack()">Test Attack</button>
+    <div id="result"></div>
+
+    <script>
+        function testAttack() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            fetch('php/battle-backend.php?action=attack', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    attackerSettlementId: 1,
+                    defenderSettlementId: 2,
+                    units: {
+                        guards: 2,
+                        soldiers: 3,
+                        archers: 1,
+                        cavalry: 1
+                    }
+                })
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                console.log('Response ok:', response.ok);
+                
+                // Check if response is ok before parsing JSON
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data received:', data);
+                
+                if (data.success) {
+                    resultDiv.innerHTML = '<span style="color: green;">Success: ' + JSON.stringify(data) + '</span>';
+                } else {
+                    resultDiv.innerHTML = '<span style="color: orange;">Failed: ' + data.message + '</span>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                resultDiv.innerHTML = '<span style="color: red;">Network error: ' + error.message + '</span>';
+            });
+        }
+    </script>
+</body>
+</html>
