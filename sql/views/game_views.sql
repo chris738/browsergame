@@ -14,7 +14,12 @@ SELECT
     level,
     TIMESTAMPDIFF(SECOND, NOW(), endTime) AS remainingTimeSeconds, -- Verbleibende Zeit in Sekunden
     GREATEST(0, LEAST(100, ROUND(
-        100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / GREATEST(1, TIMESTAMPDIFF(SECOND, startTime, endTime))),
+        CASE 
+            WHEN TIMESTAMPDIFF(SECOND, startTime, endTime) <= 0 THEN 100
+            WHEN NOW() < DATE_ADD(startTime, INTERVAL 2 SECOND) THEN 0 -- Show 0% for first 2 seconds
+            WHEN NOW() >= endTime THEN 100
+            ELSE 100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / TIMESTAMPDIFF(SECOND, startTime, endTime))
+        END,
         2
     ))) AS completionPercentage -- Fertigstellungsprozentsatz (0-100% guaranteed)
 FROM BuildingQueue
