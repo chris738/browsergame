@@ -235,13 +235,14 @@ BEGIN
     FROM MilitarySettlerCosts
     WHERE settlementId = inSettlementId;
 
-    -- Calculate current free settlers: maxSettlers - (building costs + military costs)
-    SELECT 
-        GREATEST(0, 
-            COALESCE((SELECT SUM(level * 10) FROM Buildings WHERE settlementId = inSettlementId AND buildingType = 'Farm'), 0) + 100 - 
-            COALESCE((SELECT SUM(level * 7) FROM Buildings WHERE settlementId = inSettlementId AND buildingType != 'Farm'), 0) -
-            currentMilitarySettlerCost
-        ) INTO currentFreeSettlers;
+    -- Get current free settlers from the SettlementSettlers view
+    SELECT COALESCE(freeSettlers, 0) 
+    INTO currentFreeSettlers
+    FROM SettlementSettlers 
+    WHERE settlementId = inSettlementId;
+    
+    -- Subtract current military settler costs to get actual free settlers available for training
+    SET currentFreeSettlers = GREATEST(0, currentFreeSettlers - currentMilitarySettlerCost);
 
     -- Check if settlement has enough resources including settlers
     IF (SELECT wood FROM Settlement WHERE settlementId = inSettlementId) >= totalCostWood AND
