@@ -408,17 +408,16 @@ function upgradeBuilding(buildingType, settlementId) {
                         fetchBuildings(settlementId); // Update building data
                         fetchResources(settlementId);
                         
-                        // Use the new progress bar system - fetch end time via API call as requested
-                        if (window.buildingProgressManager) {
-                            window.buildingProgressManager.trackBuildingUpgrade(settlementId, buildingType);
+                        // Force immediate refresh of the queue to ensure it's updated
+                        if (window.unifiedProgressManager) {
+                            // Use the unified progress manager to force a complete refresh
+                            window.unifiedProgressManager.forceSyncWithServer();
+                        } else if (window.clientProgressManager) {
+                            // Force sync with client progress manager if it exists
+                            window.clientProgressManager.forceSyncWithServer();
                         } else {
                             // Fallback to old system
                             fetchBuildingQueue(settlementId);
-                        }
-                        
-                        // Force sync with client progress manager if it exists
-                        if (window.clientProgressManager) {
-                            window.clientProgressManager.forceSyncWithServer();
                         }
                     } else {
                         alert(data.message); // Shows error message
