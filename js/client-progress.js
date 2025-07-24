@@ -408,6 +408,11 @@ class ClientProgressManager {
                 this.updateQueueDisplay();
             } else {
                 console.log('No building queue items found, clearing queue');
+                // Don't clear the queue if the new building progress manager is active and has buildings
+                if (window.buildingProgressManager && window.buildingProgressManager.activeBuildings.size > 0) {
+                    console.log('New building progress manager is active, keeping existing queue');
+                    return;
+                }
                 this.buildingQueue = [];
                 this.updateQueueDisplay();
             }
@@ -433,6 +438,12 @@ class ClientProgressManager {
      * Update queue display in DOM
      */
     updateQueueDisplay() {
+        // Don't interfere if the new building progress manager is active
+        if (window.buildingProgressManager && window.buildingProgressManager.activeBuildings.size > 0) {
+            console.log('New building progress manager is active, skipping queue display update');
+            return;
+        }
+        
         const buildingQueueBody = document.getElementById('buildingQueueBody');
         if (!buildingQueueBody) return;
         
