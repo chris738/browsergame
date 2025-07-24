@@ -13,10 +13,10 @@ SELECT
     endTime,
     level,
     TIMESTAMPDIFF(SECOND, NOW(), endTime) AS remainingTimeSeconds, -- Verbleibende Zeit in Sekunden
-    ROUND(
-        100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / TIMESTAMPDIFF(SECOND, startTime, endTime)),
+    GREATEST(0, LEAST(100, ROUND(
+        100 - (TIMESTAMPDIFF(SECOND, NOW(), endTime) * 100.0 / GREATEST(1, TIMESTAMPDIFF(SECOND, startTime, endTime))),
         2
-    ) AS completionPercentage -- Fertigstellungsprozentsatz
+    ))) AS completionPercentage -- Fertigstellungsprozentsatz (0-100% guaranteed)
 FROM BuildingQueue
 WHERE NOW() < endTime -- Nur Bauvorhaben, die noch nicht abgeschlossen sind
 ORDER BY endTime ASC; -- Sortiere nach dem frühesten Abschlusszeitpunkt

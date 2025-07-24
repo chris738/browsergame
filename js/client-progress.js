@@ -127,6 +127,12 @@ class ClientProgressManager {
             const elapsed = now - activeBuilding.startTime;
             const completionPercentage = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100));
             
+            // Ensure valid progress percentage (prevent NaN and invalid values)
+            if (isNaN(completionPercentage) || completionPercentage < 0) {
+                console.warn('Invalid completion percentage calculated:', completionPercentage);
+                return;
+            }
+            
             // Update progress bar only for the first building
             this.updateProgressBar(activeBuilding, completionPercentage, 0);
             
@@ -142,8 +148,10 @@ class ClientProgressManager {
         // Only update time display to avoid unnecessary DOM manipulation
         this.buildingQueue.forEach((item, index) => {
             if (index > 0) {
-                // Only update time display for queued buildings, not progress bar
+                // Only update time display for queued buildings, keep progress at 0%
                 this.updateTimeDisplay(item, index);
+                // Ensure queued buildings have 0% progress
+                this.updateProgressBarToZero(index);
             }
         });
         
@@ -178,6 +186,21 @@ class ClientProgressManager {
                 if (endTimeCell.textContent !== newTimeText) {
                     endTimeCell.textContent = newTimeText;
                 }
+            }
+        }
+    }
+    
+    /**
+     * Ensure queued buildings have 0% progress
+     */
+    updateProgressBarToZero(queueIndex) {
+        const queueRows = document.querySelectorAll('#buildingQueueBody tr');
+        if (queueIndex < queueRows.length) {
+            const row = queueRows[queueIndex];
+            const progressBar = row.querySelector('.progress-bar');
+            if (progressBar && progressBar.style.width !== '0%') {
+                progressBar.style.width = '0%';
+                progressBar.style.transition = 'none'; // No animation for zeroing
             }
         }
     }
@@ -306,8 +329,8 @@ class ClientProgressManager {
     onBuildingCompleted(building) {
         console.log(`Building completed: ${building.buildingType} Level ${building.level}`);
         
-        // Show completion notification
-        this.showBuildingCompletionNotification(building);
+        // Do NOT show completion notification per requirements
+        // this.showBuildingCompletionNotification(building);
         
         // Mark that we need fresh building data
         this.needsBuildingDataRefresh = true;
@@ -430,12 +453,17 @@ class ClientProgressManager {
             // Add visual indicator for active vs queued buildings
             const statusClass = index === 0 ? 'active-building' : 'queued-building';
             
+            // Calculate initial progress only for active building (index 0)
+            const initialProgress = index === 0 ? Math.min(100, Math.max(0, 
+                ((Date.now() - item.startTime) / (item.endTime - item.startTime)) * 100
+            )) : 0;
+            
             row.innerHTML = `
                 <td class="${statusClass}">${translatedBuildingName}${index > 0 ? ' (queued)' : ''}</td>
                 <td>${item.level}</td>
                 <td>
                     <div class="progress-container">
-                        <div class="progress-bar ${statusClass}" style="width: 0%; transition: width 0.5s ease-out;"></div>
+                        <div class="progress-bar ${statusClass}" style="width: ${initialProgress}%; transition: width 0.5s ease-out;"></div>
                     </div>
                 </td>
                 <td>${this.formatRemainingTime(remainingTime, index)}</td>
