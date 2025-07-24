@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Progress Bar Test</title>
+    <link rel="stylesheet" href="css/progress-bars.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .comparison-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 { color: #333; }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .before, .after {
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .before {
+            background-color: #ffe6e6;
+            border-left: 4px solid #ff4444;
+        }
+        .after {
+            background-color: #e6ffe6;
+            border-left: 4px solid #44ff44;
+        }
+        .legacy-progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            position: relative;
+            border: 1px solid #ccc;
+        }
+        .legacy-progress-fill {
+            width: 65%;
+            height: 100%;
+            background-color: #3498db;
+            border-radius: 4px;
+        }
+        .legacy-progress-text {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.5);
+        }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 12px; text-align: left; border: 1px solid #ddd; }
+        th { background-color: #f8f9fa; }
+        .demo-label { font-weight: bold; margin: 10px 0 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔬 Research Progress Bar Integration Test</h1>
+    
+    <div class="comparison-section">
+        <h2>Settlement vs Research Progress Bar Comparison</h2>
+        <p>This test verifies that research progress bars now use the same unified system as settlement progress bars.</p>
+        
+        <div class="comparison-grid">
+            <div class="before">
+                <h3>❌ BEFORE: Custom Styled Research</h3>
+                <div class="demo-label">Old Research Progress (Manual Styling):</div>
+                <div class="legacy-progress-bar">
+                    <div class="legacy-progress-fill"></div>
+                    <span class="legacy-progress-text">65%</span>
+                </div>
+                <small>Used inline styles, inconsistent with settlement system</small>
+            </div>
+            
+            <div class="after">
+                <h3>✅ AFTER: Unified Progress System</h3>
+                <div class="demo-label">New Research Progress (Unified CSS):</div>
+                <div class="progress-container">
+                    <div class="progress-bar active-building" style="width: 65%;">
+                    </div>
+                    <span class="progress-percentage">65%</span>
+                </div>
+                <small>Uses progress-bars.css classes, consistent with settlements</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="comparison-section">
+        <h2>Research Queue Display Test</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Unit</th>
+                    <th>Quantity</th>
+                    <th>Progress</th>
+                    <th>End Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="active-building">Guards Research</td>
+                    <td>1 unit</td>
+                    <td>
+                        <div class="progress-container">
+                            <div class="progress-bar active-building" style="width: 45%;"></div>
+                            <span class="progress-percentage">45%</span>
+                        </div>
+                    </td>
+                    <td>2m 30s remaining</td>
+                </tr>
+                <tr>
+                    <td class="queued-building">Archers Research (queued)</td>
+                    <td>1 unit</td>
+                    <td>
+                        <div class="progress-container">
+                            <div class="progress-bar queued-building" style="width: 0%;"></div>
+                            <span class="progress-percentage">0%</span>
+                        </div>
+                    </td>
+                    <td>5m 15s (queued)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="comparison-section">
+        <h2>Research Button Transformation Test</h2>
+        <div class="demo-label">Research Progress in Unit Card:</div>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; border: 1px solid #dee2e6;">
+            <div style="margin-bottom: 10px; font-weight: bold; color: #3498db;">Research in Progress</div>
+            <div class="progress-container">
+                <div class="progress-bar active-building" style="width: 78%;">
+                </div>
+                <span class="progress-percentage">78%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="comparison-section">
+        <h2>Animation Test</h2>
+        <p>The progress bars now use CSS animations from the unified system:</p>
+        
+        <div style="margin-top: 15px;">
+            <div class="demo-label">Animated Active Progress Bar:</div>
+            <div class="progress-container">
+                <div class="progress-bar active-building" style="width: 60%;">
+                </div>
+                <span class="progress-percentage">60%</span>
+            </div>
+        </div>
+
+        <div style="margin-top: 15px;">
+            <div class="demo-label">Queued Progress Bar (No Animation):</div>
+            <div class="progress-container">
+                <div class="progress-bar queued-building" style="width: 0%;">
+                </div>
+                <span class="progress-percentage">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="comparison-section">
+        <h2>✅ Changes Summary</h2>
+        <ul>
+            <li><strong>Research Queue:</strong> Now uses <code>.progress-container</code> and <code>.progress-bar.active-building</code> classes</li>
+            <li><strong>Research Buttons:</strong> Progress transformation uses unified CSS classes</li>
+            <li><strong>Military Training:</strong> Also updated to use unified progress system</li>
+            <li><strong>Consistency:</strong> All progress bars now share the same visual appearance and animations</li>
+            <li><strong>Theme Support:</strong> Automatically inherits dark/light theme support from CSS variables</li>
+        </ul>
+    </div>
+</body>
+</html>
