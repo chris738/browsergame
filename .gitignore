@@ -4,6 +4,11 @@
 .DS_Store
 Thumbs.db
 
+# Test files (temporary)
+test_attack.html
+test_error_handling.html
+test_validation.html
+
 # IDE and editor files
 .vscode/
 .idea/
