@@ -42,6 +42,21 @@ class MilitaryProgressManager {
         this.settlementId = settlementId;
         this.lastServerSync = Date.now();
         
+        // Check for required DOM elements before starting
+        const requiredElements = [
+            document.getElementById('militaryTrainingQueueBody'),
+            document.getElementById('researchQueueBody')
+        ];
+        
+        const hasRequiredElements = requiredElements.some(el => el !== null);
+        
+        if (!hasRequiredElements) {
+            console.warn('Military Progress Manager: Required DOM elements not found, delaying initialization');
+            // Retry after a short delay to allow DOM to load
+            setTimeout(() => this.initialize(settlementId), 500);
+            return;
+        }
+        
         // Load initial data
         this.syncWithServer();
         this.startProgressUpdates();
