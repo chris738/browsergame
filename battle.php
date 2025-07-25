@@ -378,7 +378,20 @@ function launchAttack() {
             units: units
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        // Check if the response is successful
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Check if the response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Response is not valid JSON');
+        }
+        
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             showBattleResult(data);
@@ -396,7 +409,16 @@ function launchAttack() {
     })
     .catch(error => {
         console.error('Error launching attack:', error);
-        alert('Attack failed due to network error');
+        // Provide more specific error message
+        let errorMessage = 'Attack failed due to network error';
+        if (error.message.includes('HTTP error')) {
+            errorMessage = 'Attack failed: Server error (HTTP ' + error.message.split(': ')[1] + ')';
+        } else if (error.message.includes('JSON')) {
+            errorMessage = 'Attack failed: Invalid response from server';
+        } else if (error.message.includes('Failed to fetch')) {
+            errorMessage = 'Attack failed: Unable to connect to server';
+        }
+        alert(errorMessage);
         document.getElementById('launchAttackBtn').disabled = false;
         document.getElementById('launchAttackBtn').textContent = 'Launch Attack';
     });
