@@ -237,6 +237,18 @@ class UnifiedProgressManager {
             this.syncWithServer();
         }
 
+        // Skip building progress updates if we're on a military page with its own progress manager
+        if (window.militaryProgressManager && (
+            document.getElementById('militaryTrainingQueueBody') || 
+            document.getElementById('researchQueueBody')
+        )) {
+            // Let military progress manager handle its own updates
+            // Only update resources, not building progress
+            console.log('Military progress manager detected, skipping building progress updates');
+            this.updateResources();
+            return;
+        }
+
         if (this.buildingQueue.length === 0) {
             this.stopProgressUpdates();
             return;
@@ -346,6 +358,13 @@ class UnifiedProgressManager {
      */
     updateProgressBar(item, completionPercentage, queueIndex = null) {
         const queueRows = document.querySelectorAll('#buildingQueueBody tr');
+        
+        if (queueRows.length === 0) {
+            // No building queue found, this might be a page like kaserne.php
+            // Let the military progress manager handle its own progress bars
+            console.log('No building queue found, skipping building progress update');
+            return;
+        }
         
         if (queueIndex !== null && queueRows[queueIndex]) {
             const row = queueRows[queueIndex];
@@ -695,6 +714,8 @@ window.buildingProgressManager = window.unifiedProgressManager;
 window.checkProgressSystemReady = function() {
     const elements = {
         buildingQueueBody: document.getElementById('buildingQueueBody'),
+        militaryTrainingQueueBody: document.getElementById('militaryTrainingQueueBody'),
+        researchQueueBody: document.getElementById('researchQueueBody'),
         resourceElements: {
             wood: document.getElementById('holz'),
             stone: document.getElementById('stein'),
@@ -703,17 +724,27 @@ window.checkProgressSystemReady = function() {
     };
     
     const missing = [];
-    if (!elements.buildingQueueBody) missing.push('buildingQueueBody');
-    if (!elements.resourceElements.wood) missing.push('holz resource display');
-    if (!elements.resourceElements.stone) missing.push('stein resource display');
-    if (!elements.resourceElements.ore) missing.push('erz resource display');
+    
+    // Check if at least one queue element exists (pages may have different queue types)
+    const hasAnyQueue = elements.buildingQueueBody || elements.militaryTrainingQueueBody || elements.researchQueueBody;
+    if (!hasAnyQueue) {
+        missing.push('any queue element (buildingQueueBody, militaryTrainingQueueBody, or researchQueueBody)');
+    }
+    
+    // Resource elements are optional (not all pages have them)
+    const hasResourceElements = elements.resourceElements.wood && elements.resourceElements.stone && elements.resourceElements.ore;
     
     if (missing.length > 0) {
         console.warn('Progress system elements missing:', missing);
         return false;
     }
     
-    console.log('Progress system is ready - all required elements found');
+    console.log('Progress system is ready - found queue elements:', {
+        building: !!elements.buildingQueueBody,
+        military: !!elements.militaryTrainingQueueBody,
+        research: !!elements.researchQueueBody,
+        resources: hasResourceElements
+    });
     return true;
 };
 

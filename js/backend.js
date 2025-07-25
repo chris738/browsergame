@@ -408,7 +408,8 @@ function upgradeBuilding(buildingType, settlementId) {
                         fetchBuildings(settlementId); // Update building data
                         fetchResources(settlementId);
                         
-                        // Add a small delay to ensure database is fully updated before tracking progress
+                        // Add a delay to ensure database is fully updated before tracking progress
+                        // Increased from 500ms to 750ms to handle slower database operations
                         setTimeout(() => {
                             if (window.unifiedProgressManager) {
                                 // Use the unified progress manager to force a complete refresh
@@ -420,7 +421,7 @@ function upgradeBuilding(buildingType, settlementId) {
                                 // Fallback to old system
                                 fetchBuildingQueue(settlementId);
                             }
-                        }, 500); // 500ms delay to ensure database consistency
+                        }, 750); // 750ms delay to ensure database consistency on slower systems
                     } else {
                         alert(data.message); // Shows error message
                     }
