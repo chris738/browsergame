@@ -19,6 +19,7 @@
     <script src="js/emoji-config.js"></script>
     <script src="js/translations.js"></script>
     <script src="js/unified-progress.js"></script>
+    <script src="js/military-progress.js"></script>
     <script src="js/backend.js" defer></script>
 </head>
 <body>
@@ -301,6 +302,13 @@
                             // Refresh the page data
                             loadMilitaryData(settlementId);
                             fetchResources(settlementId);
+                            
+                            // Trigger military progress manager sync for smooth updates
+                            if (window.militaryProgressManager) {
+                                setTimeout(() => {
+                                    window.militaryProgressManager.forceSyncWithServer();
+                                }, 500); // Small delay to ensure database is updated
+                            }
                         } else {
                             alert('Training failed: ' + data.message);
                         }
@@ -351,6 +359,13 @@
                             // Refresh the page data
                             loadMilitaryData(settlementId);
                             fetchResources(settlementId);
+                            
+                            // Trigger military progress manager sync for smooth updates
+                            if (window.militaryProgressManager) {
+                                setTimeout(() => {
+                                    window.militaryProgressManager.forceSyncWithServer();
+                                }, 500); // Small delay to ensure database is updated
+                            }
                         } else {
                             alert('Training failed: ' + data.message);
                         }
@@ -863,6 +878,13 @@
                     alert(`Research started for ${unitType}!`);
                     loadResearchData(settlementId);
                     fetchResources(settlementId);
+                    
+                    // Trigger military progress manager sync for smooth updates
+                    if (window.militaryProgressManager) {
+                        setTimeout(() => {
+                            window.militaryProgressManager.forceSyncWithServer();
+                        }, 500); // Small delay to ensure database is updated
+                    }
                 } else {
                     alert('Research failed: ' + data.message);
                 }
@@ -881,11 +903,25 @@
             
             if (settlementId) {
                 loadMilitaryData(settlementId);
-                // Refresh military data every 5 seconds
-                setInterval(() => {
-                    loadMilitaryData(settlementId);
-                    updateResearchValidation(settlementId); // Update research validation periodically
-                }, 5000);
+                
+                // Initialize the military progress manager for smooth progress updates
+                if (window.militaryProgressManager) {
+                    window.militaryProgressManager.initialize(settlementId);
+                    console.log('Using military progress manager for smooth updates');
+                    
+                    // Much less frequent server polling since progress manager handles real-time updates
+                    setInterval(() => {
+                        loadMilitaryData(settlementId);
+                        updateResearchValidation(settlementId);
+                    }, 30000); // Every 30 seconds instead of 5 seconds
+                } else {
+                    console.log('Falling back to original polling system');
+                    // Fallback to original frequent polling
+                    setInterval(() => {
+                        loadMilitaryData(settlementId);
+                        updateResearchValidation(settlementId);
+                    }, 5000);
+                }
             } else {
                 // Fallback: Initialize with zeros if no settlement ID
                 document.getElementById('guards-count').textContent = '0';
