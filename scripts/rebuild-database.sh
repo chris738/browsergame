@@ -16,7 +16,6 @@ NC='\033[0m' # No Color
 # Script configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SQL_FILE="$SCRIPT_DIR/../sql/database.sql"
-INIT_PLAYER_SQL="$SCRIPT_DIR/../sql/init-player.sql"
 
 # Logging functions
 log_info() {
@@ -102,12 +101,6 @@ EOF
     log_info "Importing database schema from $SQL_FILE..."
     $docker_cmd exec -T db mysql -u browsergame -psicheresPasswort browsergame < "$SQL_FILE"
     
-    # Import initial player if file exists
-    if [[ -f "$INIT_PLAYER_SQL" ]]; then
-        log_info "Creating initial test player..."
-        $docker_cmd exec -T db mysql -u browsergame -psicheresPasswort browsergame < "$INIT_PLAYER_SQL"
-    fi
-    
     log_success "Docker database rebuild complete"
 }
 
@@ -140,12 +133,6 @@ EOF
     # Import database schema
     log_info "Importing database schema from $SQL_FILE..."
     mysql -u root -p"$DB_ROOT_PASSWORD" browsergame < "$SQL_FILE"
-    
-    # Create initial admin player
-    log_info "Creating initial admin player..."
-    mysql -u root -p"$DB_ROOT_PASSWORD" browsergame << 'EOF'
-CALL CreatePlayerWithSettlement('Admin');
-EOF
     
     log_success "Manual database rebuild complete"
 }

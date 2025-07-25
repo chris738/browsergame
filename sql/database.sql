@@ -1417,8 +1417,16 @@ DELIMITER ;
 -- Call safe initialization
 CALL SafeInitializeDatabase();
 
--- Database initialization complete
-SELECT 'Browsergame database initialized with modular structure!' AS status,
+-- Create initial test player for Docker setup (from init-player.sql)
+-- This ensures there's always a test player available
+CALL CreatePlayerWithSettlement('TestPlayer');
+
+-- Show that the player was created
+SELECT 'Initial TestPlayer created successfully' AS status;
+
+-- Verify final setup
+SELECT 'Browsergame database initialized with consolidated structure!' AS status,
        'Database is ready for use' AS message,
        'Event scheduler is enabled for automated processing' AS events,
-       'Enhanced views and procedures loaded' AS features;
+       'Enhanced views and procedures loaded' AS features,
+       'TestPlayer created for testing' AS test_data;
