@@ -1,9 +1,0 @@
-.git
-.gitignore
-README.md
-ADMIN_README.md
-docker-compose.yml
-Dockerfile
-*.log
-.env
-.env.example
