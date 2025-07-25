@@ -1,7 +1,21 @@
--- Browsergame Database Schema - Modular Version
--- This file orchestrates the database creation using organized SQL files in the correct order
+-- Browsergame Database Schema - Legacy Single File
 -- 
--- Usage: mysql -u root -p < database_modular.sql
+-- NOTICE: This file has been superseded by a modular structure.
+-- For new development, please use: sql/database_modular.sql
+-- See docs/database-structure.md for more information.
+--
+-- This file is maintained for backward compatibility but the modular
+-- approach is recommended for better maintainability.
+--
+-- Modular files are located in:
+-- - sql/tables/     - Table definitions
+-- - sql/procedures/ - Stored procedures  
+-- - sql/views/      - Database views
+-- - sql/data/       - Initial data
+-- - sql/events/     - Database events
+--
+-- Usage: mysql -u root -p < database.sql
+-- Better: mysql -u root -p < database_modular.sql
 -- 
 -- The database is built in the following order:
 -- 1. Database and user setup
