@@ -3,12 +3,15 @@
 
 USE browsergame;
 
+-- Clear existing research configuration data
+DELETE FROM ResearchConfig;
+
 -- Insert research configuration data
-INSERT IGNORE INTO ResearchConfig (unitType, costWood, costStone, costOre, costGold, researchTime, prerequisiteUnit) VALUES
-('guards', 200, 150, 100, 50, 60, NULL), -- 1 minute, no prerequisite
-('soldiers', 400, 300, 250, 100, 120, 'guards'), -- 2 minutes, requires guards
-('archers', 350, 200, 300, 75, 90, 'guards'), -- 1.5 minutes, requires guards
-('cavalry', 800, 600, 500, 200, 180, 'soldiers'); -- 3 minutes, requires soldiers
+INSERT INTO ResearchConfig (unitType, costWood, costStone, costOre, costGold, researchTime, prerequisiteUnit) VALUES
+('guards', 200, 150, 100, 50, 1800, NULL),
+('soldiers', 400, 300, 200, 100, 3600, 'guards'),
+('archers', 350, 250, 150, 75, 2700, 'guards'),
+('cavalry', 600, 400, 300, 200, 5400, 'soldiers');
 
 -- Initialize research status for all existing settlements (nothing researched initially)
 INSERT IGNORE INTO UnitResearch (settlementId, unitType, isResearched)
