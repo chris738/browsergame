@@ -408,17 +408,19 @@ function upgradeBuilding(buildingType, settlementId) {
                         fetchBuildings(settlementId); // Update building data
                         fetchResources(settlementId);
                         
-                        // Force immediate refresh of the queue to ensure it's updated
-                        if (window.unifiedProgressManager) {
-                            // Use the unified progress manager to force a complete refresh
-                            window.unifiedProgressManager.forceSyncWithServer();
-                        } else if (window.clientProgressManager) {
-                            // Force sync with client progress manager if it exists
-                            window.clientProgressManager.forceSyncWithServer();
-                        } else {
-                            // Fallback to old system
-                            fetchBuildingQueue(settlementId);
-                        }
+                        // Add a small delay to ensure database is fully updated before tracking progress
+                        setTimeout(() => {
+                            if (window.unifiedProgressManager) {
+                                // Use the unified progress manager to force a complete refresh
+                                window.unifiedProgressManager.forceSyncWithServer();
+                            } else if (window.clientProgressManager) {
+                                // Force sync with client progress manager if it exists
+                                window.clientProgressManager.forceSyncWithServer();
+                            } else {
+                                // Fallback to old system
+                                fetchBuildingQueue(settlementId);
+                            }
+                        }, 500); // 500ms delay to ensure database consistency
                     } else {
                         alert(data.message); // Shows error message
                     }
