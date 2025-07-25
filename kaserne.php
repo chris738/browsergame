@@ -427,6 +427,13 @@
         
         // Update military training queue display
         function updateMilitaryQueue(queue) {
+            // If military progress manager is available, delegate to it for smooth updates
+            if (window.militaryProgressManager && window.militaryProgressManager.updateMilitaryQueueDisplay) {
+                window.militaryProgressManager.updateMilitaryQueueDisplay(queue);
+                return;
+            }
+            
+            // Fallback to original implementation
             const tbody = document.getElementById('militaryTrainingQueueBody');
             tbody.innerHTML = '';
             
@@ -467,6 +474,7 @@
                 progressBar.className = 'progress-bar active-building';
                 const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
                 progressBar.style.width = `${completionPercentage}%`;
+                progressBar.style.transition = 'width 0.2s ease-out'; // Smooth transitions for military progress
                 
                 const progressText = document.createElement('span');
                 progressText.className = 'progress-percentage';
@@ -697,10 +705,16 @@
         }
         
         function updateResearchQueue(queue) {
+            // If military progress manager is available, delegate to it for smooth updates
+            if (window.militaryProgressManager && window.militaryProgressManager.updateResearchQueueDisplay) {
+                window.militaryProgressManager.updateResearchQueueDisplay(queue);
+                return;
+            }
+            
+            // Fallback to original implementation
             const tbody = document.getElementById('researchQueueBody');
             const table = document.getElementById('researchQueueTable');
             const noMessage = document.getElementById('noResearchMessage');
-            
             tbody.innerHTML = '';
             
             if (queue.length === 0) {
@@ -732,6 +746,7 @@
                 progressBar.className = 'progress-bar active-building';
                 const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
                 progressBar.style.width = `${completionPercentage}%`;
+                progressBar.style.transition = 'width 0.2s ease-out'; // Smooth transitions for research progress
                 
                 const progressText = document.createElement('span');
                 progressText.className = 'progress-percentage';
@@ -805,6 +820,7 @@
                         
                         const progressBar = document.createElement('div');
                         progressBar.className = 'progress-bar active-building';
+                        progressBar.style.transition = 'width 0.2s ease-out'; // Smooth transitions for research buttons
                         
                         const progressText = document.createElement('span');
                         progressText.className = 'progress-percentage';

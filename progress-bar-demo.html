@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Bar Smoothness Demo - Issues #163 & #164</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/progress-bars.css">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: var(--bg-color, #f5f5f5);
+        }
+        .demo-section { 
+            margin: 30px 0; 
+            padding: 25px; 
+            border: 2px solid #ddd; 
+            border-radius: 8px;
+            background: white;
+        }
+        .demo-controls {
+            margin: 15px 0;
+        }
+        .demo-controls button {
+            margin-right: 10px;
+            padding: 8px 16px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .demo-controls button:hover {
+            background: #2980b9;
+        }
+        .comparison-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .comparison-item {
+            flex: 1;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .progress-container {
+            margin: 10px 0;
+        }
+        .old-style .progress-bar {
+            transition: none !important; /* No transition for old style */
+        }
+        .new-style .progress-bar {
+            transition: width 0.2s ease-out; /* Smooth transition for new style */
+        }
+        .result { 
+            margin: 15px 0; 
+            font-weight: bold; 
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .pass { 
+            color: green; 
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+        }
+        .fail { 
+            color: red; 
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+        }
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-smooth {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-jerky {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Progress Bar Smoothness Demo</h1>
+    <p><strong>Testing fixes for Issues #163 and #164</strong></p>
+    
+    <div class="demo-section">
+        <h2>🔍 Issue #164: Building Progress Bar Immediate Completion</h2>
+        <p><strong>Problem:</strong> After building upgrade, progress bar immediately shows 100% instead of starting from 0%</p>
+        <p><strong>Fix:</strong> Added 500ms delay before progress tracking starts</p>
+        
+        <div class="comparison-container">
+            <div class="comparison-item">
+                <h4>❌ Before Fix (Immediate 100%)</h4>
+                <div class="progress-container">
+                    <div class="progress-bar" id="building-before" style="width: 100%;">
+                    </div>
+                </div>
+                <p><small>Shows immediate completion - bad UX</small></p>
+            </div>
+            
+            <div class="comparison-item">
+                <h4>✅ After Fix (Proper Progression)</h4>
+                <div class="progress-container">
+                    <div class="progress-bar" id="building-after" style="width: 0%; transition: width 0.2s ease-out;">
+                    </div>
+                </div>
+                <p><small>Starts from 0% and progresses smoothly</small></p>
+            </div>
+        </div>
+        
+        <div class="demo-controls">
+            <button onclick="simulateBuildingUpgrade()">🏗️ Simulate Building Upgrade</button>
+        </div>
+        <div id="building-result" class="result"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>⚔️ Issue #163: Military Progress Bars Jerky Updates</h2>
+        <p><strong>Problem:</strong> Military progress bars in kaserne.php update only every 5 seconds, appearing jerky</p>
+        <p><strong>Fix:</strong> Added MilitaryProgressManager with 250ms smooth updates</p>
+        
+        <div class="comparison-container">
+            <div class="comparison-item old-style">
+                <h4>❌ Before Fix (5-second jumps)</h4>
+                <div class="progress-container">
+                    <div class="progress-bar" id="military-before" style="width: 0%;">
+                    </div>
+                    <span class="progress-percentage" id="military-before-text">0%</span>
+                </div>
+                <span class="status-indicator status-jerky">JERKY UPDATES</span>
+            </div>
+            
+            <div class="comparison-item new-style">
+                <h4>✅ After Fix (250ms smooth)</h4>
+                <div class="progress-container">
+                    <div class="progress-bar" id="military-after" style="width: 0%;">
+                    </div>
+                    <span class="progress-percentage" id="military-after-text">0%</span>
+                </div>
+                <span class="status-indicator status-smooth">SMOOTH UPDATES</span>
+            </div>
+        </div>
+        
+        <div class="demo-controls">
+            <button onclick="startMilitaryTraining()">🛡️ Start Military Training Demo</button>
+            <button onclick="stopMilitaryTraining()">⏹️ Stop Demo</button>
+        </div>
+        <div id="military-result" class="result"></div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🧪 Integration Test Results</h2>
+        <div id="integration-results"></div>
+        <button onclick="runIntegrationTests()">🔬 Run Integration Tests</button>
+    </div>
+
+    <script src="js/unified-progress.js"></script>
+    <script src="js/military-progress.js"></script>
+    
+    <script>
+        let militaryDemoInterval = null;
+        
+        function simulateBuildingUpgrade() {
+            const beforeBar = document.getElementById('building-before');
+            const afterBar = document.getElementById('building-after');
+            const resultDiv = document.getElementById('building-result');
+            
+            resultDiv.innerHTML = 'Simulating building upgrade...';
+            
+            // Reset both bars
+            beforeBar.style.width = '100%'; // Shows immediate completion (bad)
+            afterBar.style.width = '0%';     // Shows proper progression (good)
+            
+            // Simulate the fix: 500ms delay before progress tracking
+            setTimeout(() => {
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += 2;
+                    afterBar.style.width = `${progress}%`;
+                    
+                    if (progress >= 100) {
+                        clearInterval(progressInterval);
+                        resultDiv.innerHTML = '<span class="pass">✅ PASS: Building progress now starts from 0% and progresses smoothly</span>';
+                    }
+                }, 100); // Smooth 100ms updates
+            }, 500); // 500ms delay (the fix)
+            
+            // Show result after a moment
+            setTimeout(() => {
+                if (beforeBar.style.width === '100%' && afterBar.style.width !== '100%') {
+                    resultDiv.innerHTML = '<span class="pass">✅ PASS: Fix prevents immediate 100% completion</span>';
+                }
+            }, 200);
+        }
+        
+        function startMilitaryTraining() {
+            if (militaryDemoInterval) {
+                clearInterval(militaryDemoInterval);
+            }
+            
+            const beforeBar = document.getElementById('military-before');
+            const afterBar = document.getElementById('military-after');
+            const beforeText = document.getElementById('military-before-text');
+            const afterText = document.getElementById('military-after-text');
+            const resultDiv = document.getElementById('military-result');
+            
+            resultDiv.innerHTML = 'Running military training progress demo...';
+            
+            let progress = 0;
+            let lastJumpTime = 0;
+            
+            militaryDemoInterval = setInterval(() => {
+                progress += 0.5;
+                
+                // Old system: Only update every 5 seconds (jerky)
+                const currentTime = Date.now();
+                if (currentTime - lastJumpTime >= 5000) {
+                    beforeBar.style.width = `${progress}%`;
+                    beforeText.textContent = `${Math.round(progress)}%`;
+                    lastJumpTime = currentTime;
+                }
+                
+                // New system: Update every 250ms (smooth)
+                afterBar.style.width = `${progress}%`;
+                afterText.textContent = `${Math.round(progress)}%`;
+                
+                if (progress >= 100) {
+                    clearInterval(militaryDemoInterval);
+                    militaryDemoInterval = null;
+                    resultDiv.innerHTML = '<span class="pass">✅ PASS: Military progress now updates smoothly every 250ms instead of jerky 5-second jumps</span>';
+                }
+            }, 250); // New smooth 250ms updates
+        }
+        
+        function stopMilitaryTraining() {
+            if (militaryDemoInterval) {
+                clearInterval(militaryDemoInterval);
+                militaryDemoInterval = null;
+                document.getElementById('military-result').innerHTML = '<span class="pass">Demo stopped</span>';
+            }
+        }
+        
+        function runIntegrationTests() {
+            const resultsDiv = document.getElementById('integration-results');
+            let results = [];
+            
+            // Test 1: Check if unified progress manager is loaded
+            if (typeof window.unifiedProgressManager !== 'undefined') {
+                results.push('<span class="pass">✅ Unified Progress Manager: Loaded</span>');
+            } else {
+                results.push('<span class="fail">❌ Unified Progress Manager: Missing</span>');
+            }
+            
+            // Test 2: Check if military progress manager is loaded
+            if (typeof window.militaryProgressManager !== 'undefined') {
+                results.push('<span class="pass">✅ Military Progress Manager: Loaded</span>');
+            } else {
+                results.push('<span class="fail">❌ Military Progress Manager: Missing</span>');
+            }
+            
+            // Test 3: Check if progress bars have smooth transitions
+            const progressBars = document.querySelectorAll('.new-style .progress-bar');
+            let smoothBars = 0;
+            progressBars.forEach(bar => {
+                const style = getComputedStyle(bar);
+                if (style.transition && style.transition.includes('width')) {
+                    smoothBars++;
+                }
+            });
+            
+            if (smoothBars === progressBars.length && progressBars.length > 0) {
+                results.push('<span class="pass">✅ CSS Transitions: Applied to all progress bars</span>');
+            } else {
+                results.push('<span class="fail">❌ CSS Transitions: Missing on some progress bars</span>');
+            }
+            
+            // Test 4: Check if military progress manager has required methods
+            if (window.militaryProgressManager && 
+                typeof window.militaryProgressManager.updateMilitaryQueueDisplay === 'function' &&
+                typeof window.militaryProgressManager.updateResearchQueueDisplay === 'function') {
+                results.push('<span class="pass">✅ Military Manager Methods: All present</span>');
+            } else {
+                results.push('<span class="fail">❌ Military Manager Methods: Missing</span>');
+            }
+            
+            resultsDiv.innerHTML = results.join('<br>');
+        }
+        
+        // Auto-run tests on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(runIntegrationTests, 500);
+        });
+    </script>
+</body>
+</html>

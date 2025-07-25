@@ -418,6 +418,210 @@ class MilitaryProgressManager {
     }
 
     /**
+     * Update military queue display (called from kaserne.php)
+     */
+    updateMilitaryQueueDisplay(queueData) {
+        // Update internal data
+        this.trainingQueue = queueData.map(item => ({
+            ...item,
+            startTime: new Date(item.startTime).getTime(),
+            endTime: new Date(item.endTime).getTime(),
+            completed: false
+        }));
+        
+        const tbody = document.getElementById('militaryTrainingQueueBody');
+        if (!tbody) return;
+        
+        // Only recreate if structure has changed
+        if (tbody.children.length !== queueData.length) {
+            console.log('Queue structure changed, recreating display');
+            this.recreateMilitaryQueueDisplay(queueData);
+        } else {
+            console.log('Queue structure unchanged, using smooth updates');
+            // Structure is the same, progress manager will handle smooth updates
+        }
+    }
+
+    /**
+     * Update research queue display (called from kaserne.php)
+     */
+    updateResearchQueueDisplay(queueData) {
+        // Update internal data
+        this.researchQueue = queueData.map(item => ({
+            ...item,
+            startTime: new Date(item.startTime).getTime(),
+            endTime: new Date(item.endTime).getTime(),
+            completed: false
+        }));
+        
+        const tbody = document.getElementById('researchQueueBody');
+        const table = document.getElementById('researchQueueTable');
+        const noMessage = document.getElementById('noResearchMessage');
+        
+        if (!tbody) return;
+        
+        // Only recreate if structure has changed
+        if (tbody.children.length !== queueData.length) {
+            console.log('Research queue structure changed, recreating display');
+            this.recreateResearchQueueDisplay(queueData);
+        } else {
+            console.log('Research queue structure unchanged, using smooth updates');
+            // Structure is the same, progress manager will handle smooth updates
+        }
+    }
+
+    /**
+     * Recreate the military queue display with smooth transitions enabled
+     */
+    recreateMilitaryQueueDisplay(queue) {
+        const tbody = document.getElementById('militaryTrainingQueueBody');
+        tbody.innerHTML = '';
+        
+        if (queue.length === 0) {
+            const row = tbody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.textContent = 'No units currently in training';
+            cell.style.textAlign = 'center';
+            cell.style.fontStyle = 'italic';
+            return;
+        }
+        
+        queue.forEach((item, index) => {
+            const row = tbody.insertRow();
+            
+            // Unit type with training progress
+            const unitCell = row.insertCell(0);
+            if (item.count > 1) {
+                // For multiple units, show "Training X of Y" format
+                const completedUnits = Math.floor((item.completionPercentage || 0) / 100 * item.count);
+                const currentUnit = Math.min(completedUnits + 1, item.count);
+                unitCell.textContent = `Training ${currentUnit} of ${item.count} ${item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1)}`;
+            } else {
+                unitCell.textContent = `${item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1)}`;
+            }
+            
+            // Count info
+            const levelCell = row.insertCell(1);
+            levelCell.textContent = `${item.count} unit${item.count > 1 ? 's' : ''}`;
+            
+            // Progress - using unified progress bar system
+            const progressCell = row.insertCell(2);
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar active-building';
+            const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+            progressBar.style.width = `${completionPercentage}%`;
+            progressBar.style.transition = 'width 0.2s ease-out'; // Smooth transitions
+            
+            const progressText = document.createElement('span');
+            progressText.className = 'progress-percentage';
+            progressText.textContent = `${Math.round(completionPercentage)}%`;
+            
+            progressContainer.appendChild(progressBar);
+            progressContainer.appendChild(progressText);
+            progressCell.appendChild(progressContainer);
+            
+            // End time
+            const timeCell = row.insertCell(3);
+            const endTime = new Date(item.endTime);
+            timeCell.textContent = endTime.toLocaleString();
+            
+            // Add remaining time
+            if (item.remainingTimeSeconds > 0) {
+                const remainingDiv = document.createElement('div');
+                remainingDiv.style.fontSize = '12px';
+                remainingDiv.style.color = '#666';
+                const hours = Math.floor(item.remainingTimeSeconds / 3600);
+                const minutes = Math.floor((item.remainingTimeSeconds % 3600) / 60);
+                const seconds = item.remainingTimeSeconds % 60;
+                
+                if (hours > 0) {
+                    remainingDiv.textContent = `(${hours}h ${minutes}m ${seconds}s remaining)`;
+                } else if (minutes > 0) {
+                    remainingDiv.textContent = `(${minutes}m ${seconds}s remaining)`;
+                } else {
+                    remainingDiv.textContent = `(${seconds}s remaining)`;
+                }
+                timeCell.appendChild(remainingDiv);
+            }
+        });
+    }
+
+    /**
+     * Recreate the research queue display with smooth transitions enabled
+     */
+    recreateResearchQueueDisplay(queue) {
+        const tbody = document.getElementById('researchQueueBody');
+        const table = document.getElementById('researchQueueTable');
+        const noMessage = document.getElementById('noResearchMessage');
+        
+        tbody.innerHTML = '';
+        
+        if (queue.length === 0) {
+            table.style.display = 'none';
+            noMessage.style.display = 'block';
+            return;
+        }
+        
+        table.style.display = 'table';
+        noMessage.style.display = 'none';
+        
+        queue.forEach(item => {
+            const row = tbody.insertRow();
+            
+            // Unit type
+            const unitCell = row.insertCell(0);
+            unitCell.textContent = item.unitType.charAt(0).toUpperCase() + item.unitType.slice(1);
+            
+            // Quantity (for research, this is always 1)
+            const quantityCell = row.insertCell(1);
+            quantityCell.textContent = '1 unit';
+            
+            // Progress - using unified progress bar system
+            const progressCell = row.insertCell(2);
+            const progressContainer = document.createElement('div');
+            progressContainer.className = 'progress-container';
+            
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar active-building';
+            const completionPercentage = Math.max(0, Math.min(100, item.completionPercentage || 0));
+            progressBar.style.width = `${completionPercentage}%`;
+            progressBar.style.transition = 'width 0.2s ease-out'; // Smooth transitions
+            
+            const progressText = document.createElement('span');
+            progressText.className = 'progress-percentage';
+            progressText.textContent = `${Math.round(completionPercentage)}%`;
+            
+            progressContainer.appendChild(progressBar);
+            progressContainer.appendChild(progressText);
+            progressCell.appendChild(progressContainer);
+            
+            // End time
+            const timeCell = row.insertCell(3);
+            const endTime = new Date(item.endTime);
+            timeCell.textContent = endTime.toLocaleString();
+            
+            if (item.remainingTimeSeconds > 0) {
+                const remainingDiv = document.createElement('div');
+                remainingDiv.style.fontSize = '12px';
+                remainingDiv.style.color = '#666';
+                const hours = Math.floor(item.remainingTimeSeconds / 3600);
+                const minutes = Math.floor((item.remainingTimeSeconds % 3600) / 60);
+                
+                if (hours > 0) {
+                    remainingDiv.textContent = `(${hours}h ${minutes}m remaining)`;
+                } else {
+                    remainingDiv.textContent = `(${minutes}m remaining)`;
+                }
+                timeCell.appendChild(remainingDiv);
+            }
+        });
+    }
+
+    /**
      * Stop all progress tracking and cleanup
      */
     stop() {
