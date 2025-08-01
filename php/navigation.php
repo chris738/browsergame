@@ -31,6 +31,9 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
             <a href="battle.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'battle.php') ? 'active' : '' ?>">
                 Battle
             </a>
+            <a href="fuel.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'fuel.php') ? 'active' : '' ?>">
+                Sprit
+            </a>
         </div>
         
         <div class="nav-user-compact">
@@ -63,6 +66,9 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
         </a>
         <a href="battle.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'battle.php') ? 'active' : '' ?>">
             Battle
+        </a>
+        <a href="fuel.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'fuel.php') ? 'active' : '' ?>">
+            Sprit
         </a>
     </div>
     
