@@ -101,7 +101,14 @@ class EmojiConfig {
         'map' => '🗺️',
         'status' => '🔍',
         'trade' => '🤝',
-        'manage' => '⚙️'
+        'manage' => '⚙️',
+        'fuel' => '⛽',
+        'chart' => '📊',
+        'gear' => '⚙️',
+        'clock' => '🕐',
+        'road' => '🛣️',
+        'shield' => '🛡️',
+        'soldier' => '⚔️'
     ];
     
     /**

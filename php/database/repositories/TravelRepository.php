@@ -693,4 +693,73 @@ class TravelRepository {
             return false;
         }
     }
+
+    // Fuel Consumption Statistics
+    public function getFuelConsumptionStats() {
+        if ($this->connectionFailed) {
+            return [
+                'averageConsumption' => null,
+                'fastestUnit' => null,
+                'slowestUnit' => null
+            ];
+        }
+
+        try {
+            // Get all military unit configurations with their speeds
+            $sql = "SELECT unitType, speed FROM MilitaryUnitConfig WHERE level = 1 ORDER BY speed";
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute();
+            $units = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            if (empty($units)) {
+                return [
+                    'averageConsumption' => null,
+                    'fastestUnit' => null,
+                    'slowestUnit' => null
+                ];
+            }
+
+            // Calculate average consumption (inverse of speed - lower speed means higher consumption)
+            $totalSpeed = 0;
+            $unitCount = count($units);
+            $fastestUnit = null;
+            $slowestUnit = null;
+            $fastestSpeed = 0;
+            $slowestSpeed = PHP_FLOAT_MAX;
+
+            foreach ($units as $unit) {
+                $speed = (float)$unit['speed'];
+                $totalSpeed += $speed;
+
+                // Find fastest unit (highest speed value)
+                if ($speed > $fastestSpeed) {
+                    $fastestSpeed = $speed;
+                    $fastestUnit = $unit;
+                }
+
+                // Find slowest unit (lowest speed value) 
+                if ($speed < $slowestSpeed) {
+                    $slowestSpeed = $speed;
+                    $slowestUnit = $unit;
+                }
+            }
+
+            // Calculate average consumption (average speed represents average consumption rate)
+            $averageConsumption = $unitCount > 0 ? $totalSpeed / $unitCount : 0;
+
+            return [
+                'averageConsumption' => $averageConsumption,
+                'fastestUnit' => $fastestUnit,
+                'slowestUnit' => $slowestUnit
+            ];
+
+        } catch (Exception $e) {
+            error_log("Error getting fuel consumption stats: " . $e->getMessage());
+            return [
+                'averageConsumption' => null,
+                'fastestUnit' => null,
+                'slowestUnit' => null
+            ];
+        }
+    }
 }

@@ -71,6 +71,31 @@ $database = new Database();
             </div>
         </section>
 
+        <!-- Fuel Consumption Statistics Section -->
+        <section class="admin-section">
+            <h3><?= EmojiConfig::getUIEmoji('fuel') ?> Spritkosten</h3>
+            <div class="fuel-stats-grid">
+                <div class="fuel-stats-card">
+                    <h4>Durchschnittsverbrauch</h4>
+                    <div class="fuel-consumption-display">
+                        <span id="averageConsumption" class="consumption-value">Loading...</span>
+                        <span class="consumption-unit">blocks/second</span>
+                    </div>
+                    <p><small>Overall average consumption for vehicles based on current unit configurations</small></p>
+                </div>
+                
+                <div class="fuel-stats-card">
+                    <h4>Fastest Unit Type</h4>
+                    <div id="fastestUnit" class="consumption-value">Loading...</div>
+                </div>
+                
+                <div class="fuel-stats-card">
+                    <h4>Slowest Unit Type</h4>
+                    <div id="slowestUnit" class="consumption-value">Loading...</div>
+                </div>
+            </div>
+        </section>
+
         <!-- Current Traveling Status Section -->
         <section class="admin-section">
             <h3><?= EmojiConfig::getUIEmoji('chart') ?> Current Traveling Status</h3>
@@ -118,10 +143,59 @@ $database = new Database();
             loadTravelConfig();
             loadUnitConfig();
             loadTravelingStatus();
+            loadFuelConsumptionStats();
             
             // Auto-refresh traveling status every 30 seconds
             setInterval(loadTravelingStatus, 30000);
+            // Auto-refresh fuel consumption stats every 60 seconds
+            setInterval(loadFuelConsumptionStats, 60000);
         });
+
+        async function loadFuelConsumptionStats() {
+            try {
+                const response = await fetch('php/admin-backend.php?action=getFuelConsumptionStats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayFuelConsumptionStats(data.stats);
+                } else {
+                    console.error('Failed to load fuel consumption stats:', data.message);
+                    displayFuelConsumptionError();
+                }
+            } catch (error) {
+                console.error('Error loading fuel consumption stats:', error);
+                displayFuelConsumptionError();
+            }
+        }
+
+        function displayFuelConsumptionStats(stats) {
+            const averageElement = document.getElementById('averageConsumption');
+            const fastestElement = document.getElementById('fastestUnit');
+            const slowestElement = document.getElementById('slowestUnit');
+            
+            if (averageElement) {
+                // Display average consumption instead of N/A
+                averageElement.textContent = stats.averageConsumption ? stats.averageConsumption.toFixed(2) : 'N/A';
+            }
+            
+            if (fastestElement) {
+                fastestElement.textContent = stats.fastestUnit ? `${stats.fastestUnit.unitType} (${stats.fastestUnit.speed} blocks/sec)` : 'N/A';
+            }
+            
+            if (slowestElement) {
+                slowestElement.textContent = stats.slowestUnit ? `${stats.slowestUnit.unitType} (${stats.slowestUnit.speed} blocks/sec)` : 'N/A';
+            }
+        }
+
+        function displayFuelConsumptionError() {
+            const averageElement = document.getElementById('averageConsumption');
+            const fastestElement = document.getElementById('fastestUnit');
+            const slowestElement = document.getElementById('slowestUnit');
+            
+            if (averageElement) averageElement.textContent = 'Error';
+            if (fastestElement) fastestElement.textContent = 'Error';
+            if (slowestElement) slowestElement.textContent = 'Error';
+        }
 
         async function loadTravelConfig() {
             try {
@@ -416,6 +490,46 @@ $database = new Database();
     </script>
 
     <style>
+        .fuel-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .fuel-stats-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            background: var(--bg-primary);
+            text-align: center;
+        }
+
+        .fuel-stats-card h4 {
+            margin-top: 0;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .fuel-consumption-display {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .consumption-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .consumption-unit {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
         .admin-section {
             margin-bottom: 2rem;
             padding: 1.5rem;

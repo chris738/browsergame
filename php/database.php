@@ -430,6 +430,10 @@ class Database implements DatabaseInterface {
         return $this->travelRepo->getAllTravelingTrades();
     }
 
+    public function getFuelConsumptionStats() {
+        return $this->travelRepo->getFuelConsumptionStats();
+    }
+
     public function getMilitaryUnitConfig() {
         return $this->travelRepo->getMilitaryUnitConfig();
     }

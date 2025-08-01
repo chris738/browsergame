@@ -156,6 +156,11 @@ try {
                 echo json_encode(['success' => true, 'trades' => $trades]);
                 break;
                 
+            case 'getFuelConsumptionStats':
+                $stats = $database->getFuelConsumptionStats();
+                echo json_encode(['success' => true, 'stats' => $stats]);
+                break;
+                
             default:
                 http_response_code(400);
                 echo json_encode(['error' => 'Invalid action']);
