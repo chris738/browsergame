@@ -6,30 +6,53 @@ function formatNumberWithDots(number) {
     return roundedNumber.toLocaleString('en-US'); // Formatting for English
 }
 
+// Cache for DOM elements to avoid repeated queries
+let costElementsCache = null;
+let upgradeButtonsCache = null;
+
+// Function to invalidate caches when DOM changes (e.g., new buildings)
+function invalidateElementCaches() {
+    costElementsCache = null;
+    upgradeButtonsCache = null;
+}
+
 function updateCostColors(resources) {
-    // Dynamically find all cost elements instead of hardcoding them
-    const resourceTypes = ['wood', 'stone', 'ore', 'settlers'];
-    
-    resourceTypes.forEach(resourceType => {
-        // Find all elements that match the pattern [buildingType]Kosten[ResourceType]
-        const pattern = new RegExp(`Kosten${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)}$`);
-        const allElements = document.querySelectorAll('[id]');
+    // Cache cost elements on first run to avoid expensive DOM queries
+    if (!costElementsCache) {
+        costElementsCache = {
+            wood: [],
+            stone: [],
+            ore: [],
+            settlers: []
+        };
         
-        allElements.forEach(element => {
-            if (pattern.test(element.id)) {
-                // Extract the cost value from the element
-                const rawText = element.textContent.trim();
-                const costValue = parseFloat(rawText.replace(',', '.').replace(/[^\d.]/g, '')) || 0;
-                
-                // Get available resources
-                const available = resourceType === 'settlers' ? resources.freeSettlers : resources[resourceType];
-                
-                // Update color based on availability
-                if (available < costValue) {
-                    element.classList.add('insufficient');
-                } else {
-                    element.classList.remove('insufficient');
+        const resourceTypes = ['wood', 'stone', 'ore', 'settlers'];
+        resourceTypes.forEach(resourceType => {
+            const pattern = new RegExp(`Kosten${resourceType.charAt(0).toUpperCase() + resourceType.slice(1)}$`);
+            const allElements = document.querySelectorAll('[id]');
+            
+            allElements.forEach(element => {
+                if (pattern.test(element.id)) {
+                    costElementsCache[resourceType].push(element);
                 }
+            });
+        });
+    }
+    
+    // Update using cached elements
+    Object.keys(costElementsCache).forEach(resourceType => {
+        const available = resourceType === 'settlers' ? resources.freeSettlers : resources[resourceType];
+        
+        costElementsCache[resourceType].forEach(element => {
+            // Extract the cost value from the element
+            const rawText = element.textContent.trim();
+            const costValue = parseFloat(rawText.replace(',', '.').replace(/[^\d.]/g, '')) || 0;
+            
+            // Update color based on availability
+            if (available < costValue) {
+                element.classList.add('insufficient');
+            } else {
+                element.classList.remove('insufficient');
             }
         });
     });
@@ -39,10 +62,12 @@ function updateCostColors(resources) {
 }
 
 function updateBuildingButtonStates(resources) {
-    // Find all upgrade buttons and check if they can be enabled
-    const upgradeButtons = document.querySelectorAll('[id$="upgradeButton"]');
+    // Cache upgrade buttons on first run to avoid expensive DOM queries
+    if (!upgradeButtonsCache) {
+        upgradeButtonsCache = Array.from(document.querySelectorAll('[id$="upgradeButton"]'));
+    }
     
-    upgradeButtons.forEach(button => {
+    upgradeButtonsCache.forEach(button => {
         const costWood = parseInt(button.getAttribute('data-cost-wood')) || 0;
         const costStone = parseInt(button.getAttribute('data-cost-stone')) || 0;
         const costOre = parseInt(button.getAttribute('data-cost-ore')) || 0;
@@ -247,6 +272,11 @@ function fetchAllPlayers() {
 }
 
 function fetchResourcesForColorUpdate(settlementId) {
+    // Only update if we're not using client-side progress manager
+    if (window.clientProgressManager) {
+        return; // Let client-side manager handle this
+    }
+    
     fetch(`../php/backend.php?settlementId=${settlementId}`)
         .then(response => response.json())
         .then(data => {
@@ -375,6 +405,9 @@ async function fetchBuildingData(settlementId, buildingTypes) {
     getRegen(settlementId);
     fetchResourcesForColorUpdate(settlementId);
     updateTabVisibility();
+    
+    // Invalidate caches after building data changes
+    invalidateElementCaches();
 }
 
 function upgradeBuilding(buildingType, settlementId) {
@@ -569,32 +602,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchBuildings(settlementId);
 
     // Set up optimized intervals based on available progress systems
+    const config = window.PerformanceConfig?.polling || {};
+    
     if (window.buildingProgressManager) {
         console.log('Using new building progress bar system');
         
-        // Very light polling since new progress bar handles real-time updates
-        setInterval(() => fetchPlayerInfo(settlementId), 60000); // Every 60 seconds
-        setInterval(() => fetchBuildings(settlementId), 180000); // Every 3 minutes
+        // Minimal polling since new progress bar handles real-time updates
+        const modernConfig = config.modernSystem || {};
+        setInterval(() => fetchPlayerInfo(settlementId), modernConfig.playerInfo || 120000);
+        setInterval(() => fetchBuildings(settlementId), modernConfig.buildings || 300000);
         
         // New progress bar system handles building queue updates internally
     } else if (window.clientProgressManager) {
         console.log('Using optimized client-side progress system');
         
-        // Much more conservative server polling when using client-side calculations
-        // Only sync occasionally to ensure data accuracy
-        setInterval(() => fetchPlayerInfo(settlementId), 60000); // Every 60 seconds
-        setInterval(() => fetchBuildings(settlementId), 180000); // Every 3 minutes
+        // Very conservative server polling when using client-side calculations
+        const modernConfig = config.modernSystem || {};
+        setInterval(() => fetchPlayerInfo(settlementId), modernConfig.playerInfo || 120000);
+        setInterval(() => fetchBuildings(settlementId), modernConfig.buildings || 300000);
         
         // Client progress manager handles resources and queue updates
     } else {
         console.log('Falling back to original polling system');
         
-        // Original frequent polling as fallback
-        setInterval(() => fetchBuildingQueue(settlementId), 1000);
-        setInterval(() => fetchResources(settlementId), 1000);
-        setInterval(() => getRegen(settlementId), 5000);
-        setInterval(() => fetchPlayerInfo(settlementId), 5000);
-        setInterval(() => fetchBuildings(settlementId), 5000);
+        // Reduced frequency polling for fallback system
+        const fallbackConfig = config.fallbackSystem || {};
+        setInterval(() => fetchBuildingQueue(settlementId), fallbackConfig.queue || 2000);
+        setInterval(() => fetchResources(settlementId), fallbackConfig.resources || 3000);
+        setInterval(() => getRegen(settlementId), fallbackConfig.regen || 10000);
+        setInterval(() => fetchPlayerInfo(settlementId), fallbackConfig.playerInfo || 15000);
+        setInterval(() => fetchBuildings(settlementId), fallbackConfig.buildings || 15000);
     }
     
     // Check settlement ownership after a short delay to ensure currentPlayerId is set

@@ -40,6 +40,7 @@
     <title>Settlement Building</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/progress-bars.css">
+    <script src="js/performance-config.js"></script>
     <script src="js/theme-switcher.js"></script>
     <script src="js/emoji-config.js"></script>
     <script src="js/translations.js"></script>

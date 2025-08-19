@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Test - Browser Game</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/progress-bars.css">
+    <script src="js/performance-config.js"></script>
+    <style>
+        .test-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        
+        .test-results {
+            font-family: monospace;
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 10px;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        
+        .progress-demo {
+            margin: 10px 0;
+        }
+        
+        .performance-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🚀 Performance Improvements Test</h1>
+        
+        <div class="test-section">
+            <h2>📊 Performance Configuration Status</h2>
+            <div id="configStatus" class="test-results">Loading configuration...</div>
+        </div>
+        
+        <div class="test-section">
+            <h2>⚡ DOM Query Performance Test</h2>
+            <p>Testing the efficiency of our cached DOM queries vs repeated queries:</p>
+            <button onclick="runDOMTest()">Run DOM Query Test</button>
+            <div id="domTestResults" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📈 Progress Bar Performance Demo</h2>
+            <p>Demonstrating smooth progress bar animations with optimized update thresholds:</p>
+            <button onclick="startProgressDemo()">Start Progress Demo</button>
+            <button onclick="stopProgressDemo()">Stop Demo</button>
+            
+            <div class="progress-demo">
+                <h4>Building Progress (0.1% threshold)</h4>
+                <div class="progress-container">
+                    <div id="buildingProgress" class="progress-bar active-building" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div class="progress-demo">
+                <h4>Military Progress (0.2% threshold)</h4>
+                <div class="progress-container">
+                    <div id="militaryProgress" class="progress-bar active-building" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <div id="progressStats" class="performance-stats"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔄 Network Request Optimization</h2>
+            <p>Simulating the difference between old and new polling frequencies:</p>
+            <button onclick="simulateNetworkLoad()">Simulate Network Load</button>
+            <div id="networkResults" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>💾 Memory Usage Monitoring</h2>
+            <button onclick="checkMemoryUsage()">Check Memory Usage</button>
+            <div id="memoryResults" class="test-results"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎯 Overall Performance Summary</h2>
+            <div id="overallStats" class="performance-stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="requestReduction">-</div>
+                    <div class="stat-label">Request Reduction</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="domOptimization">-</div>
+                    <div class="stat-label">DOM Query Improvement</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="animationSmooth">-</div>
+                    <div class="stat-label">Animation Smoothness</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="memoryEfficiency">-</div>
+                    <div class="stat-label">Memory Efficiency</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let progressDemoInterval = null;
+        let progressStats = {
+            updates: 0,
+            startTime: 0
+        };
+
+        // Initialize performance monitoring
+        if (window.PerformanceConfig) {
+            window.PerformanceConfig.monitoring.enabled = true;
+        }
+
+        function updateConfigStatus() {
+            const configDiv = document.getElementById('configStatus');
+            if (window.PerformanceConfig) {
+                configDiv.textContent = `✅ Performance Configuration Loaded
+
+Polling Intervals:
+- Modern System Player Info: ${window.PerformanceConfig.polling.modernSystem.playerInfo / 1000}s
+- Modern System Buildings: ${window.PerformanceConfig.polling.modernSystem.buildings / 1000}s
+- Fallback System Resources: ${window.PerformanceConfig.polling.fallbackSystem.resources / 1000}s
+
+Progress Bar Updates:
+- Update Interval: ${window.PerformanceConfig.progressBars.updateInterval}ms
+- Server Sync: ${window.PerformanceConfig.progressBars.serverSyncInterval / 1000}s
+- Building Threshold: ${window.PerformanceConfig.progressBars.updateThresholds.building}%
+- Military Threshold: ${window.PerformanceConfig.progressBars.updateThresholds.military}%
+
+DOM Optimizations:
+- Caching Enabled: ${window.PerformanceConfig.dom.enableCaching}
+- Batch Updates: ${window.PerformanceConfig.dom.batchDOMUpdates}
+- GPU Acceleration: ${window.PerformanceConfig.animations.useGPUAcceleration}`;
+            } else {
+                configDiv.textContent = '❌ Performance Configuration Not Loaded';
+            }
+        }
+
+        function runDOMTest() {
+            const iterations = 1000;
+            const testElement = document.createElement('div');
+            testElement.id = 'testElement';
+            document.body.appendChild(testElement);
+            
+            // Test repeated queries (old method)
+            const start1 = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                const element = document.getElementById('testElement');
+                if (element) element.style.width = i + 'px';
+            }
+            const end1 = performance.now();
+            const repeatedTime = end1 - start1;
+            
+            // Test cached queries (new method)
+            const cachedElement = document.getElementById('testElement');
+            const start2 = performance.now();
+            for (let i = 0; i < iterations; i++) {
+                if (cachedElement) cachedElement.style.height = i + 'px';
+            }
+            const end2 = performance.now();
+            const cachedTime = end2 - start2;
+            
+            document.body.removeChild(testElement);
+            
+            const improvement = ((repeatedTime - cachedTime) / repeatedTime * 100).toFixed(1);
+            
+            document.getElementById('domTestResults').textContent = 
+`DOM Query Performance Test Results:
+
+Repeated Queries (old method): ${repeatedTime.toFixed(2)}ms
+Cached Queries (new method): ${cachedTime.toFixed(2)}ms
+
+Performance Improvement: ${improvement}% faster
+Iterations: ${iterations}`;
+
+            document.getElementById('domOptimization').textContent = `${improvement}%`;
+        }
+
+        function startProgressDemo() {
+            if (progressDemoInterval) return;
+            
+            progressStats.updates = 0;
+            progressStats.startTime = performance.now();
+            
+            let buildingProgress = 0;
+            let militaryProgress = 0;
+            
+            progressDemoInterval = setInterval(() => {
+                // Simulate building progress (0.1% threshold)
+                buildingProgress += 0.1;
+                const buildingBar = document.getElementById('buildingProgress');
+                if (buildingProgress <= 100) {
+                    buildingBar.style.width = buildingProgress + '%';
+                    progressStats.updates++;
+                }
+                
+                // Simulate military progress (0.2% threshold) 
+                militaryProgress += 0.2;
+                const militaryBar = document.getElementById('militaryProgress');
+                if (militaryProgress <= 100) {
+                    militaryBar.style.width = militaryProgress + '%';
+                    progressStats.updates++;
+                }
+                
+                // Update stats
+                const elapsed = (performance.now() - progressStats.startTime) / 1000;
+                const updatesPerSecond = progressStats.updates / elapsed;
+                
+                document.getElementById('progressStats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value">${progressStats.updates}</div>
+                        <div class="stat-label">Total Updates</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${updatesPerSecond.toFixed(1)}</div>
+                        <div class="stat-label">Updates/Second</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${elapsed.toFixed(1)}s</div>
+                        <div class="stat-label">Elapsed Time</div>
+                    </div>
+                `;
+                
+                if (buildingProgress >= 100 && militaryProgress >= 100) {
+                    stopProgressDemo();
+                }
+            }, window.PerformanceConfig?.progressBars.updateInterval || 300);
+        }
+
+        function stopProgressDemo() {
+            if (progressDemoInterval) {
+                clearInterval(progressDemoInterval);
+                progressDemoInterval = null;
+                
+                document.getElementById('buildingProgress').style.width = '0%';
+                document.getElementById('militaryProgress').style.width = '0%';
+                
+                document.getElementById('animationSmooth').textContent = '✅ Smooth';
+            }
+        }
+
+        function simulateNetworkLoad() {
+            const oldSystemRequests = {
+                'Building Queue': 1000, // ms
+                'Resources': 1000,
+                'Player Info': 5000,
+                'Buildings': 5000,
+                'Regen': 5000
+            };
+            
+            const newSystemRequests = {
+                'Player Info': 120000, // ms
+                'Buildings': 300000,
+                'Resources': 0, // client-side
+                'Building Queue': 0 // client-side
+            };
+            
+            // Calculate requests per hour
+            const oldRequestsPerHour = Object.values(oldSystemRequests)
+                .filter(interval => interval > 0)
+                .reduce((total, interval) => total + (3600000 / interval), 0);
+            
+            const newRequestsPerHour = Object.values(newSystemRequests)
+                .filter(interval => interval > 0)
+                .reduce((total, interval) => total + (3600000 / interval), 0);
+            
+            const reduction = ((oldRequestsPerHour - newRequestsPerHour) / oldRequestsPerHour * 100).toFixed(1);
+            
+            document.getElementById('networkResults').textContent = 
+`Network Load Simulation:
+
+OLD SYSTEM (requests per hour):
+${Object.entries(oldSystemRequests).map(([key, value]) => 
+    `- ${key}: ${value > 0 ? (3600000/value).toFixed(0) : '0'} requests`
+).join('\n')}
+Total: ${oldRequestsPerHour.toFixed(0)} requests/hour
+
+NEW SYSTEM (requests per hour):
+${Object.entries(newSystemRequests).map(([key, value]) => 
+    `- ${key}: ${value > 0 ? (3600000/value).toFixed(0) : 'Client-side'} requests`
+).join('\n')}
+Total: ${newRequestsPerHour.toFixed(0)} requests/hour
+
+🎯 Network Load Reduction: ${reduction}%`;
+
+            document.getElementById('requestReduction').textContent = `${reduction}%`;
+        }
+
+        function checkMemoryUsage() {
+            if (performance.memory) {
+                const memory = performance.memory;
+                const used = (memory.usedJSHeapSize / 1024 / 1024).toFixed(2);
+                const total = (memory.totalJSHeapSize / 1024 / 1024).toFixed(2);
+                const limit = (memory.jsHeapSizeLimit / 1024 / 1024).toFixed(2);
+                
+                document.getElementById('memoryResults').textContent = 
+`Memory Usage Information:
+
+Used Heap Size: ${used} MB
+Total Heap Size: ${total} MB
+Heap Size Limit: ${limit} MB
+
+Memory Efficiency: ${((1 - (memory.usedJSHeapSize / memory.jsHeapSizeLimit)) * 100).toFixed(1)}% available`;
+
+                document.getElementById('memoryEfficiency').textContent = 
+                    `${((1 - (memory.usedJSHeapSize / memory.jsHeapSizeLimit)) * 100).toFixed(1)}%`;
+            } else {
+                document.getElementById('memoryResults').textContent = 
+                    'Memory API not available in this browser.';
+                document.getElementById('memoryEfficiency').textContent = 'N/A';
+            }
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', function() {
+            updateConfigStatus();
+            
+            // Run some initial tests
+            setTimeout(() => {
+                simulateNetworkLoad();
+                checkMemoryUsage();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

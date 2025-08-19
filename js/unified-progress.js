@@ -33,11 +33,11 @@ class UnifiedProgressManager {
         this.updateInterval = null;
         this.apiBaseUrl = '../php/backend.php';
         
-        // Configuration
+        // Configuration - use performance config if available
         this.config = {
-            serverSyncInterval: 120000, // Sync with server every 2 minutes
-            progressUpdateInterval: 250, // Update progress every 250ms for smooth animation
-            resourceUpdateInterval: 1000 // Update resources every second
+            serverSyncInterval: (window.PerformanceConfig?.progressBars.serverSyncInterval) || 150000,
+            progressUpdateInterval: (window.PerformanceConfig?.progressBars.updateInterval) || 300,
+            resourceUpdateInterval: (window.PerformanceConfig?.resources.updateInterval) || 1000
         };
         
         // State flags
@@ -372,10 +372,11 @@ class UnifiedProgressManager {
             if (progressBar) {
                 const currentWidth = parseFloat(progressBar.style.width) || 0;
                 const widthDiff = Math.abs(completionPercentage - currentWidth);
+                const threshold = (window.PerformanceConfig?.progressBars.updateThresholds.unified) || 0.1;
                 
-                // Reduced threshold from 0.1% to 0.05% for smoother updates
+                // Improved threshold for better performance, use config if available
                 // Always update if it's the first time (currentWidth === 0) or completion changes significantly
-                if (widthDiff >= 0.05 || completionPercentage >= 99.9 || completionPercentage === 0 || currentWidth === 0) {
+                if (widthDiff >= threshold || completionPercentage >= 99.9 || completionPercentage === 0 || currentWidth === 0) {
                     progressBar.style.width = `${Math.min(100, completionPercentage)}%`;
                     // Smoother transition for active buildings, instant for queued
                     progressBar.style.transition = queueIndex === 0 ? 'width 0.2s ease-out' : 'none';

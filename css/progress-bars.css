@@ -32,7 +32,7 @@
     --progress-bar-complete: #38a169;
 }
 
-/* Base progress container styles */
+/* Base progress container styles with performance optimizations */
 .progress-container {
     width: 100%;
     height: var(--progress-height);
@@ -42,9 +42,12 @@
     position: relative;
     box-shadow: var(--progress-shadow);
     border: 1px solid rgba(0, 0, 0, 0.1);
+    /* Performance optimization: use GPU acceleration */
+    transform: translateZ(0);
+    will-change: auto;
 }
 
-/* Base progress bar styles */
+/* Base progress bar styles with performance optimizations */
 .progress-bar {
     height: 100%;
     width: 0%;
@@ -53,9 +56,12 @@
     transition: width 0.2s ease-out;
     position: relative;
     overflow: hidden;
+    /* Performance optimization: use GPU acceleration for smooth transitions */
+    transform: translateZ(0);
+    will-change: width;
 }
 
-/* Active building progress bar */
+/* Active building progress bar with optimized animation */
 .progress-bar.active-building {
     background-color: var(--progress-bar-active);
     background-image: linear-gradient(
@@ -69,13 +75,13 @@
         transparent
     );
     background-size: 20px 20px;
-    animation: progress-animation 1s linear infinite;
+    animation: progress-animation 1.5s linear infinite; /* Slowed down slightly for better performance */
 }
 
-/* Queued building progress bar */
+/* Queued building progress bar - no animation for better performance */
 .progress-bar.queued-building {
     background-color: var(--progress-bar-queued);
-    transition: none; /* No animation for queued buildings */
+    transition: none; /* No animation for queued buildings - better performance */
 }
 
 /* Progress bar animation for active buildings */
