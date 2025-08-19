@@ -53,6 +53,9 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
     /* Reduced padding - navigation is more compact now */
     padding-top: 90px;
+    /* Performance optimizations */
+    contain: layout style;
+    will-change: auto;
 }
 
 /* Navigation remains consistent - no extra padding needed */
@@ -341,6 +344,9 @@ body {
     border-radius: 8px;
     overflow: hidden;
     transition: background-color 0.3s ease;
+    /* Performance optimization for large tables */
+    table-layout: fixed;
+    contain: layout style;
 }
 
 .buildings th, .buildings td {

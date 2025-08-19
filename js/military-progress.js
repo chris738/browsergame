@@ -22,8 +22,8 @@ class MilitaryProgressManager {
         
         // Configuration
         this.config = {
-            serverSyncInterval: 120000, // Sync with server every 2 minutes
-            progressUpdateInterval: 250, // Update progress every 250ms for smooth animation
+            serverSyncInterval: 150000, // Sync with server every 2.5 minutes (increased for better performance)
+            progressUpdateInterval: 300, // Update progress every 300ms for smooth animation (reduced from 250ms)
             resourceUpdateInterval: 1000 // Update resources every second
         };
         
