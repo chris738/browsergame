@@ -1,4 +1,4 @@
-/* Building-related Styles */
+/* Building-related Styles - Mobile First Design */
 
 /* Old resources section removed - now integrated into navbar */
 
@@ -26,8 +26,9 @@
     transform: scale(1.2);
 }
 
+/* Mobile-first approach: Start with mobile styles */
 .buildings, .buildingsQueue {
-    padding: 20px;
+    padding: 15px 10px;
 }
 
 .buildings table, .buildingsQueue table{
@@ -40,13 +41,15 @@
     transition: background-color 0.3s ease;
 }
 
+/* Mobile-first table cells */
 .buildings th, .buildings td {
     border: 1px solid var(--card-border);
-    padding: 15px;
+    padding: 10px 8px;
     text-align: left;
     vertical-align: middle;
-    line-height: 1.2;  /* Verringert die Zeilenhöhe */
+    line-height: 1.2;
     transition: border-color 0.3s ease;
+    font-size: 14px;
 }
 
 .buildings th {
@@ -61,24 +64,25 @@
     color: var(--text-color);
 }
 
+/* Mobile-first table column widths */
 .buildings td:nth-child(1) {
-    width: 10%;
+    width: 25%;
 }
 .buildings td:nth-child(2) {
-    width: 5%;
+    width: 10%;
 }
 
 .buildings td:nth-child(3) {
-    width: 71%;
+    width: 50%;
 }
 
 .buildings td:nth-child(4) {
-    width: 20%;
+    width: 15%;
 }
 
 .buildings td:last-child {
     text-align: right;
-    padding-right: 20px;
+    padding-right: 8px;
 }
 
 .buildings tr:nth-child(even) {
@@ -89,17 +93,31 @@
     background-color: var(--table-hover);
 }
 
+/* Mobile-first cost boxes with blurred, darker background */
 .cost-box {
     display: inline-block;
-    background-color: var(--cost-box-bg); /* Hintergrundfarbe */
-    padding: 5px 10px; /* Innenabstand */
-    border: 1px solid var(--cost-box-border); /* Rahmen */
-    border-radius: 8px; /* Abgerundete Ecken */
-    font-size: 14px; /* Schriftgröße */
-    color: var(--text-color); /* Schriftfarbe */
-    text-align: center; /* Zentrierter Text */
-    margin-right: 5px; /* Abstand zwischen den Kästen */
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    /* Enhanced background with blur and transparency */
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-color);
+    text-align: center;
+    margin: 2px 3px 2px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    /* Ensure text is readable */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark theme cost box adjustments */
+[data-theme="dark"] .cost-box {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 button {
@@ -154,5 +172,59 @@ button {
     to {
         transform: translateX(0);
         opacity: 1;
+    }
+}
+
+/* Tablet and Desktop responsive improvements */
+@media (min-width: 768px) {
+    .buildings, .buildingsQueue {
+        padding: 20px;
+    }
+    
+    .buildings th, .buildings td {
+        padding: 15px;
+        font-size: 16px;
+    }
+    
+    .cost-box {
+        padding: 8px 12px;
+        font-size: 14px;
+        margin: 2px 5px 2px 0;
+    }
+    
+    .buildings td:nth-child(1) {
+        width: 15%;
+    }
+    .buildings td:nth-child(2) {
+        width: 8%;
+    }
+    
+    .buildings td:nth-child(3) {
+        width: 62%;
+    }
+    
+    .buildings td:nth-child(4) {
+        width: 15%;
+    }
+    
+    .buildings td:last-child {
+        padding-right: 20px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .buildings td:nth-child(1) {
+        width: 10%;
+    }
+    .buildings td:nth-child(2) {
+        width: 5%;
+    }
+    
+    .buildings td:nth-child(3) {
+        width: 71%;
+    }
+    
+    .buildings td:nth-child(4) {
+        width: 14%;
     }
 }
