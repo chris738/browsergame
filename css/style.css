@@ -400,15 +400,21 @@ body {
 
 .cost-box {
     display: inline-block;
-    background-color: var(--cost-box-bg); /* Hintergrundfarbe */
-    padding: 5px 10px; /* Innenabstand */
-    border: 1px solid var(--cost-box-border); /* Rahmen */
-    border-radius: 8px; /* Abgerundete Ecken */
-    font-size: 14px; /* Schriftgröße */
-    color: var(--text-color); /* Schriftfarbe */
-    text-align: center; /* Zentrierter Text */
-    margin-right: 5px; /* Abstand zwischen den Kästen */
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    /* Enhanced background with blur and transparency */
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--text-color);
+    text-align: center;
+    margin: 2px 3px 2px 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    /* Ensure text is readable */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 button {
@@ -448,6 +454,13 @@ button {
 
 .cost-box.insufficient {
     color: red;
+}
+
+/* Dark theme cost box adjustments */
+[data-theme="dark"] .cost-box {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
 }
 
 .grid {
@@ -2962,4 +2975,13 @@ button {
 .defeat {
     color: #dc3545;
     font-weight: bold;
+}
+
+/* Responsive design for cost boxes - Mobile First approach already handled in buildings.css */
+@media (min-width: 768px) {
+    .cost-box {
+        padding: 8px 12px;
+        font-size: 14px;
+        margin: 2px 5px 2px 0;
+    }
 }

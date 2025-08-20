@@ -1,4 +1,4 @@
-/* Navigation and General Layout Styles */
+/* Navigation and General Layout Styles - Mobile First */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -6,8 +6,8 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     transition: background-color 0.3s ease, color 0.3s ease;
-    /* Reduced padding - navigation is more compact now */
-    padding-top: 90px;
+    /* Mobile-first: reduced padding for smaller screens */
+    padding-top: 95px;
 }
 
 /* Navigation remains consistent - no extra padding needed */
@@ -29,16 +29,17 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Top row: Settlement name, tabs (inline), and user controls */
+/* Top row: Settlement name, tabs (inline), and user controls - Mobile first */
 .nav-top-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 15px;
+    padding: 8px 10px;
     background-color: var(--nav-bg);
     border-bottom: 1px solid var(--nav-border);
     min-height: 35px;
-    gap: 15px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 /* Inline tabs in top row */
