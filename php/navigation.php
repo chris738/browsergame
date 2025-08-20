@@ -22,6 +22,9 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
             <a href="market.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'market.php') ? 'active' : '' ?>">
                 Trade
             </a>
+            <a href="services.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'services.php') ? 'active' : '' ?>">
+                Services
+            </a>
             <a href="map.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'map.php') ? 'active' : '' ?>">
                 Map
             </a>
@@ -54,6 +57,9 @@ $settlementId = $_GET['settlementId'] ?? 1; // Default to settlement 1 if not pr
         </a>
         <a href="market.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'market.php') ? 'active' : '' ?>">
             Trade
+        </a>
+        <a href="services.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'services.php') ? 'active' : '' ?>">
+            Services
         </a>
         <a href="map.php?settlementId=<?= $settlementId ?>" class="nav-link <?= (basename($_SERVER['PHP_SELF']) == 'map.php') ? 'active' : '' ?>">
             Map
