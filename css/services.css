@@ -1,0 +1,164 @@
+/* Professional Services Styles - Following the same design patterns as cost-box */
+
+.services-section {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.services-section h2 {
+    color: var(--text-color);
+    font-size: 28px;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.services-section p {
+    color: var(--text-color);
+    opacity: 0.8;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+}
+
+/* Service boxes with the same styling as existing cost-box and arrows - transparent, blurred, and darkened */
+.service-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 20px;
+    
+    /* Enhanced background with blur and transparency - same as cost-box */
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    
+    /* Enhanced shadow for more depth */
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    
+    transition: all 0.3s ease;
+    cursor: pointer;
+    
+    /* Ensure text is readable */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    
+    /* Slight transform for modern look */
+    transform: translateY(0);
+}
+
+.service-box:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    border-color: rgba(255, 255, 255, 0.3);
+    
+    /* Slight background lightening on hover */
+    background: rgba(0, 0, 0, 0.35);
+}
+
+/* Dark theme service box adjustments - following the same pattern as cost-box */
+[data-theme="dark"] .service-box {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="dark"] .service-box:hover {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.service-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.service-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--text-color);
+    margin-bottom: 12px;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.service-description {
+    font-size: 14px;
+    color: var(--text-color);
+    opacity: 0.9;
+    text-align: center;
+    line-height: 1.4;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+    .services-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 16px 0;
+    }
+    
+    .service-box {
+        padding: 20px 16px;
+    }
+    
+    .service-icon {
+        font-size: 40px;
+        margin-bottom: 12px;
+    }
+    
+    .service-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+    
+    .service-description {
+        font-size: 13px;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+    }
+}
+
+/* Desktop adjustments */
+@media (min-width: 1025px) {
+    .services-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+    }
+    
+    .service-box {
+        padding: 28px 24px;
+    }
+    
+    .service-icon {
+        font-size: 56px;
+        margin-bottom: 20px;
+    }
+    
+    .service-title {
+        font-size: 22px;
+        margin-bottom: 16px;
+    }
+    
+    .service-description {
+        font-size: 15px;
+    }
+}
