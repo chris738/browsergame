@@ -27,10 +27,13 @@
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
     --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.2);
     
-    /* Transitions */
+    /* Transitions - shared across all themes */
     --transition-fast: 0.15s ease;
     --transition-normal: 0.3s ease;
     --transition-slow: 0.5s ease;
+    
+    /* Accent colors for effects */
+    --accent-gradient: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
 }
 
 [data-theme="dark"] {
@@ -60,9 +63,4 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
     --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.6);
-    
-    /* Transitions */
-    --transition-fast: 0.15s ease;
-    --transition-normal: 0.3s ease;
-    --transition-slow: 0.5s ease;
 }

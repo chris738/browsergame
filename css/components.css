@@ -131,8 +131,8 @@ select:hover {
 }
 
 .action-button:hover::before {
-    width: 300px;
-    height: 300px;
+    width: 500%;
+    height: 500%;
 }
 
 .action-button:hover {
@@ -194,7 +194,7 @@ select:hover {
     left: 0;
     right: 0;
     height: 3px;
-    background: linear-gradient(90deg, #3498db, #2ecc71, #f39c12, #e74c3c);
+    background: var(--accent-gradient);
     opacity: 0;
     transition: opacity var(--transition-normal);
 }
