@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Game - Graphics Improvements Demo</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body {
+            padding-top: 20px !important;
+        }
+        .demo-section {
+            margin: 30px auto;
+            max-width: 1200px;
+            padding: 0 20px;
+        }
+        .demo-title {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #3498db 0%, #2c3e50 100%);
+            color: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-lg);
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        .theme-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+    <div class="theme-switcher">
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <span id="theme-icon">🌙</span>
+            <span>Theme wechseln</span>
+        </button>
+    </div>
+
+    <div class="demo-section">
+        <div class="demo-title">
+            <h1>🎮 Browser Game - Verbesserte Grafik</h1>
+            <p>Moderne visuelle Verbesserungen mit CSS</p>
+        </div>
+
+        <!-- Enhanced Cards Demo -->
+        <h2 style="text-align: center; color: var(--text-color); margin: 40px 0 20px;">📦 Verbesserte Karten</h2>
+        <div class="demo-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🏛️ Rathaus</h3>
+                </div>
+                <div class="card-content">
+                    <p>Verwalte deine Siedlung und entwickle neue Technologien.</p>
+                    <div style="margin-top: 15px;">
+                        <span class="cost-box">🪵 100</span>
+                        <span class="cost-box">🪨 50</span>
+                        <span class="cost-box">⛏️ 25</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🪓 Holzfäller</h3>
+                </div>
+                <div class="card-content">
+                    <p>Sammelt Holz für den Bau von Gebäuden.</p>
+                    <div style="margin-top: 15px;">
+                        <span class="cost-box">🪵 50</span>
+                        <span class="cost-box">🪨 25</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">⛏️ Erzbergwerk</h3>
+                </div>
+                <div class="card-content">
+                    <p>Gewinne wertvolles Erz für fortgeschrittene Gebäude.</p>
+                    <div style="margin-top: 15px;">
+                        <span class="cost-box">🪵 75</span>
+                        <span class="cost-box">🪨 100</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Buttons Demo -->
+        <h2 style="text-align: center; color: var(--text-color); margin: 40px 0 20px;">🎯 Verbesserte Buttons</h2>
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: 30px 0;">
+            <button>Standard Button</button>
+            <button class="action-button primary">Primary Button</button>
+            <button class="action-button success">Success Button</button>
+            <button class="action-button danger">Danger Button</button>
+        </div>
+
+        <!-- Enhanced Table Demo -->
+        <h2 style="text-align: center; color: var(--text-color); margin: 40px 0 20px;">📊 Verbesserter Tabellenstil</h2>
+        <div class="buildings">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Gebäude</th>
+                        <th>Level</th>
+                        <th>Produktion</th>
+                        <th>Aktion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="building-emoji">🏛️</span> Rathaus</td>
+                        <td>Level 3</td>
+                        <td>-</td>
+                        <td>
+                            <button style="font-size: 14px; padding: 8px 16px;">Upgrade</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="building-emoji">🪓</span> Holzfäller</td>
+                        <td>Level 5</td>
+                        <td><span class="resource-emoji">🪵</span> +10/h</td>
+                        <td>
+                            <button style="font-size: 14px; padding: 8px 16px;">Upgrade</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="building-emoji">🪨</span> Steinbruch</td>
+                        <td>Level 4</td>
+                        <td><span class="resource-emoji">🪨</span> +8/h</td>
+                        <td>
+                            <button style="font-size: 14px; padding: 8px 16px;">Upgrade</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="building-emoji">⛏️</span> Erzbergwerk</td>
+                        <td>Level 2</td>
+                        <td><span class="resource-emoji">⛏️</span> +5/h</td>
+                        <td>
+                            <button style="font-size: 14px; padding: 8px 16px;">Upgrade</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Enhanced Resource Display -->
+        <h2 style="text-align: center; color: var(--text-color); margin: 40px 0 20px;">💎 Verbesserte Ressourcen-Anzeige</h2>
+        <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin: 30px 0;">
+            <div class="nav-resources-row" style="position: relative; padding: 15px; border-radius: 12px;">
+                <div class="resource">
+                    <p><span class="resource-emoji">🪵</span> <strong>1,250</strong></p>
+                    <p style="font-size: 11px; opacity: 0.7;">+10/h</p>
+                </div>
+                <div class="resource">
+                    <p><span class="resource-emoji">🪨</span> <strong>850</strong></p>
+                    <p style="font-size: 11px; opacity: 0.7;">+8/h</p>
+                </div>
+                <div class="resource">
+                    <p><span class="resource-emoji">⛏️</span> <strong>425</strong></p>
+                    <p style="font-size: 11px; opacity: 0.7;">+5/h</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Messages Demo -->
+        <h2 style="text-align: center; color: var(--text-color); margin: 40px 0 20px;">✉️ Verbesserte Status-Nachrichten</h2>
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div class="status-message status-success">
+                ✅ Gebäude erfolgreich gebaut!
+            </div>
+            <div class="status-message status-info">
+                ℹ️ Deine Ressourcen werden automatisch regeneriert.
+            </div>
+            <div class="status-message status-warning">
+                ⚠️ Deine Lager sind fast voll!
+            </div>
+            <div class="status-message status-error">
+                ❌ Nicht genügend Ressourcen vorhanden.
+            </div>
+        </div>
+
+        <!-- Badges Demo -->
+        <h2 style="text-align: center; color: var(--text-color); margin: 40px 0 20px;">🏷️ Verbesserte Badges</h2>
+        <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin: 30px 0;">
+            <span class="badge primary">Primär</span>
+            <span class="badge success">Erfolg</span>
+            <span class="badge warning">Warnung</span>
+            <span class="badge danger">Gefahr</span>
+            <span class="badge secondary">Sekundär</span>
+        </div>
+
+        <!-- Form Elements Demo -->
+        <h2 style="text-align: center; color: var(--text-color); margin: 40px 0 20px;">📝 Verbesserte Formular-Elemente</h2>
+        <div style="max-width: 600px; margin: 0 auto;">
+            <div class="card">
+                <div class="card-content">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Anzahl:</label>
+                        <input type="number" value="10" style="width: 100%;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Siedlungsname:</label>
+                        <input type="text" value="Meine Siedlung" style="width: 100%;">
+                    </div>
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">Gebäudetyp:</label>
+                        <select style="width: 100%;">
+                            <option>Rathaus</option>
+                            <option>Holzfäller</option>
+                            <option>Steinbruch</option>
+                            <option>Erzbergwerk</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 60px 0 40px; padding: 30px; background: var(--card-bg); border-radius: 12px; box-shadow: var(--shadow-lg);">
+            <h2 style="color: var(--text-color); margin-bottom: 15px;">✨ Hauptverbesserungen</h2>
+            <ul style="list-style: none; padding: 0; text-align: left; max-width: 600px; margin: 0 auto; color: var(--text-color);">
+                <li style="padding: 10px; margin: 5px 0;">✓ Modernere Farbpaletten mit Gradienten</li>
+                <li style="padding: 10px; margin: 5px 0;">✓ Glatte Animationen und Übergänge</li>
+                <li style="padding: 10px; margin: 5px 0;">✓ Verbesserte Schatten und Tiefe</li>
+                <li style="padding: 10px; margin: 5px 0;">✓ Glassmorphismus-Effekte</li>
+                <li style="padding: 10px; margin: 5px 0;">✓ Ripple-Effekte bei Buttons</li>
+                <li style="padding: 10px; margin: 5px 0;">✓ Hover-Animationen für besseres Feedback</li>
+                <li style="padding: 10px; margin: 5px 0;">✓ Verbesserte Lesbarkeit und Kontraste</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                icon.textContent = '🌙';
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                icon.textContent = '☀️';
+            }
+        }
+        
+        // Set initial theme based on system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.setAttribute('data-theme', 'dark');
+            document.getElementById('theme-icon').textContent = '☀️';
+        }
+    </script>
+</body>
+</html>
